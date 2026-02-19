@@ -1,0 +1,598 @@
+const Course = require("../../models/course.model");
+const Enrollment = require("../../models/enrollment.model");
+const User = require("../../models/user.model");
+const Role = require("../../models/role.model");
+const bcrypt = require("bcrypt");
+
+const getInstructorProfile = async (req, res) => {
+  try {
+    const instructorId = req.params.id;
+
+    // 1. Fetch instructor with role populated
+    const instructor = await User.findById(instructorId)
+      .select(
+        "name email profileImage designation experience shortBio skills location social role"
+      )
+      .populate("role", "name"); // populate role name only
+
+    if (!instructor) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // 2. Ensure the user is an instructor
+    if (instructor.role?.name !== "instructor") {
+      return res
+        .status(403)
+        .json({ message: "This user is not an instructor" });
+    }
+
+    // 3. Fetch only published courses by this instructor
+    const courses = await Course.find({
+      instructor: instructorId,
+      isPublished: true,
+    })
+      .populate("instructor", "name profileImage") // populate only name & profileImage
+
+      .select(
+        "title slug category price discountPrice thumbnail rating studentsEnrolled duration level description instructor isPublished createdAt"
+      )
+
+      .lean();
+
+    // 4. For each course, get enrollment count
+    const coursesWithEnrollments = await Promise.all(
+      courses.map(async (course) => {
+        const enrollmentCount = await Enrollment.countDocuments({
+          course: course._id,
+        });
+        return {
+          ...course,
+          enrollments: enrollmentCount,
+        };
+      })
+    );
+
+    res.status(200).json({
+      instructor,
+      courses: coursesWithEnrollments,
+    });
+  } catch (error) {
+    console.error("Error fetching instructor profile:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// Create a new user (student/instructor/admin) by admin
+const createUser = async (req, res) => {
+  try {
+    const { name, email, password, phone, roleName } = req.body;
+
+    if (!name || !email || !password) {
+      return res
+        .status(400)
+        .json({ message: "Name, email and password are required" });
+    }
+
+    const existing = await User.findOne({ email });
+    if (existing)
+      return res.status(400).json({ message: "Email already in use" });
+
+    // Resolve role by name; default handled by User pre-save if none provided
+    let roleId = null;
+    if (roleName) {
+      const role = await Role.findOne({ name: roleName });
+      if (!role) return res.status(400).json({ message: "Invalid role name" });
+      roleId = role._id;
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const newUser = await User.create({
+      name,
+      email,
+      password: hashedPassword,
+      phone: phone || undefined,
+      role: roleId || undefined,
+      isVerified: true,
+      maxDevices: 5,
+    });
+
+    const created = await User.findById(newUser._id)
+      .select("name email phone profileImage role isVerified")
+      .populate("role", "name");
+
+    res
+      .status(201)
+      .json({ message: "User created successfully", user: created });
+  } catch (error) {
+    console.error("Error creating user:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+const COMMISSION_RATE = 0.1; // 10% commission
+
+const getDashboardData = async (req, res) => {
+  try {
+    const instructorId = req.user.id;
+
+    // 1️⃣ Total courses by this instructor
+    const totalCourses = await Course.countDocuments({
+      instructor: instructorId,
+    });
+
+    // 2️⃣ Fetch all courses of this instructor
+    const courses = await Course.find({ instructor: instructorId }).select(
+      "_id title"
+    );
+    const courseIds = courses.map((course) => course._id);
+
+    // 3️⃣ Total students across all courses
+    const totalStudents = await Enrollment.countDocuments({
+      course: { $in: courseIds },
+      status: "active",
+    });
+
+    // 4️⃣ Recent enrollments (last 5)
+    const recentEnrollments = await Enrollment.find({
+      course: { $in: courseIds },
+    })
+      .sort({ createdAt: -1 })
+      .limit(5)
+      .populate("user", "name email profileImage")
+      .populate("course", "title slug price");
+
+    // 5️⃣ Revenue stats
+    const allEnrollments = await Enrollment.find({
+      course: { $in: courseIds },
+      "payment.paymentStatus": "completed",
+    });
+
+    // Fix totalRevenue and monthlyRevenue using revenue after commission
+    let totalRevenue = 0;
+    const monthlyRevenue = {};
+
+    allEnrollments.forEach((enrollment) => {
+      const amount = enrollment.payment?.amount || 0;
+      const revenue = amount - amount * COMMISSION_RATE; // net revenue
+
+      totalRevenue += revenue;
+
+      const month = new Date(enrollment.payment.paymentDate).toLocaleString(
+        "default",
+        {
+          month: "short",
+          year: "numeric",
+        }
+      );
+      monthlyRevenue[month] = (monthlyRevenue[month] || 0) + revenue;
+    });
+
+    // Enrollment count per course
+    const enrollmentsPerCourse = await Enrollment.aggregate([
+      { $match: { course: { $in: courseIds }, status: "active" } },
+      { $group: { _id: "$course", count: { $sum: 1 } } },
+    ]);
+
+    // Completion % per course
+    const completionPerCourse = await Enrollment.aggregate([
+      { $match: { course: { $in: courseIds } } },
+      { $project: { course: 1, completion: "$progress.completionPercentage" } },
+      { $group: { _id: "$course", avgCompletion: { $avg: "$completion" } } },
+    ]);
+
+    res.status(200).json({
+      totalCourses,
+      totalStudents,
+      totalRevenue, // keep same key as before
+      monthlyRevenue,
+      recentEnrollments,
+      enrollmentsPerCourse,
+      completionPerCourse,
+    });
+  } catch (error) {
+    console.error("Error fetching dashboard data:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// Admin-wide dashboard with full platform metrics
+const getAdminDashboardData = async (req, res) => {
+  try {
+    // Optional: assume authorization middleware restricts this to admins
+
+    // Totals
+    const [
+      totalUsers,
+      totalCourses,
+      totalPublishedCourses,
+      totalEnrollments,
+      activeEnrollments,
+    ] = await Promise.all([
+      User.countDocuments({}),
+      Course.countDocuments({}),
+      Course.countDocuments({ isPublished: true }),
+      Enrollment.countDocuments({}),
+      Enrollment.countDocuments({ status: "active" }),
+    ]);
+
+    // Role breakdown (students/instructors) via aggregation to role name
+    const roleBreakdown = await User.aggregate([
+      {
+        $lookup: {
+          from: "roles",
+          localField: "role",
+          foreignField: "_id",
+          as: "role",
+        },
+      },
+      { $unwind: "$role" },
+      { $group: { _id: "$role.name", count: { $sum: 1 } } },
+    ]);
+    let totalInstructors = 0;
+    let totalStudents = 0;
+    roleBreakdown.forEach((r) => {
+      if (r._id === "instructor") totalInstructors = r.count;
+      if (r._id === "user") totalStudents = r.count;
+    });
+
+    // Revenue stats (platform-wide)
+    const monthlyGross = await Enrollment.aggregate([
+      { $match: { "payment.paymentStatus": "completed" } },
+      {
+        $group: {
+          _id: {
+            y: { $year: "$payment.paymentDate" },
+            m: { $month: "$payment.paymentDate" },
+          },
+          gross: { $sum: "$payment.amount" },
+        },
+      },
+      { $sort: { "_id.y": 1, "_id.m": 1 } },
+    ]);
+
+    let grossRevenue = 0;
+    const monthly = monthlyGross.map((row) => {
+      const date = new Date(row._id.y, row._id.m - 1, 1);
+      const label = date.toLocaleString("default", {
+        month: "short",
+        year: "numeric",
+      });
+      grossRevenue += row.gross || 0;
+      const profit = (row.gross || 0) * COMMISSION_RATE; // platform profit (commission)
+      const net = (row.gross || 0) - profit; // payout to instructors
+      return { month: label, gross: row.gross || 0, net, profit };
+    });
+    const platformProfit = grossRevenue * COMMISSION_RATE;
+    const netPayoutToInstructors = grossRevenue - platformProfit;
+
+    // Top courses by revenue
+    const topCoursesByRevenue = await Enrollment.aggregate([
+      { $match: { "payment.paymentStatus": "completed" } },
+      {
+        $group: {
+          _id: "$course",
+          gross: { $sum: "$payment.amount" },
+          enrollments: { $sum: 1 },
+        },
+      },
+      { $sort: { gross: -1 } },
+      { $limit: 5 },
+      {
+        $lookup: {
+          from: "courses",
+          localField: "_id",
+          foreignField: "_id",
+          as: "course",
+        },
+      },
+      { $unwind: "$course" },
+      {
+        $lookup: {
+          from: "users",
+          localField: "course.instructor",
+          foreignField: "_id",
+          as: "instructor",
+        },
+      },
+      { $unwind: { path: "$instructor", preserveNullAndEmptyArrays: true } },
+      {
+        $project: {
+          courseId: "$_id",
+          title: "$course.title",
+          slug: "$course.slug",
+          enrollments: 1,
+          gross: 1,
+          net: {
+            $subtract: ["$gross", { $multiply: ["$gross", COMMISSION_RATE] }],
+          },
+          profit: { $multiply: ["$gross", COMMISSION_RATE] },
+          instructor: {
+            _id: "$instructor._id",
+            name: "$instructor.name",
+            profileImage: "$instructor.profileImage",
+          },
+        },
+      },
+    ]);
+
+    // Top instructors by revenue
+    const topInstructorsByRevenue = await Enrollment.aggregate([
+      { $match: { "payment.paymentStatus": "completed" } },
+      {
+        $lookup: {
+          from: "courses",
+          localField: "course",
+          foreignField: "_id",
+          as: "course",
+        },
+      },
+      { $unwind: "$course" },
+      {
+        $group: {
+          _id: "$course.instructor",
+          gross: { $sum: "$payment.amount" },
+          enrollments: { $sum: 1 },
+        },
+      },
+      { $sort: { gross: -1 } },
+      { $limit: 5 },
+      {
+        $lookup: {
+          from: "users",
+          localField: "_id",
+          foreignField: "_id",
+          as: "instructor",
+        },
+      },
+      { $unwind: { path: "$instructor", preserveNullAndEmptyArrays: true } },
+      {
+        $project: {
+          instructorId: "$_id",
+          name: "$instructor.name",
+          profileImage: "$instructor.profileImage",
+          gross: 1,
+          net: {
+            $subtract: ["$gross", { $multiply: ["$gross", COMMISSION_RATE] }],
+          },
+          profit: { $multiply: ["$gross", COMMISSION_RATE] },
+          enrollments: 1,
+        },
+      },
+    ]);
+
+    // Enrollment count per course (platform-wide)
+    const enrollmentsPerCourse = await Enrollment.aggregate([
+      { $match: { status: "active" } },
+      { $group: { _id: "$course", count: { $sum: 1 } } },
+      {
+        $lookup: {
+          from: "courses",
+          localField: "_id",
+          foreignField: "_id",
+          as: "course",
+        },
+      },
+      { $unwind: "$course" },
+      { $project: { courseId: "$_id", title: "$course.title", count: 1 } },
+      { $sort: { count: -1 } },
+    ]);
+
+    // Completion % per course (platform-wide)
+    const completionPerCourse = await Enrollment.aggregate([
+      { $project: { course: 1, completion: "$progress.completionPercentage" } },
+      { $group: { _id: "$course", avgCompletion: { $avg: "$completion" } } },
+      {
+        $lookup: {
+          from: "courses",
+          localField: "_id",
+          foreignField: "_id",
+          as: "course",
+        },
+      },
+      { $unwind: "$course" },
+      {
+        $project: {
+          courseId: "$_id",
+          title: "$course.title",
+          avgCompletion: 1,
+        },
+      },
+      { $sort: { avgCompletion: -1 } },
+    ]);
+
+    // Recent enrollments (platform-wide)
+    const recentEnrollments = await Enrollment.find({})
+      .sort({ createdAt: -1 })
+      .limit(10)
+      .populate("user", "name email profileImage")
+      .populate("course", "title slug price");
+
+    res.status(200).json({
+      totals: {
+        users: totalUsers,
+        instructors: totalInstructors,
+        students: totalStudents,
+        courses: totalCourses,
+        publishedCourses: totalPublishedCourses,
+        enrollments: totalEnrollments,
+        activeEnrollments,
+      },
+      revenue: {
+        grossRevenue,
+        netPayoutToInstructors,
+        platformProfit,
+        monthly,
+      },
+      recentEnrollments,
+      topCoursesByRevenue,
+      topInstructorsByRevenue,
+      enrollmentsPerCourse,
+      completionPerCourse,
+    });
+  } catch (error) {
+    console.error("Error fetching admin dashboard data:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// Fetch all users with their roles populated + pagination/search/summary
+const getAllUsersWithRole = async (req, res) => {
+  try {
+    const page = Math.max(parseInt(req.query.page) || 1, 1);
+    const limit = Math.min(Math.max(parseInt(req.query.limit) || 10, 1), 100);
+    const search = (req.query.search || "").trim();
+    const roleName = (req.query.role || "").trim(); // optional filter by role name
+
+    const filter = {};
+    if (search) {
+      filter.$or = [
+        { name: { $regex: search, $options: "i" } },
+        { email: { $regex: search, $options: "i" } },
+      ];
+    }
+
+    // If role name provided, resolve to role _id for filtering
+    if (roleName) {
+      const roleDoc = await Role.findOne({ name: roleName });
+      if (!roleDoc) {
+        return res.status(200).json({
+          users: [],
+          pagination: { page, limit, totalPages: 0, totalItems: 0 },
+          summary: { totalUsers: 0, byRole: {} },
+        });
+      }
+      filter.role = roleDoc._id;
+    }
+
+    const skip = (page - 1) * limit;
+
+    const [users, totalItems, roleBreakdown] = await Promise.all([
+      User.find(filter)
+        .select("name email profileImage role isVerified")
+        .populate("role", "name")
+        .sort({ _id: -1 })
+        .skip(skip)
+        .limit(limit),
+      User.countDocuments(filter),
+      // Summary via aggregation to role names (apply same filter without pagination)
+      User.aggregate([
+        { $match: filter },
+        {
+          $lookup: {
+            from: "roles",
+            localField: "role",
+            foreignField: "_id",
+            as: "role",
+          },
+        },
+        { $unwind: { path: "$role", preserveNullAndEmptyArrays: true } },
+        {
+          $group: {
+            _id: "$role.name",
+            count: { $sum: 1 },
+          },
+        },
+      ]),
+    ]);
+
+    const byRole = {};
+    roleBreakdown.forEach((r) => {
+      const key = r._id || "no_role";
+      byRole[key] = r.count;
+    });
+
+    const totalPages = Math.ceil(totalItems / limit) || 0;
+
+    res.status(200).json({
+      users,
+      pagination: { page, limit, totalPages, totalItems },
+      summary: { totalUsers: totalItems, byRole },
+    });
+  } catch (error) {
+    console.error("Error fetching users with roles:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// Fetch a single user with full details and populated role
+const getUserByIdWithDetail = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user = await User.findById(id)
+      .populate("role", "name permissions");
+
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    res.status(200).json({ user });
+  } catch (error) {
+    console.error("Error fetching user detail:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// Update a user by admin
+const updateUserByAdmin = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, email, phone, roleName, isVerified, password } = req.body;
+
+    const updates = {};
+    if (name !== undefined) updates.name = name;
+    if (email !== undefined) updates.email = email;
+    if (phone !== undefined) updates.phone = phone;
+    if (typeof isVerified === "boolean" || isVerified === true || isVerified === false) updates.isVerified = isVerified;
+
+    // If roleName is provided, resolve to Role _id
+    if (roleName) {
+      const role = await Role.findOne({ name: roleName });
+      if (!role) return res.status(400).json({ message: "Invalid role name" });
+      updates.role = role._id;
+    }
+
+    // If email is changing, ensure uniqueness
+    if (updates.email) {
+      const existing = await User.findOne({ email: updates.email, _id: { $ne: id } });
+      if (existing) return res.status(400).json({ message: "Email already in use" });
+    }
+
+    // Optionally update password if provided
+    if (password) {
+      updates.password = await bcrypt.hash(password, 10);
+    }
+
+    const updated = await User.findByIdAndUpdate(id, updates, { new: true })
+      .select("name email phone profileImage role isVerified")
+      .populate("role", "name");
+
+    if (!updated) return res.status(404).json({ message: "User not found" });
+
+    res.status(200).json({ message: "User updated successfully", user: updated });
+  } catch (error) {
+    console.error("Error updating user:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// Delete a user by admin
+const deleteUserByAdmin = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deleted = await User.findByIdAndDelete(id);
+    if (!deleted) return res.status(404).json({ message: "User not found" });
+    res.status(200).json({ message: "User deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting user:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+module.exports = {
+  getInstructorProfile,
+  getDashboardData,
+  getAdminDashboardData,
+  getAllUsersWithRole,
+  getUserByIdWithDetail,
+  createUser,
+  updateUserByAdmin,
+  deleteUserByAdmin,
+};
