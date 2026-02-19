@@ -7,7 +7,7 @@ const fs = require("fs");
 
 const routes = require("./routes/route");
 const seedSettings = require("./config/seedSettings");
-
+console.log("harsh");
 const express = require("express");
 const cors = require("cors");
 const seedRoles = require("./config/seedRole");
