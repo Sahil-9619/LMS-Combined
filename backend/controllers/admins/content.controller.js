@@ -21,11 +21,12 @@ const createContent = async (req, res) => {
     }
 
     const content = await AdminContent.create({
-      section,
-      title,
-      description,
-      images,
-    });
+  section,
+  title,
+  description,
+  images,
+  createdBy: req.user?.id,
+});
 
     res.status(201).json({
       message: "Content created successfully",

@@ -2,6 +2,11 @@ const mongoose = require("mongoose");
 
 const adminContentSchema = new mongoose.Schema(
   {
+    section: {
+      type: String,
+      required: true,
+      enum: ["homepage", "banner", "about", "course", "testimonial"],
+    },
 
     title: {
       type: String,
