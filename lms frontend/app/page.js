@@ -14,59 +14,85 @@ import {
   Rocket,
   ChevronRight,
   Star,
-  Check,
+  Check, ChevronLeft 
 } from "lucide-react";
 import { brandName } from "./contants";
 import Link from "next/link";
 import { useSelector } from "react-redux";
+import { useEffect, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+
 
 const Home = () => {
+  
   const { settings } = useSelector((state) => state.appSettings);
+  
+  const [index, setIndex] = useState(0);
+const images = [
+  "/images/pic1.jpeg",
+  "/images/pic2.jpeg",
+  "/images/pic3.jpeg",
+];
 
+
+
+useEffect(() => {
+  const interval = setInterval(() => {
+    setIndex((prev) => (prev + 1) % images.length);
+  }, 5000);
+  return () => clearInterval(interval);
+}, []);
+
+  
   return (
-    <div className="font-sans text-gray-800">
+    <div className="font-sans bg-gradient-to-br from-gray-700 via-blue-900 to-indigo-400 text-gray-200 overflow-hidden">
       {/* Navigation */}
-      <nav className="fixed w-full bg-white shadow-sm z-50">
+      <nav className=" w-full   shadow-sm z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-20 items-center">
             <div className="flex items-center">
               <GraduationCap className="h-8 w-8 text-indigo-600" />
-              <span className="ml-2 text-2xl font-bold text-indigo-600">
-                {settings?.platformName}.
-              </span>
+              <Link href="/" className="ml-2 text-2xl font-bold">
+               {brandName}
+              </Link>
             </div>
 
-            <div className="hidden md:flex items-center space-x-8">
+            <div className="hidden md:flex items-center space-x-8 text-white">
               <a
                 href="#"
-                className="text-gray-700 hover:text-indigo-600 font-medium"
+                className="text- hover:text-indigo-600 font-medium"
               >
                 Home
               </a>
               <a
                 href="#"
-                className="text-gray-700 hover:text-indigo-600 font-medium"
+                className=" hover:text-indigo-600 font-medium"
               >
                 Courses
               </a>
               <a
                 href="#"
-                className="text-gray-700 hover:text-indigo-600 font-medium"
+                className="hover:text-indigo-600 font-medium"
               >
-                Features
+                Blog
               </a>
               <a
                 href="#"
-                className="text-gray-700 hover:text-indigo-600 font-medium"
+                className="hover:text-indigo-600 font-medium"
               >
-                Pricing
+                Gallery
               </a>
               <a
                 href="#"
-                className="text-gray-700 hover:text-indigo-600 font-medium"
+                className=" hover:text-indigo-600 font-medium"
               >
                 About
               </a>
+              <Link href="/">
+                <button className=" hover:text-indigo-600 font-medium">
+                  Contact
+                </button>
+              </Link>
               <Link href="/user/login">
                 <button className="bg-indigo-600 text-white px-6 py-2 rounded-full font-medium hover:bg-indigo-700 transition-all">
                   Sign Up
@@ -94,72 +120,134 @@ const Home = () => {
       </nav>
 
       {/* Hero Section */}
-      <section className="pt-32 pb-20 bg-gradient-to-r from-indigo-50 to-purple-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="md:flex items-center justify-between">
-            <div className="md:w-1/2 mb-12 md:mb-0">
-              <h1 className="text-5xl font-bold leading-tight mb-6 text-gray-900">
+   
+      <section className="relative h-screen w-full overflow-hidden">
+
+        {/* Background Images Fade */}
+        <div className="absolute inset-0">
+          {images.map((img, i) => (
+            <motion.div
+              key={i}
+              className="absolute inset-0 bg-cover bg-center"
+              style={{ backgroundImage: `url(${img})` }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: i === index ? 1 : 0 }}
+              transition={{ duration: 1.2, ease: "easeInOut" }}
+            />
+          ))}
+        </div>
+        
+        {/* Dark Overlay */}
+        <div className="absolute inset-0 bg-black/60" />
+        
+        {/* Content */}
+        <div className="relative z-10 h-full flex items-center">
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="max-w-2xl text-white">
+              <h1 className="text-5xl md:text-6xl font-bold leading-tight mb-6">
                 Learn New Skills Online With{" "}
-                <span className="text-indigo-600">EduMaster</span>
+                <span className="text-indigo-400">EduMaster</span>
               </h1>
-              <p className="text-xl text-gray-600 mb-8">
+        
+              <p className="text-xl text-gray-200 mb-8">
                 Access 5,000+ courses from top instructors around the globe.
                 Grow your skills today.
               </p>
+        
               <div className="flex flex-wrap gap-4">
-                <button className="bg-indigo-600 text-white px-8 py-3 rounded-full font-medium hover:bg-indigo-700 transition-all flex items-center">
-                  Get Started <ChevronRight className="ml-2 h-5 w-5" />
+                <button className="bg-indigo-600 text-white px-8 py-3 rounded-full font-medium hover:bg-indigo-700 transition-all">
+                  Get Started
                 </button>
-                <button className="border-2 border-indigo-600 text-indigo-600 px-8 py-3 rounded-full font-medium hover:bg-indigo-50 transition-all flex items-center">
+        
+                <button className="border-2 border-white text-white px-8 py-3 rounded-full font-medium hover:bg-white/20 transition-all">
                   Browse Courses
                 </button>
               </div>
             </div>
-            <div className="md:w-1/2">
-              <img
-                src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
-                alt="Students learning"
-                className="rounded-xl shadow-xl w-full"
-              />
-            </div>
           </div>
         </div>
+        
       </section>
+
 
       {/* Stats Section */}
-      <section className="py-16 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-            <div className="p-6">
-              <Users className="h-12 w-12 text-indigo-600 mx-auto mb-4" />
-              <h3 className="text-4xl font-bold mb-2">50,000+</h3>
-              <p className="text-gray-600">Active Students</p>
-            </div>
-            <div className="p-6">
-              <BookOpen className="h-12 w-12 text-indigo-600 mx-auto mb-4" />
-              <h3 className="text-4xl font-bold mb-2">5,000+</h3>
-              <p className="text-gray-600">Courses</p>
-            </div>
-            <div className="p-6">
-              <Award className="h-12 w-12 text-indigo-600 mx-auto mb-4" />
-              <h3 className="text-4xl font-bold mb-2">300+</h3>
-              <p className="text-gray-600">Expert Instructors</p>
-            </div>
-            <div className="p-6">
-              <Clock className="h-12 w-12 text-indigo-600 mx-auto mb-4" />
-              <h3 className="text-4xl font-bold mb-2">24/7</h3>
-              <p className="text-gray-600">Learning Access</p>
-            </div>
-          </div>
-        </div>
-      </section>
+<section className="relative py-24  overflow-hidden">  {/* Background Glow */}
+  <div className="absolute w-[500px] h-[500px] bg-indigo-600/20 blur-3xl rounded-full top-[-100px] left-[-100px]" />
+  <div className="absolute w-[400px] h-[400px] bg-purple-600/20 blur-3xl rounded-full bottom-[-100px] right-[-100px]" />
+
+  <div className="relative max-w-7xl mx-auto px-6">
+
+    {/* Section Heading */}
+    <div className="text-center mb-16">
+      <h2 className="text-4xl md:text-5xl font-bold mb-4">
+        Our Impact in Numbers
+      </h2>
+      <p className="text-gray-300 text-lg">
+        Empowering learners worldwide with measurable success.
+      </p>
+    </div>
+
+    {/* Stats Grid */}
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+
+      {/* Card 1 */}
+      <motion.div
+        initial={{ opacity: 0, y: 40 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="backdrop-blur-xl bg-white/10 border border-white/20 p-8 rounded-2xl text-center hover:scale-105 transition-all duration-300 shadow-lg"
+      >
+        <Users className="h-12 w-12 text-indigo-400 mx-auto mb-6" />
+        <h3 className="text-5xl font-extrabold mb-2">50K+</h3>
+        <p className="text-gray-300">Active Students</p>
+      </motion.div>
+
+      {/* Card 2 */}
+      <motion.div
+        initial={{ opacity: 0, y: 40 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8 }}
+        className="backdrop-blur-xl bg-white/10 border border-white/20 p-8 rounded-2xl text-center hover:scale-105 transition-all duration-300 shadow-lg"
+      >
+        <BookOpen className="h-12 w-12 text-indigo-400 mx-auto mb-6" />
+        <h3 className="text-5xl font-extrabold mb-2">5K+</h3>
+        <p className="text-gray-300">Courses Available</p>
+      </motion.div>
+
+      {/* Card 3 */}
+      <motion.div
+        initial={{ opacity: 0, y: 40 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ duration: 1 }}
+        className="backdrop-blur-xl bg-white/10 border border-white/20 p-8 rounded-2xl text-center hover:scale-105 transition-all duration-300 shadow-lg"
+      >
+        <Award className="h-12 w-12 text-indigo-400 mx-auto mb-6" />
+        <h3 className="text-5xl font-extrabold mb-2">300+</h3>
+        <p className="text-gray-300">Expert Instructors</p>
+      </motion.div>
+
+      {/* Card 4 */}
+      <motion.div
+        initial={{ opacity: 0, y: 40 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ duration: 1.2 }}
+        className="backdrop-blur-xl bg-white/10 border border-white/20 p-8 rounded-2xl text-center hover:scale-105 transition-all duration-300 shadow-lg"
+      >
+        <Clock className="h-12 w-12 text-indigo-400 mx-auto mb-6" />
+        <h3 className="text-5xl font-extrabold mb-2">24/7</h3>
+        <p className="text-gray-300">Learning Access</p>
+      </motion.div>
+
+    </div>
+  </div>
+</section>
 
       {/* Features Section */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-20 ">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold mb-4">Why Choose {brandName}</h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            <h2 className="text-4xl text-white font-bold mb-4">Why Choose {brandName}</h2>
+            <p className="text-xl text-gray-200 max-w-2xl mx-auto">
               We provide the best learning experience with cutting-edge
               technology and expert instructors.
             </p>
@@ -170,7 +258,7 @@ const Home = () => {
               <div className="bg-indigo-100 w-16 h-16 rounded-full flex items-center justify-center mb-6">
                 <MonitorPlay className="h-8 w-8 text-indigo-600" />
               </div>
-              <h3 className="text-xl font-bold mb-3">Interactive Lessons</h3>
+              <h3 className="text-xl text-blue-500 font-bold mb-3">Interactive Lessons</h3>
               <p className="text-gray-600">
                 Engaging video lessons with quizzes and hands-on exercises to
                 reinforce learning.
@@ -181,7 +269,7 @@ const Home = () => {
               <div className="bg-indigo-100 w-16 h-16 rounded-full flex items-center justify-center mb-6">
                 <Globe className="h-8 w-8 text-indigo-600" />
               </div>
-              <h3 className="text-xl font-bold mb-3">Learn Anywhere</h3>
+              <h3 className="text-xl text-blue-500 font-bold mb-3">Learn Anywhere</h3>
               <p className="text-gray-600">
                 Access courses on any device, anytime with our mobile-friendly
                 platform.
@@ -192,7 +280,7 @@ const Home = () => {
               <div className="bg-indigo-100 w-16 h-16 rounded-full flex items-center justify-center mb-6">
                 <MessageSquare className="h-8 w-8 text-indigo-600" />
               </div>
-              <h3 className="text-xl font-bold mb-3">Community Support</h3>
+              <h3 className="text-xl text-blue-500 font-bold mb-3">Community Support</h3>
               <p className="text-gray-600">
                 Join discussion forums and get help from instructors and peers.
               </p>
@@ -202,7 +290,7 @@ const Home = () => {
               <div className="bg-indigo-100 w-16 h-16 rounded-full flex items-center justify-center mb-6">
                 <ShieldCheck className="h-8 w-8 text-indigo-600" />
               </div>
-              <h3 className="text-xl font-bold mb-3">Certification</h3>
+              <h3 className="text-xl text-blue-500 font-bold mb-3">Certification</h3>
               <p className="text-gray-600">
                 Earn recognized certificates to showcase your new skills.
               </p>
@@ -212,7 +300,7 @@ const Home = () => {
               <div className="bg-indigo-100 w-16 h-16 rounded-full flex items-center justify-center mb-6">
                 <LayoutDashboard className="h-8 w-8 text-indigo-600" />
               </div>
-              <h3 className="text-xl font-bold mb-3">Progress Tracking</h3>
+              <h3 className="text-xl text-blue-500 font-bold mb-3">Progress Tracking</h3>
               <p className="text-gray-600">
                 Monitor your learning journey with detailed progress reports.
               </p>
@@ -222,7 +310,7 @@ const Home = () => {
               <div className="bg-indigo-100 w-16 h-16 rounded-full flex items-center justify-center mb-6">
                 <Rocket className="h-8 w-8 text-indigo-600" />
               </div>
-              <h3 className="text-xl font-bold mb-3">Career Advancement</h3>
+              <h3 className="text-xl text-blue-500 font-bold mb-3">Career Advancement</h3>
               <p className="text-gray-600">
                 Gain skills that employers want with career-focused courses.
               </p>
@@ -232,11 +320,11 @@ const Home = () => {
       </section>
 
       {/* Popular Courses */}
-      <section className="py-20 bg-white">
+      <section className="py-20 ">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold mb-4">Popular Courses</h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            <h2 className="text-3xl text-white font-bold mb-4">Popular Courses</h2>
+            <p className="text-xl max-w-2xl mx-auto">
               Start learning with our most popular courses
             </p>
           </div>
@@ -268,7 +356,7 @@ const Home = () => {
                       <span className="ml-1 text-gray-700">4.9</span>
                     </div>
                   </div>
-                  <h3 className="text-xl font-bold mb-3">
+                  <h3 className="text-xl font-bold text-purple-800 mb-3">
                     {item === 1
                       ? "UI/UX Design Masterclass"
                       : item === 2
@@ -307,7 +395,7 @@ const Home = () => {
           </div>
 
           <div className="text-center mt-12">
-            <button className="border-2 border-indigo-600 text-indigo-600 px-8 py-3 rounded-full font-medium hover:bg-indigo-50 transition-all">
+            <button className="border-2 border-indigo-600 text-white bg-indigo-700 px-8 py-3 rounded-full font-medium hover:bg-indigo-50 hover:text-blue-600 transition-all">
               View All Courses
             </button>
           </div>
@@ -315,10 +403,10 @@ const Home = () => {
       </section>
 
       {/* Testimonials */}
-      <section className="py-20 bg-indigo-600 text-white">
+      <section className="py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold mb-4">What Our Students Say</h2>
+            <h2 className="text-3xl text-white font-bold mb-4">What Our Students Say</h2>
             <p className="text-xl opacity-90 max-w-2xl mx-auto">
               Hear from our students about their learning experience
             </p>
@@ -341,14 +429,14 @@ const Home = () => {
                     />
                   </div>
                   <div>
-                    <h4 className="font-bold">
+                    <h4 className="font-bold text-purple-800">
                       {item === 1
                         ? "Sarah Johnson"
                         : item === 2
                         ? "Michael Chen"
                         : "Emma Rodriguez"}
                     </h4>
-                    <p className="text-sm opacity-80">
+                    <p className="text-sm text-black opacity-80">
                       {item === 1
                         ? "UI Designer"
                         : item === 2
@@ -357,7 +445,7 @@ const Home = () => {
                     </p>
                   </div>
                 </div>
-                <p className="mb-6">
+                <p className="mb-6 text-black">
                   {item === 1
                     ? "The courses transformed my design skills. The instructors are knowledgeable and the platform is easy to use."
                     : item === 2
@@ -376,43 +464,43 @@ const Home = () => {
       </section>
 
       {/* Pricing */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-20 ">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold mb-4">
-              Simple, Transparent Pricing
+            <h2 className="text-3xl text-white font-bold mb-4">
+              Simple, Transparent Pricing 
             </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            <p className="text-xl max-w-2xl mx-auto">
               Choose the plan that works best for your learning goals
             </p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
             <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-200">
-              <h3 className="text-xl font-bold mb-2">Basic</h3>
+              <h3 className="text-4xl text-blue-800 font-bold mb-2">Basic</h3>
               <p className="text-gray-600 mb-6">Perfect for casual learners</p>
               <div className="mb-8">
-                <span className="text-4xl font-bold">$19</span>
+                <span className="text-4xl text-green-700 font-bold">$19</span>
                 <span className="text-gray-600">/month</span>
               </div>
               <ul className="space-y-3 mb-8">
                 <li className="flex items-center">
                   <Check className="h-5 w-5 text-green-500 mr-2" />
-                  <span>Access to 100+ courses</span>
+                  <span className="text-black">Access to 100+ courses</span>
                 </li>
                 <li className="flex items-center">
                   <Check className="h-5 w-5 text-green-500 mr-2" />
-                  <span>Basic support</span>
+                  <span className="text-black">Basic support</span>
                 </li>
                 <li className="flex items-center">
                   <Check className="h-5 w-5 text-green-500 mr-2" />
-                  <span>Community access</span>
+                  <span className="text-black">Community access</span>
                 </li>
-                <li className="flex items-center text-gray-400">
+                <li className="flex items-center text-gray-500">
                   <Check className="h-5 w-5 mr-2" />
                   <span>No certificates</span>
                 </li>
-                <li className="flex items-center text-gray-400">
+                <li className="flex items-center text-gray-500">
                   <Check className="h-5 w-5 mr-2" />
                   <span>No premium courses</span>
                 </li>
@@ -426,32 +514,32 @@ const Home = () => {
               <div className="absolute top-0 right-0 bg-indigo-600 text-white text-xs font-bold px-3 py-1 rounded-bl-lg rounded-tr-lg">
                 MOST POPULAR
               </div>
-              <h3 className="text-xl font-bold mb-2">Pro</h3>
+              <h3 className="text-4xl text-blue-800 font-bold mb-2">Pro</h3>
               <p className="text-gray-600 mb-6">For serious learners</p>
               <div className="mb-8">
-                <span className="text-4xl font-bold">$49</span>
+                <span className="text-4xl text-green-700 font-bold">$49</span>
                 <span className="text-gray-600">/month</span>
               </div>
               <ul className="space-y-3 mb-8">
                 <li className="flex items-center">
                   <Check className="h-5 w-5 text-green-500 mr-2" />
-                  <span>Access to all courses</span>
+                  <span className="text-black">Access to all courses</span>
                 </li>
                 <li className="flex items-center">
                   <Check className="h-5 w-5 text-green-500 mr-2" />
-                  <span>Priority support</span>
+                  <span className="text-black">Priority support</span>
                 </li>
                 <li className="flex items-center">
                   <Check className="h-5 w-5 text-green-500 mr-2" />
-                  <span>Downloadable resources</span>
+                  <span className="text-black">Downloadable resources</span>
                 </li>
                 <li className="flex items-center">
                   <Check className="h-5 w-5 text-green-500 mr-2" />
-                  <span>Completion certificates</span>
+                  <span className="text-black">Completion certificates</span>
                 </li>
                 <li className="flex items-center">
                   <Check className="h-5 w-5 text-green-500 mr-2" />
-                  <span>Premium courses included</span>
+                  <span className="text-black">Premium courses included</span>
                 </li>
               </ul>
               <button className="w-full bg-indigo-600 text-white px-6 py-3 rounded-full font-medium hover:bg-indigo-700 transition-all">
@@ -460,32 +548,32 @@ const Home = () => {
             </div>
 
             <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-200">
-              <h3 className="text-xl font-bold mb-2">Enterprise</h3>
+              <h3 className="text-4xl text-blue-800 font-bold mb-2">Enterprise</h3>
               <p className="text-gray-600 mb-6">For teams and organizations</p>
               <div className="mb-8">
-                <span className="text-4xl font-bold">$99</span>
+                <span className="text-4xl text-green-700 font-bold">$99</span>
                 <span className="text-gray-600">/month</span>
               </div>
               <ul className="space-y-3 mb-8">
                 <li className="flex items-center">
                   <Check className="h-5 w-5 text-green-500 mr-2" />
-                  <span>Everything in Pro</span>
+                  <span className="text-black">Everything in Pro</span>
                 </li>
                 <li className="flex items-center">
                   <Check className="h-5 w-5 text-green-500 mr-2" />
-                  <span>Team dashboard</span>
+                  <span className="text-black">Team dashboard</span>
                 </li>
                 <li className="flex items-center">
                   <Check className="h-5 w-5 text-green-500 mr-2" />
-                  <span>Advanced analytics</span>
+                  <span className="text-black">Advanced analytics</span>
                 </li>
                 <li className="flex items-center">
                   <Check className="h-5 w-5 text-green-500 mr-2" />
-                  <span>Custom learning paths</span>
+                  <span className="text-black">Custom learning paths</span>
                 </li>
                 <li className="flex items-center">
                   <Check className="h-5 w-5 text-green-500 mr-2" />
-                  <span>Dedicated account manager</span>
+                  <span className="text-black">Dedicated account manager</span>
                 </li>
               </ul>
               <button className="w-full border-2 border-indigo-600 text-indigo-600 px-6 py-3 rounded-full font-medium hover:bg-indigo-50 transition-all">
@@ -497,7 +585,7 @@ const Home = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-indigo-600 text-white">
+      <section className="py-20">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl font-bold mb-6">Ready to Start Learning?</h2>
           <p className="text-xl opacity-90 mb-8">
@@ -507,7 +595,7 @@ const Home = () => {
             <button className="bg-white text-indigo-600 px-8 py-3 rounded-full font-medium hover:bg-gray-100 transition-all flex items-center">
               Get Started <ChevronRight className="ml-2 h-5 w-5" />
             </button>
-            <button className="border-2 border-white text-white px-8 py-3 rounded-full font-medium hover:bg-white hover:bg-opacity-10 transition-all">
+            <button className="border-2 border-white text-white px-8 py-3 rounded-full font-medium hover:bg-white hover:bg-opacity-10 hover:text-blue-700 transition-all">
               Browse Courses
             </button>
           </div>
@@ -515,7 +603,9 @@ const Home = () => {
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-gray-300 py-16">
+                <div className="border-t border-gray-800 mt-12 pt-8 text-center">
+</div>
+      <footer className=" text-gray-300 py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-4 gap-12">
             <div>
@@ -654,12 +744,12 @@ const Home = () => {
             </div>
           </div>
 
-          <div className="border-t border-gray-800 mt-12 pt-8 text-center">
+          <div className=" mt-12 pt-8 text-center">
             <p>
               &copy; {new Date().getFullYear()} {brandName}. All rights
               reserved.
             </p>
-          </div>
+         </div>
         </div>
       </footer>
     </div>
