@@ -264,7 +264,8 @@ const emailsignup = async (req, res) => {
       otp,
       expiresAt: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes
     });
-
+    console.log(otp);
+    
     // Generate email verification token
     // const verifyToken = jwt.sign(
     //   { id: newUser._id },
@@ -277,12 +278,13 @@ const emailsignup = async (req, res) => {
 
     // Send verification email
     try {
-      await sendMail(email, "Verify your email", "verifyEmail", {
-        name: name,
-        otp: otp,
-      });
+      // await sendMail(email, "Verify your email", "verifyEmail", {
+      //   name: name,
+      //   otp: otp,
+      // });
     } catch (mailError) {
-      console.error("Email sending failed:", mailError);
+        res.status(500).json('sorry some error occured')
+      console.log("Email sending failed:", mailError);
       // Don't fail registration if email fails
     }
 

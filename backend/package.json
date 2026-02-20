@@ -4,7 +4,7 @@
   "description": "lms software",
   "main": "server.js",
   "scripts": {
-    "start": "nodemon --inspect server.js",
+    "start": "nodemon server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [

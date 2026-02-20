@@ -22,11 +22,12 @@ app.use(
 );
 app.use(express.json());
 app.use(cookieParser());
-const mongoURI = "mongodb://localhost:27017/backend";
+const mongoURI = process.env.MONGO_URI;
 
 mongoose
   .connect(mongoURI)
   .then(() => {
+    // for adding roles in db liek user instructor admin
     // seedRoles();
     seedCourseCategory();
     seedSettings();
