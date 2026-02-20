@@ -6,7 +6,7 @@ const createContent = async (req, res) => {
     const { section, title, description, altText } = req.body;
 
     if (!section || !title || !description) {
-      return res.status(400).json({ message: "All fields are required" });
+      return res.status(400).json({ message: "All fields are required" });        
     }
 
     const images = [];
