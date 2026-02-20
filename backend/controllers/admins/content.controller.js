@@ -1,4 +1,4 @@
-const AdminContent = require("../../models/adminContent.model");
+const AdminContent = require("../../models/content.model");
 
 // 🔐 Create Content (Admin Only)
 const createContent = async (req, res) => {

@@ -7,6 +7,7 @@ router.use("/instructor", require("./instructor.route")); // /api/user/login
 router.use("/razorpay", require("./razorpay.route")); // /api/user/login
 router.use("/settings", require("./settings.route"));
 router.use("/admin", require("./admins/index")); // /api/user/login
+router.use("/content", require("./admins/content.route")); //api/admin/content
 
 // router.use("/instructor", require("./instructor/auth.route")); // /api/instructor/login
 // router.use("/admin", require("./admin/dashboard.route")); // /api/admin/...

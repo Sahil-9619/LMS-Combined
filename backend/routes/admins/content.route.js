@@ -1,13 +1,13 @@
 const express = require("express");
 const router = express.Router();
-const upload = require("../../helpers/multer"); // your multer config
+const { upload } = require("../../helpers/multer"); // your multer config
 const {
   createContent,
   getAllContent,
   getContentBySection,
   updateContent,
   deleteContent,
-} = require("../../controllers/admin/content.controller");
+} = require("../../controllers/admins/content.controller");
 
 // Admin Routes
 router.post("/", upload.array("images", 5), createContent);
