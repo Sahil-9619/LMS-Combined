@@ -2,39 +2,65 @@ const mongoose = require("mongoose");
 
 const paymentSchema = new mongoose.Schema(
   {
-    user: {
+    student: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: "Student",
       required: true,
     },
-    course: {
+
+    feeStructure: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Course",
+      ref: "FeeStructure",
       required: true,
     },
-    enrollment: {
+
+    studentFee: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Enrollment",
+      ref: "StudentFee",
+      required: true,
     },
-    amount: {
+
+    academicYear: {
+      type: String,
+      required: true, // 2025-2026
+    },
+
+    installmentName: {
+      type: String, // First Term, Second Term
+    },
+
+    baseAmount: {
       type: Number,
       required: true,
     },
-    currency: {
-      type: String,
-      default: "USD",
+
+    lateFeeApplied: {
+      type: Number,
+      default: 0,
     },
-    paymentMethod: {
-      type: String,
-      enum: ["stripe", "paypal", "razorpay", "free"],
+
+    totalAmountPaid: {
+      type: Number,
       required: true,
     },
+
+    currency: {
+      type: String,
+      default: "INR",
+    },
+
+    paymentMethod: {
+      type: String,
+      enum: ["cash", "upi", "card", "netbanking", "razorpay"],
+      required: true,
+    },
+
     transactionId: {
       type: String,
       unique: true,
       sparse: true,
     },
-    paymentIntentId: String, // for Stripe
+
     status: {
       type: String,
       enum: [
@@ -47,10 +73,17 @@ const paymentSchema = new mongoose.Schema(
       ],
       default: "pending",
     },
+
+    receiptNumber: {
+      type: String,
+      unique: true,
+    },
+
     metadata: {
       type: Map,
       of: String,
     },
+
     refund: {
       amount: Number,
       reason: String,
@@ -63,8 +96,9 @@ const paymentSchema = new mongoose.Schema(
   }
 );
 
-paymentSchema.index({ user: 1, status: 1 });
-paymentSchema.index({ course: 1, status: 1 });
+// Indexes for performance
+paymentSchema.index({ student: 1, status: 1 });
+paymentSchema.index({ academicYear: 1 });
 paymentSchema.index({ transactionId: 1 });
 
 const Payment = mongoose.model("Payment", paymentSchema);

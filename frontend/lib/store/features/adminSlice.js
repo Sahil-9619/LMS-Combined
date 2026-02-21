@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { adminServices } from "../../../services/admin/admin.service"
+import { adminServices } from "../../../services/admin/admin.service";
 
-// Thunks
+// Thunk
 export const fetchAllUsers = createAsyncThunk(
   "admin/fetchAllUsers",
   async (params = {}, { rejectWithValue }) => {

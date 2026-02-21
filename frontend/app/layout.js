@@ -1,6 +1,6 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { StoreProvider } from "../lib/provider/StoreProvider"
+import { StoreProvider } from "@/lib/provider/StoreProvider";
 import { Toaster } from "sonner";
 import AuthProvider from "../hooks/authProvider";
 import { AppInitializer } from "../hooks/app-setting";
