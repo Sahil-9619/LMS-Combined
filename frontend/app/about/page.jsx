@@ -6,6 +6,25 @@ import Footer from "../sections/Footer";
 import Link from "next/link";
 
 export default function AboutPage() {
+
+  const teamMembers = [
+  {
+    name: "Sahil Kumar",
+    role: "Developer",
+    image: "./images/coding.jpg"
+  },
+  {
+    name: "Harsh Raj",
+    role: "Academic Lead",
+    image: "./images/edu.png"
+  },
+  {
+    name: "Team Member",
+    role: "Engineering Lead",
+    image: "./images/uiux.jpg"
+  }
+];
+
   return (
 <main className="bg-gradient-to-br from-gray-700 via-blue-900 to-indigo-400 text-gray-100 overflow-hidden">
       <Nav />
@@ -154,21 +173,21 @@ export default function AboutPage() {
 
           <div className="grid md:grid-cols-3 gap-12">
 
-            {["Founder", "Academic Lead", "Engineering Lead"].map((role, i) => (
+            {teamMembers.map((member, i) => (
               <motion.div
                 key={i}
-                whileHover={{ y: -10 }}
+                whileHover={{ member: -10 }}
                 className="group"
               >
                 <div className="rounded-2xl overflow-hidden mb-6">
                   <img
-                    src={`/images/team${i + 1}.jpg`}
+                    src={member.image}
                     className="w-full h-[350px] object-cover group-hover:scale-105 transition duration-500"
                     alt="Team"
                   />
                 </div>
-                <h3 className="text-xl font-semibold mb-2">Team Member</h3>
-                <p className="text-gray-200 text-sm">{role}</p>
+                <h3 className="text-xl font-semibold mb-2">{member.name}</h3>
+                <p className="text-gray-200 text-sm">{member.role}</p>
               </motion.div>
             ))}
 
