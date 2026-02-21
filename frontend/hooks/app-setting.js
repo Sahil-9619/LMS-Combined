@@ -2,7 +2,7 @@
 "use client";
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { getSetting } from "@/lib/store/features/appSettingsSlice";
+import { getSetting } from "../lib/store/features/appSettingsSlice";
 
 export function AppInitializer({ children }) {
   const dispatch = useDispatch();

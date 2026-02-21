@@ -1,4 +1,4 @@
-import { enrollmentService } from "@/services/user/enrollment.service";
+import { enrollmentService } from "../../../services/user/enrollment.service";
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 
 // Async thunks

@@ -1,4 +1,4 @@
-import { authService } from "@/services/user/auth.service";
+import { authService } from "../../../services/user/auth.service";
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 
 // Async thunks

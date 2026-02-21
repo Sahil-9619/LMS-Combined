@@ -1,4 +1,4 @@
-import { settingsAdminService } from "@/services/admin/settings.service";
+import { settingsAdminService } from "../../../services/admin/settings.service";
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 
 // Async thunks

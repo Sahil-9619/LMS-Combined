@@ -1,4 +1,4 @@
-import axiosInstance from "@/app/utils/axiosinterceptor";
+import axiosInstance from "../../app/utils/axiosinterceptor";
 
 export const settingsAdminService = {
   get: async () => {
