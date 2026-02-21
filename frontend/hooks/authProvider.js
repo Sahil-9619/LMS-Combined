@@ -2,7 +2,7 @@
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useRouter, usePathname } from "next/navigation";
-import { getUserDetails } from "@/lib/store/features/authSlice";
+import { getUserDetails } from "../lib/store/features/authSlice";
 
 export default function AuthProvider({ children }) {
   const dispatch = useDispatch();

@@ -1,7 +1,7 @@
 "use client";
 import { GalleryVerticalEnd } from "lucide-react";
 
-import { LoginForm } from "@/components/login-form";
+import { LoginForm } from "../../../components/login-form";
 import { useSelector } from "react-redux";
 
 export default function LoginPage() {

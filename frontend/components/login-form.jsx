@@ -1,9 +1,9 @@
 "use client";
 import { useEffect, useState } from "react";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { cn } from "../lib/utils";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
+import { Label } from "../components/ui/label";
 import { PhoneCall, Mail, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useDispatch, useSelector } from "react-redux";
@@ -18,9 +18,9 @@ import {
   clearError,
   resetAuthState,
   getUserDetails,
-} from "@/lib/store/features/authSlice";
+} from "../lib/store/features/authSlice";
 import { toast } from "sonner";
-import useRoleRedirect, { handleRoleRedirect } from "@/hooks/useRoleRedirect";
+import useRoleRedirect, { handleRoleRedirect } from "../hooks/useRoleRedirect";
 
 export function LoginForm({ className, ...props }) {
   // Email Login Form
