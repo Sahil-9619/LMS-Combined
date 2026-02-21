@@ -1,5 +1,9 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+<<<<<<< HEAD
 import { adminServices } from "../../../services/admin/admin.service";
+=======
+import { adminServices } from "../../../services/admin/admin.service"
+>>>>>>> 7f5655cfdc33873fcee65ea8443f01296efb671f
 
 // Thunks
 export const fetchAllUsers = createAsyncThunk(
