@@ -29,7 +29,7 @@ const nav = () => {
                 Courses
               </Link>
               <Link
-                href="#"
+                href="blog"
                 className="hover:text-indigo-600 font-medium"
               >
                 Blog
@@ -41,12 +41,12 @@ const nav = () => {
                 Gallery
               </Link>
               <Link
-                href="#"
+                href="about"
                 className=" hover:text-indigo-600 font-medium"
               >
                 About
               </Link>
-              <Link href="/">
+              <Link href="/contact">
                 <button className=" hover:text-indigo-600 font-medium">
                   Contact
                 </button>

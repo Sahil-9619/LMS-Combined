@@ -23,6 +23,10 @@ import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import Nav from './sections/Nav'
 import Footer from "./sections/Footer";
+import dev from '../public/images/dev.jpg'
+import uiux from '../public/images/uiux.jpg'
+import digmar from '../public/images/digmar.jpg'
+
 
 const Home = () => {
   
@@ -30,12 +34,44 @@ const Home = () => {
   
   const [index, setIndex] = useState(0);
 const images = [
-  "/images/pic1.jpeg",
-  "/images/pic2.jpeg",
-  "/images/pic3.jpeg",
+  "/images/pic2.jpg", 
+  "/images/pic4.jpg",
+  "/images/pic1.png", 
+  "/images/pic5.jpg",
 ];
 
-
+const courses = [
+  {
+    id: 1,
+    title: "UI/UX Design Masterclass",
+    category: "Design",
+    img: '/images/uiux.jpg',
+    lessons: 12,
+    duration: "8h 30m",
+    rating: 4.9,
+    price: 89.99,
+  },
+  {
+    id: 2,
+    title: "Full Stack Web Development",
+    category: "Development",
+    img:'/images/dev.jpg',
+    lessons: 24,
+    duration: "32h 15m",
+    rating: 4.8,
+    price: 129.99,
+  },
+  {
+    id: 3,
+    title: "Digital Marketing Fundamentals",
+    category: "Business",
+    img:"/images/digmar.jpg",
+    lessons: 8,
+    duration: "6h 20m",
+    rating: 4.7,
+    price: 69.99,
+  }
+];
 
 useEffect(() => {
   const interval = setInterval(() => {
@@ -86,13 +122,17 @@ useEffect(() => {
               </p>
         
               <div className="flex flex-wrap gap-4">
-                <button className="bg-indigo-600 text-white px-8 py-3 rounded-full font-medium hover:bg-indigo-700 transition-all">
+                <Link 
+                href="/user/login"
+                className="bg-indigo-600 text-white px-8 py-3 rounded-full font-medium hover:bg-indigo-700 transition-all">
                   Get Started
-                </button>
+                </Link>
         
-                <button className="border-2 border-white text-white px-8 py-3 rounded-full font-medium hover:bg-white/20 transition-all">
+                <Link 
+                href="/courses"
+                className="border-2 border-white text-white px-8 py-3 rounded-full font-medium hover:bg-white/20 transition-all">
                   Browse Courses
-                </button>
+                </Link>
               </div>
             </div>
           </div>
@@ -261,61 +301,52 @@ useEffect(() => {
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
-            {[1, 2, 3].map((item) => (
+            {courses.map((item) => (
               <div
-                key={item}
+                key={item.id}
                 className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-shadow border border-gray-100"
               >
-                <div className="h-48 bg-indigo-100 overflow-hidden">
+                <div className="h-48 overflow-hidden">
                   <img
-                    src={`https://source.unsplash.com/random/600x400?education=${item}`}
-                    alt="Course"
-                    className="w-full h-full object-cover"
+                    src={item.img}
+                    alt={item.title}
+                    className="w-full h-full text-blue-800 object-cover"
                   />
                 </div>
+            
                 <div className="p-6">
                   <div className="flex justify-between items-start mb-3">
                     <span className="bg-indigo-100 text-indigo-800 text-xs font-medium px-2.5 py-0.5 rounded">
-                      {item === 1
-                        ? "Design"
-                        : item === 2
-                        ? "Development"
-                        : "Business"}
+                      {item.category}
                     </span>
+            
                     <div className="flex items-center text-yellow-500">
                       <Star className="h-4 w-4 fill-current" />
-                      <span className="ml-1 text-gray-700">4.9</span>
+                      <span className="ml-1 text-gray-700">{item.rating}</span>
                     </div>
                   </div>
+            
                   <h3 className="text-xl font-bold text-purple-800 mb-3">
-                    {item === 1
-                      ? "UI/UX Design Masterclass"
-                      : item === 2
-                      ? "Full Stack Web Development"
-                      : "Digital Marketing Fundamentals"}
+                    {item.title}
                   </h3>
+            
                   <div className="flex justify-between text-sm text-gray-600 mb-4">
                     <span className="flex items-center">
-                      <BookOpen className="h-4 w-4 mr-1" />{" "}
-                      {item === 1 ? "12" : item === 2 ? "24" : "8"} Lessons
+                      <BookOpen className="h-4 w-4 mr-1" />
+                      {item.lessons} Lessons
                     </span>
+            
                     <span className="flex items-center">
-                      <Clock className="h-4 w-4 mr-1" />{" "}
-                      {item === 1
-                        ? "8h 30m"
-                        : item === 2
-                        ? "32h 15m"
-                        : "6h 20m"}
+                      <Clock className="h-4 w-4 mr-1" />
+                      {item.duration}
                     </span>
                   </div>
+            
                   <div className="flex justify-between items-center pt-4 border-t border-gray-100">
                     <span className="text-indigo-600 font-bold">
-                      {item === 1
-                        ? "$89.99"
-                        : item === 2
-                        ? "$129.99"
-                        : "$69.99"}
+                      ${item.price}
                     </span>
+            
                     <button className="text-indigo-600 hover:text-indigo-800 font-medium flex items-center">
                       Enroll Now <ChevronRight className="h-4 w-4 ml-1" />
                     </button>
@@ -326,9 +357,11 @@ useEffect(() => {
           </div>
 
           <div className="text-center mt-12">
-            <button className="border-2 border-indigo-600 text-white bg-indigo-700 px-8 py-3 rounded-full font-medium hover:bg-indigo-50 hover:text-blue-600 transition-all">
+            <Link 
+            href="/courses" 
+            className="border-2 border-indigo-600 text-white bg-indigo-700 px-8 py-3 rounded-full font-medium hover:bg-indigo-50 hover:text-blue-600 transition-all">
               View All Courses
-            </button>
+            </Link>
           </div>
         </div>
       </section>
@@ -523,12 +556,15 @@ useEffect(() => {
             Join thousands of students advancing their careers with our courses
           </p>
           <div className="flex flex-wrap justify-center gap-4">
-            <button className="bg-white text-indigo-600 px-8 py-3 rounded-full font-medium hover:bg-gray-100 transition-all flex items-center">
+            <Link
+            href="/user/login" className="bg-white text-indigo-600 px-8 py-3 rounded-full font-medium hover:bg-gray-100 transition-all flex items-center">
               Get Started <ChevronRight className="ml-2 h-5 w-5" />
-            </button>
-            <button className="border-2 border-white text-white px-8 py-3 rounded-full font-medium hover:bg-white hover:bg-opacity-10 hover:text-blue-700 transition-all">
+            </Link>
+            <Link
+            href="/courses"
+            className="border-2 border-white text-white px-8 py-3 rounded-full font-medium hover:bg-white hover:bg-opacity-10 hover:text-blue-700 transition-all">
               Browse Courses
-            </button>
+            </Link>
           </div>
         </div>
       </section>

@@ -1,0 +1,186 @@
+"use client";
+
+import { motion } from "framer-motion";
+import { Mail, Phone, MapPin, Send } from "lucide-react";
+import Nav from "../sections/Nav";
+import Footer from "../sections/Footer";
+import Link from "next/link";
+export default function ContactPage() {
+  return (
+    <main className="bg-gradient-to-br from-gray-700 via-blue-900 to-indigo-400 text-gray-100">
+
+      <Nav />
+
+      {/* ================= HERO ================= */}
+      <section className="pt-32 pb-20 px-6 text-center relative">
+        <motion.div
+          initial={{ opacity: 0, y: -30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7 }}
+        >
+          <h1 className="text-5xl font-extrabold mb-6 tracking-tight">
+            We’d love to hear from you
+          </h1>
+          <p className="max-w-2xl mx-auto text-gray-300 text-lg leading-relaxed">
+            Whether you have a question about courses, subscriptions,
+            partnerships, or technical support — our team is ready to help.
+          </p>
+        </motion.div>
+      </section>
+
+      {/* ================= MAIN CONTACT ================= */}
+      <section className="pb-28 px-6">
+        <div className="max-w-7xl mx-auto grid lg:grid-cols-3 gap-16">
+
+          {/* LEFT SIDE INFO */}
+          <motion.div
+            initial={{ opacity: 0, x: -40 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6 }}
+            className="space-y-10"
+          >
+            <h2 className="text-2xl font-bold mb-4">Get in touch</h2>
+
+            <div className="space-y-6">
+
+              <div className="flex items-start gap-4">
+                <Mail className="h-6 w-6 text-indigo-300 mt-1" />
+                <div>
+                  <h3 className="font-semibold">Email</h3>
+                  <p className="text-gray-300 text-sm">support@educationjal.com</p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-4">
+                <Phone className="h-6 w-6 text-indigo-300 mt-1" />
+                <div>
+                  <h3 className="font-semibold">Phone</h3>
+                  <p className="text-gray-300 text-sm">+91 98765 43210</p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-4">
+                <MapPin className="h-6 w-6 text-indigo-300 mt-1" />
+                <div>
+                  <h3 className="font-semibold">Office</h3>
+                  <p className="text-gray-300 text-sm">
+                    Connaught Place, New Delhi, India
+                  </p>
+                </div>
+              </div>
+
+            </div>
+
+            {/* Divider */}
+            <div className="h-px bg-white/20"></div>
+
+            <p className="text-gray-300 text-sm leading-relaxed">
+              Our support team typically responds within 24 hours during
+              business days.
+            </p>
+          </motion.div>
+
+          {/* RIGHT SIDE FORM */}
+          <motion.div
+            initial={{ opacity: 0, x: 40 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6 }}
+            className="lg:col-span-2 bg-white rounded-3xl shadow-2xl p-12 text-gray-900"
+          >
+            <h2 className="text-2xl font-bold mb-8 text-gray-900">
+              Send us a message
+            </h2>
+
+            <form className="grid md:grid-cols-2 gap-6">
+
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Full Name
+                </label>
+                <input
+                  type="text"
+                  placeholder="John Doe"
+                  className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-indigo-500 outline-none transition"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Email Address
+                </label>
+                <input
+                  type="email"
+                  placeholder="example@email.com"
+                  className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-indigo-500 outline-none transition"
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium mb-2">
+                  Subject
+                </label>
+                <input
+                  type="text"
+                  placeholder="Course inquiry"
+                  className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-indigo-500 outline-none transition"
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium mb-2">
+                  Message
+                </label>
+                <textarea
+                  rows="6"
+                  placeholder="Write your message here..."
+                  className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-indigo-500 outline-none transition"
+                ></textarea>
+              </div>
+
+              <div className="md:col-span-2">
+                <button
+                  type="submit"
+                  className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-full font-medium transition flex items-center justify-center gap-2"
+                >
+                  Send Message <Send className="h-5 w-5" />
+                </button>
+              </div>
+
+            </form>
+          </motion.div>
+
+        </div>
+      </section>
+
+      {/* ================= MAP ================= */}
+      <section className="pb-28 px-6">
+        <div className="max-w-7xl mx-auto rounded-3xl overflow-hidden shadow-2xl border border-white/20">
+          <iframe
+            src="https://maps.google.com/maps?q=New%20Delhi&t=&z=13&ie=UTF8&iwloc=&output=embed"
+            width="100%"
+            height="450"
+            loading="lazy"
+            className="border-0"
+          ></iframe>
+        </div>
+      </section>
+
+      {/* ================= FINAL CTA ================= */}
+      <section className="pb-28 text-center px-6">
+        <div className="max-w-3xl mx-auto">
+          <h2 className="text-4xl font-bold mb-6">
+            Ready to level up your skills?
+          </h2>
+          <p className="text-gray-300 mb-8">
+            Explore our courses and start your learning journey today.
+          </p>
+          <Link href="/courses" className="bg-white text-indigo-700 px-8 py-3 rounded-full font-semibold hover:scale-105 transition">
+            Explore Courses
+          </Link>
+        </div>
+      </section>
+
+      <Footer />
+    </main>
+  );
+}
