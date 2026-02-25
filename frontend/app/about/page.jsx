@@ -27,7 +27,7 @@ export default function AboutPage() {
 
   return (
 <main className="bg-gradient-to-br from-gray-700 via-blue-900 to-indigo-400 text-gray-100 overflow-hidden">
-      <Nav />
+<Nav/>
 
       {/* ================= HERO ================= */}
       <section className="relative min-h-[95vh] flex items-center px-6">
