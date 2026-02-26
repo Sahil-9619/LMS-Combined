@@ -21,6 +21,7 @@ import {
   ChevronDown,
   Coins,
   PersonStanding,
+ HeartHandshake,
   User,
   Settings,
 } from "lucide-react";
@@ -56,10 +57,11 @@ const menuItems = [
       },
     ],
   },
+  { name: "Support", icon: HeartHandshake, href: "/admin/dashboard/support" },
   { name: "Categories", icon: Coins, href: "/admin/dashboard/categories" },
   { name: "Settings", icon: Settings, href: "/admin/dashboard/settings" },
 
-  // {
+  // {<HeartHandshake />
   //   name: "Orders",
   //   icon: ShoppingBag,
   //   children: [

@@ -98,7 +98,7 @@ const AddUsers = () => {
               <Button type="submit" disabled={submitting}>
                 {submitting ? "Creating..." : "Create User"}
               </Button>
-              <Button type="button" variant="outline" onClick={() => router.push("/admin/(mainapp)/dashboard/users")}>Cancel</Button>
+              <Button type="button" variant="outline" onClick={() => router.back()}>Cancel</Button>
             </div>
           </form>
         </CardContent>
