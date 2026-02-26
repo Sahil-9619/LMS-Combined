@@ -15,5 +15,10 @@ getContact: async () => {
 deleteContact: async (id) => {
     const response = await axiosInstance.delete(`/contact/${id}`);
     return response.data;
+  },
+
+createContact: async (contactData) => {
+    const response = await axiosInstance.post("/contact/create", contactData);
+    return response.data;
   }
 };

@@ -5,6 +5,7 @@ import Nav from "../sections/Nav";
 import Footer from "../sections/Footer";
 import Link from "next/link";
 import { useState } from "react";
+import { ContactServices } from "@/services/contact.service";
 export default function ContactPage() {
 
   const [formData, setFormData] = useState({
@@ -32,23 +33,18 @@ const handleSubmit = async (e) => {
   setError("");
 
   try {
-    const res = await fetch("http://localhost:5000/api/contact/create", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(formData)
-    });
-
-    const data = await res.json();
-
-    if (!res.ok) throw new Error(data.message);
-
-    setSuccess("Message sent successfully!");
-    setFormData({
-      name: "",
-      email: "",
-      subject: "",
-      message: ""
-    });
+    const res = await ContactServices.createContact(formData);
+    if (res.success) {  
+      setSuccess("Your message has been sent successfully!");
+      setFormData({
+        name: "",
+        email: "",
+        subject: "",
+        message: ""
+      });
+    } else {
+      setError("Failed to send message. Please try again.");
+    }
   } catch (err) {
     setError("Something went wrong.");
   } finally {

@@ -6,243 +6,542 @@ import Footer from "../sections/Footer";
 import Link from "next/link";
 
 export default function AboutPage() {
-
-  const teamMembers = [
-  {
-    name: "Sahil Kumar",
-    role: "Developer",
-    image: "./images/coding.jpg"
-  },
-  {
-    name: "Harsh Raj",
-    role: "Academic Lead",
-    image: "./images/edu.png"
-  },
-  {
-    name: "Team Member",
-    role: "Engineering Lead",
-    image: "./images/uiux.jpg"
-  }
-];
-
   return (
-<main className="bg-gradient-to-br from-gray-700 via-blue-900 to-indigo-400 text-gray-100 overflow-hidden">
-<Nav/>
+    <main className="bg-[#FEFAE0] text-[#283618] overflow-hidden">
+
+      <Nav />
 
       {/* ================= HERO ================= */}
-      <section className="relative min-h-[95vh] flex items-center px-6">
+<section className="relative min-h-[95vh] flex items-center px-6 bg-[#283618] text-[#FEFAE0] overflow-hidden">
 
-        <div
-          className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: "url('/images/about-banner.jpg')" }}
-        />
+  {/* Soft Moving Glow */}
+  <motion.div
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 0.25 }}
+    transition={{ duration: 2 }}
+    className="absolute top-0 right-0 w-[600px] h-[600px] bg-[#BC6C25] blur-[150px] rounded-full"
+  />
 
-        <div className="absolute inset-0 " />
+  <div className="max-w-6xl mx-auto relative z-10">
 
-        <div className="relative z-10 max-w-7xl mx-auto w-full">
+    {/* Main Title */}
+    <motion.h1
+      initial={{ opacity: 0, y: 80 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+      className="text-6xl text-[#DDA15E] font-extrabold leading-tight mb-6"
+    >
+      About EduMaster
+    </motion.h1>
+
+    {/* Subtitle stagger */}
+    <motion.div
+      initial="hidden"
+      animate="visible"
+      variants={{
+        hidden: {},
+        visible: {
+          transition: { staggerChildren: 0.2 }
+        }
+      }}
+    >
+      {["Shaping Careers.", "Building Confidence."].map((text, i) => (
+        <motion.h2
+          key={i}
+          variants={{
+            hidden: { opacity: 0, y: 60 },
+            visible: { opacity: 1, y: 0 }
+          }}
+          transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
+          className="text-4xl font-bold mb-4"
+        >
+          {text}
+        </motion.h2>
+      ))}
+    </motion.div>
+
+    {/* Description */}
+    <motion.p
+      initial={{ opacity: 0, y: 40 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 1.4, delay: 0.4 }}
+      className="max-w-2xl text-lg text-[#FEFAE0]/80 mt-6"
+    >
+      EduMaster Institute is a disciplined, classroom-driven learning
+      institution committed to academic excellence, practical training,
+      and real career outcomes.
+    </motion.p>
+
+  </div>
+</section>
+
+{/* ================= HISTORY ================= */}
+<section className="py-32 px-6 bg-[#FEFAE0] overflow-hidden">
+  <div className="max-w-6xl mx-auto">
+
+    {/* Header Animation */}
+    <motion.div
+      initial={{ opacity: 0, y: 60 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      transition={{ duration: 1 }}
+      viewport={{ once: true }}
+      className="mb-24"
+    >
+      <h2 className="text-5xl font-bold text-[#BC6C25] mb-6">
+        Our Journey
+      </h2>
+      <p className="text-[#606C38] text-lg max-w-2xl">
+        A disciplined path of growth, consistency, and academic excellence.
+      </p>
+    </motion.div>
+
+    {/* Timeline Line Grow */}
+    <div className="relative pl-10">
+
+      <motion.div
+        initial={{ height: 0 }}
+        whileInView={{ height: "100%" }}
+        transition={{ duration: 2, ease: "easeInOut" }}
+        viewport={{ once: true }}
+        className="absolute left-4 top-0 w-1 bg-[#DDA15E]"
+      />
+
+      <div className="space-y-20">
+
+        {[
+          {
+            title: "Foundation Phase",
+            desc: "Established with a mission to provide structured and disciplined classroom learning."
+          },
+          {
+            title: "Academic Expansion",
+            desc: "Introduced practical labs, real-time assessments, and industry-aligned modules."
+          },
+          {
+            title: "Recognition & Growth",
+            desc: "Earned trust through consistent student success and performance excellence."
+          },
+          {
+            title: "Present Day",
+            desc: "Now a respected institute focused on producing confident, career-ready professionals."
+          }
+        ].map((item, index) => (
+
           <motion.div
-            initial={{ opacity: 0, x: -60 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8 }}
-            className="max-w-3xl"
-          >
-            <p className="uppercase tracking-widest text-indigo-400 text-sm mb-4">
-              About EducationJal
-            </p>
-
-            <h1 className="text-6xl font-extrabold leading-tight mb-6">
-              Built for learners
-              <br />
-              <span className="text-indigo-400">who want more.</span>
-            </h1>
-
-            <p className="text-gray-300 text-lg leading-relaxed mb-8">
-              We created EducationJal to move beyond passive learning.
-              Our platform focuses on practical execution, real-world
-              skill building, and measurable growth.
-            </p>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* ================= WHY WE EXIST ================= */}
-      <section className="py-28 px-6 bg-transparent">
-        <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-20 items-center">
-
-          <motion.div
-            initial={{ opacity: 0, y: 40 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7 }}
+            key={index}
+            initial={{ opacity: 0, x: 80 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            transition={{
+              duration: 1,
+              delay: index * 0.2,
+              ease: [0.16, 1, 0.3, 1]
+            }}
             viewport={{ once: true }}
+            className="relative"
           >
-            <h2 className="text-4xl text-cyan-400 font-bold mb-8">
-              Education is evolving.
-              <br />
-              We chose to evolve with it.
-            </h2>
 
-            <p className="text-white leading-relaxed mb-6">
-              Traditional systems often prioritize theory over application.
-              Industry demands practical ability. We bridge that gap.
+            {/* Animated Dot */}
+            <motion.span
+              initial={{ scale: 0 }}
+              whileInView={{ scale: 1 }}
+              transition={{ duration: 0.6 }}
+              className="absolute -left-[34px] top-1 w-6 h-6 bg-[#BC6C25] rounded-full border-4 border-[#FEFAE0] shadow-lg"
+            />
+
+            <h3 className="text-2xl font-semibold text-[#283618] mb-4">
+              {item.title}
+            </h3>
+
+            <p className="text-[#606C38] leading-relaxed">
+              {item.desc}
             </p>
 
-            <p className="text-white leading-relaxed">
-              Every course is structured around implementation,
-              not just information. We care about what you can build,
-              not what you can memorize.
-            </p>
           </motion.div>
 
+        ))}
+
+      </div>
+    </div>
+
+  </div>
+</section>
+      {/* ================= VISION & MISSION ================= */}
+<section className="relative py-32 px-6 bg-[#283618] text-[#FEFAE0] overflow-hidden">
+
+  {/* Soft Moving Background Glow */}
+  <motion.div
+    initial={{ opacity: 0 }}
+    whileInView={{ opacity: 0.2 }}
+    transition={{ duration: 2 }}
+    viewport={{ once: true }}
+    className="absolute -top-40 -right-40 w-[500px] h-[500px] bg-[#BC6C25] blur-[140px] rounded-full"
+  />
+
+  <div className="relative max-w-6xl mx-auto grid md:grid-cols-2 gap-24">
+
+    {/* ===== VISION ===== */}
+    <motion.div
+      initial={{ opacity: 0, x: -80 }}
+      whileInView={{ opacity: 1, x: 0 }}
+      transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+      viewport={{ once: true }}
+      whileHover={{ y: -8 }}
+      className="group"
+    >
+      <div className="mb-8 h-[3px] w-16 bg-[#DDA15E] group-hover:w-32 transition-all duration-700" />
+
+      <h3 className="text-4xl font-extrabold mb-6 text-[#DDA15E] tracking-wide">
+        Our Vision
+      </h3>
+
+      <p className="text-[#FEFAE0]/85 text-lg leading-relaxed">
+        To become a leading offline education institute recognized
+        for discipline, academic excellence, and career-focused training.
+        We aim to create professionals who are not only skilled,
+        but ethically grounded and industry-ready.
+      </p>
+    </motion.div>
+
+
+    {/* ===== MISSION ===== */}
+    <motion.div
+      initial={{ opacity: 0, x: 80 }}
+      whileInView={{ opacity: 1, x: 0 }}
+      transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1], delay: 0.2 }}
+      viewport={{ once: true }}
+      whileHover={{ y: -8 }}
+      className="group"
+    >
+      <div className="mb-8 h-[3px] w-16 bg-[#DDA15E] group-hover:w-32 transition-all duration-700" />
+
+      <h3 className="text-4xl font-extrabold mb-6 text-[#DDA15E] tracking-wide">
+        Our Mission
+      </h3>
+
+      <p className="text-[#FEFAE0]/85 text-lg leading-relaxed">
+        To provide structured courses, hands-on practical learning,
+        and personalized mentorship that empowers students to succeed
+        confidently in competitive industries. Our mission is to ensure
+        measurable outcomes and long-term professional growth.
+      </p>
+    </motion.div>
+
+  </div>
+</section>
+
+      {/* ================= ACADEMIC FRAMEWORK ================= */}
+ <section className="relative py-15 px-6 bg-[#FEFAE0] overflow-hidden">
+
+  {/* Soft Accent Glow */}
+  <motion.div
+    initial={{ opacity: 0 }}
+    whileInView={{ opacity: 0.15 }}
+    transition={{ duration: 2 }}
+    viewport={{ once: true }}
+    className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-[#DDA15E] blur-[150px] rounded-full"
+  />
+
+  <div className="relative max-w-7xl mx-auto">
+
+    {/* Heading Animation */}
+    <motion.div
+      initial={{ opacity: 0, y: 60 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+      viewport={{ once: true }}
+      className="text-center mb-20"
+    >
+      <h2 className="text-5xl font-extrabold text-[#BC6C25] mb-6">
+        Our Academic Framework
+      </h2>
+      <p className="text-[#606C38] max-w-2xl mx-auto text-lg">
+        A structured system designed to build clarity, competence,
+        and measurable academic excellence.
+      </p>
+    </motion.div>
+
+    {/* Framework Blocks */}
+    <motion.div
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true }}
+      variants={{
+        hidden: {},
+        visible: {
+          transition: { staggerChildren: 0.25 }
+        }
+      }}
+      className="grid md:grid-cols-3 gap-16"
+    >
+
+      {[
+        {
+          title: "Structured Curriculum",
+          desc: "Step-by-step syllabus design ensuring strong conceptual foundations and progressive mastery."
+        },
+        {
+          title: "Practical Lab Sessions",
+          desc: "Real-time demonstrations and implementation-driven assignments aligned with industry needs."
+        },
+        {
+          title: "Performance Monitoring",
+          desc: "Regular assessments, feedback sessions, and continuous improvement tracking."
+        }
+      ].map((item, index) => (
+
+        <motion.div
+          key={index}
+          variants={{
+            hidden: { opacity: 0, y: 80 },
+            visible: { opacity: 1, y: 0 }
+          }}
+          transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
+          whileHover={{ y: -10, scale: 1.02 }}
+          className="group relative"
+        >
+
+          {/* Top Accent Line */}
+          <div className="h-[3px] w-14 bg-[#DDA15E] mb-8 group-hover:w-28 transition-all duration-700" />
+
+          <h3 className="text-2xl font-bold text-[#283618] mb-6">
+            {item.title}
+          </h3>
+
+          <p className="text-[#606C38] leading-relaxed text-lg">
+            {item.desc}
+          </p>
+
+        </motion.div>
+
+      ))}
+
+    </motion.div>
+
+  </div>
+</section>
+
+      {/* ================= STUDENT BENEFITS ================= */}
+<section className="relative py-16 px-6 bg-[#FEFAE0] overflow-hidden">
+
+  {/* Soft Accent Background */}
+  <motion.div
+    initial={{ opacity: 0 }}
+    whileInView={{ opacity: 0.12 }}
+    transition={{ duration: 2 }}
+    viewport={{ once: true }}
+    className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#BC6C25] blur-[140px] rounded-full"
+  />
+
+  <div className="relative max-w-7xl mx-auto">
+
+    {/* Heading Animation */}
+    <motion.div
+      initial={{ opacity: 0, y: 60 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+      viewport={{ once: true }}
+      className="text-center mb-24"
+    >
+      <h2 className="text-5xl font-extrabold text-[#BC6C25] mb-6">
+        Benefits for Students
+      </h2>
+      <p className="text-[#606C38] max-w-2xl mx-auto text-lg">
+        Designed to ensure clarity, confidence, and measurable professional growth.
+      </p>
+    </motion.div>
+
+    {/* Benefits Grid */}
+    <motion.div
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true }}
+      variants={{
+        hidden: {},
+        visible: {
+          transition: { staggerChildren: 0.15 }
+        }
+      }}
+      className="grid md:grid-cols-2 gap-x-20 gap-y-14"
+    >
+
+      {[
+        "Small batch sizes for personalized attention.",
+        "Industry-relevant course content.",
+        "Hands-on practical learning approach.",
+        "Career guidance and placement assistance.",
+        "Confidence building through presentations & assessments.",
+        "Professional certification upon completion."
+      ].map((text, index) => (
+
+        <motion.div
+          key={index}
+          variants={{
+            hidden: { opacity: 0, x: index % 2 === 0 ? -60 : 60 },
+            visible: { opacity: 1, x: 0 }
+          }}
+          transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
+          whileHover={{ y: -6 }}
+          className="group flex items-start gap-6"
+        >
+
+          {/* Animated Indicator */}
           <motion.div
-            initial={{ opacity: 0, y: 40 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.9 }}
-            viewport={{ once: true }}
-            className="rounded-xl overflow-hidden"
-          >
-            <img
-              src="/images/edu.png"
-              alt="Learning"
-              className="w-full h-auto object-contain "
-            />
-          </motion.div>
+            initial={{ scale: 0 }}
+            whileInView={{ scale: 1 }}
+            transition={{ duration: 0.6 }}
+            className="w-6 h-6 mt-1 bg-[#BC6C25] rounded-full shadow-md group-hover:scale-110 transition"
+          />
 
-        </div>
-      </section>
+          <p className="text-[#283618] text-lg leading-relaxed font-medium">
+            {text}
+          </p>
 
-      {/* ================= DIFFERENCE STRIP ================= */}
-      <section className="py-24 px-6">
-        <div className="max-w-7xl mx-auto">
+        </motion.div>
+      ))}
+    </motion.div>
 
-          <div className="grid md:grid-cols-3 gap-12">
+  </div>
+</section>
 
-            <Difference
-              title="Execution First"
-              text="Projects, simulations, and applied learning instead of passive video consumption."
-            />
+      {/* ================= ACADEMIC EVENTS ================= */}
+<section className="relative py-32 px-6 bg-[#283618] overflow-hidden">
 
-            <Difference
-              title="Industry Designed"
-              text="Courses shaped with real professionals to reflect current market needs."
-            />
+  <div className="max-w-7xl mx-auto text-center mb-20">
+    <h2 className="text-5xl font-extrabold text-olive-300 mb-6">
+      Campus Moments
+    </h2>
+    <p className="text-white max-w-2xl mx-auto text-lg">
+      A glimpse into our structured, disciplined, and growth-focused environment.
+    </p>
+  </div>
 
-            <Difference
-              title="Outcome Focused"
-              text="We measure success by skill mastery, not course completion."
-            />
+  {/* ===== Floating Collage Wrapper ===== */}
+  <div className="relative max-w-6xl mx-auto h-[650px] hidden md:block">
 
-          </div>
+    {/* Center Main Image */}
+    <motion.div
+      whileHover={{ scale: 1.03 }}
+      transition={{ duration: 0.8 }}
+      className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 
+      w-[420px] h-[520px] rounded-3xl overflow-hidden shadow-2xl z-10 group"
+    >
+      <img
+        src="/images/class.png"
+        className="w-full h-full object-cover transition-transform duration-[2000ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-110"
+        alt=""
+      />
+    </motion.div>
 
-        </div>
-      </section>
+    {/* Floating Image 1 */}
+    <motion.div
+      animate={{ y: [0, -20, 0] }}
+      transition={{ duration: 6, repeat: Infinity }}
+      className="absolute top-0 left-10 w-[260px] h-[300px] rounded-3xl overflow-hidden shadow-xl"
+    >
+      <img src="/images/workshops.png" className="w-full h-full object-cover" />
+    </motion.div>
 
-      {/* ================= NUMBERS ================= */}
-      <section className="py-28 px-6 bg-transparent">
-        <div className="max-w-6xl mx-auto text-center">
+    {/* Floating Image 2 */}
+    <motion.div
+      animate={{ y: [0, 20, 0] }}
+      transition={{ duration: 7, repeat: Infinity }}
+      className="absolute bottom-0 left-0 w-[280px] h-[320px] rounded-3xl overflow-hidden shadow-xl"
+    >
+      <img src="/images/projects.png" className="w-full h-full object-cover" />
+    </motion.div>
 
-          <h2 className="text-4xl font-bold mb-16">
-            Our impact so far
+    {/* Floating Image 3 */}
+    <motion.div
+      animate={{ y: [0, -15, 0] }}
+      transition={{ duration: 5, repeat: Infinity }}
+      className="absolute top-10 right-0 w-[250px] h-[280px] rounded-3xl overflow-hidden shadow-xl"
+    >
+      <img src="/images/team.png" className="w-full h-full object-cover" />
+    </motion.div>
+
+    {/* Floating Image 4 */}
+    <motion.div
+      animate={{ y: [0, 18, 0] }}
+      transition={{ duration: 8, repeat: Infinity }}
+      className="absolute bottom-10 right-10 w-[260px] h-[300px] rounded-3xl overflow-hidden shadow-xl"
+    >
+      <img src="/images/modernLab.png" className="w-full h-full object-cover" />
+    </motion.div>
+
+  </div>
+
+  {/* ===== Mobile Clean Layout ===== */}
+  <div className="md:hidden grid gap-6">
+    {[
+      "/images/class.png",
+      "/images/workshops.png",
+      "/images/projects.png",
+      "/images/team.png",
+      "/images/modernLab.png"
+    ].map((img, i) => (
+      <div key={i} className="rounded-3xl overflow-hidden shadow-xl">
+        <img src={img} className="w-full h-[260px] object-cover" />
+      </div>
+    ))}
+  </div>
+
+</section>
+
+      {/* ================= TRUST SECTION ================= */}
+      <section className="py-28 px-6 text-center">
+        <div className="max-w-4xl mx-auto">
+
+          <h2 className="text-4xl font-bold text-[#BC6C25] mb-8">
+            Why Students Trust EduMaster
           </h2>
 
-          <div className="grid md:grid-cols-4 gap-12">
-
-            <Stat number="1.2M+" label="Active Learners" />
-            <Stat number="6,000+" label="Courses Delivered" />
-            <Stat number="500+" label="Industry Experts" />
-            <Stat number="95%" label="Completion Rate" />
-
-          </div>
-
-        </div>
-      </section>
-
-      {/* ================= TEAM (Minimal) ================= */}
-      <section className="py-28 px-6">
-        <div className="max-w-7xl mx-auto">
-
-          <div className="mb-16 max-w-3xl">
-            <h2 className="text-4xl font-bold mb-6">
-              The people behind the platform
-            </h2>
-            <p className="text-white leading-relaxed">
-              A focused team of educators, technologists,
-              and industry professionals committed to building
-              a modern learning ecosystem.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-12">
-
-            {teamMembers.map((member, i) => (
-              <motion.div
-                key={i}
-                whileHover={{ member: -10 }}
-                className="group"
-              >
-                <div className="rounded-2xl overflow-hidden mb-6">
-                  <img
-                    src={member.image}
-                    className="w-full h-[350px] object-cover group-hover:scale-105 transition duration-500"
-                    alt="Team"
-                  />
-                </div>
-                <h3 className="text-xl font-semibold mb-2">{member.name}</h3>
-                <p className="text-gray-200 text-sm">{member.role}</p>
-              </motion.div>
-            ))}
-
-          </div>
+          <p className="text-[#606C38] leading-relaxed text-lg">
+            Our commitment to discipline, consistency, and measurable results
+            has built strong trust among students and parents. We focus on
+            real learning outcomes, not just course completion.
+          </p>
 
         </div>
       </section>
 
       {/* ================= FINAL STATEMENT ================= */}
-      <section className="py-28 px-6 bg-transparent text-center">
-        <div className="max-w-4xl mx-auto">
-          <h2 className="text-5xl font-bold mb-8 leading-tight">
-            Education should create capability.
-            <br />
-            Not just certificates.
-          </h2>
+      <section className="py-10   text-center">
+        <h2 className="text-5xl font-bold mb-8">
+          Excellence Through Discipline.
+        </h2>
 
-          
-            <Link 
-            className="mt-6 bg-indigo-600 hover:bg-indigo-700 px-10 py-4 rounded-full text-lg font-medium transition"
-            href="/courses"> Explore Courses</Link>
-          
-        </div>
+        <Link
+          href="/courses"
+          className="inline-block bg-[#BC6C25] hover:bg-[#DDA15E] text-[#FEFAE0] px-12 py-4 rounded-full text-lg font-semibold transition-all duration-500 hover:scale-105"
+        >
+          Explore Our Courses
+        </Link>
       </section>
 
       <Footer />
-
     </main>
   );
 }
 
-/* ================= COMPONENTS ================= */
+/* ===== COMPONENTS ===== */
 
-function Difference({ title, text }) {
+function Feature({ title, desc }) {
   return (
     <div>
-      <h3 className="text-2xl font-semibold mb-4 text-cyan-400 ">
+      <h3 className="text-xl font-semibold mb-4 text-[#283618]">
         {title}
       </h3>
-      <p className="text-white leading-relaxed">
-        {text}
+      <p className="text-[#606C38]">
+        {desc}
       </p>
     </div>
   );
 }
 
-function Stat({ number, label }) {
+function Benefit({ text }) {
   return (
-    <div>
-      <h3 className="text-5xl font-bold text-cyan-400 mb-4">
-        {number}
-      </h3>
-      <p className="text-white uppercase tracking-wider text-sm">
-        {label}
-      </p>
-    </div>
+    <p className="text-[#606C38] text-lg leading-relaxed">
+      • {text}
+    </p>
   );
 }
