@@ -1,11 +1,61 @@
 "use client";
-
 import { motion } from "framer-motion";
 import { Mail, Phone, MapPin, Send } from "lucide-react";
 import Nav from "../sections/Nav";
 import Footer from "../sections/Footer";
 import Link from "next/link";
+import { useState } from "react";
 export default function ContactPage() {
+
+  const [formData, setFormData] = useState({
+  name: "",
+  email: "",
+  subject: "",
+  message: ""
+});
+
+const [loading, setLoading] = useState(false);
+const [success, setSuccess] = useState("");
+const [error, setError] = useState("");
+
+const handleChange=(e)=>{
+  setFormData({...formData,
+    [e.target.name]:e.target.value
+});
+}
+
+const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  setLoading(true);
+  setSuccess("");
+  setError("");
+
+  try {
+    const res = await fetch("/api/contact", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(formData)
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) throw new Error(data.message);
+
+    setSuccess("Message sent successfully!");
+    setFormData({
+      name: "",
+      email: "",
+      subject: "",
+      message: ""
+    });
+  } catch (err) {
+    setError("Something went wrong.");
+  } finally {
+    setLoading(false);
+  }
+};
+
   return (
     <main className="bg-gradient-to-br from-gray-700 via-blue-900 to-indigo-400 text-gray-100">
 
@@ -91,15 +141,19 @@ export default function ContactPage() {
               Send us a message
             </h2>
 
-            <form className="grid md:grid-cols-2 gap-6">
+            <form onSubmit={handleSubmit} className="grid md:grid-cols-2 gap-6">
 
               <div>
                 <label className="block text-sm font-medium mb-2">
                   Full Name
                 </label>
                 <input
+                  name = "name"
+                  value = {formData.name}
+                  onChange={handleChange}
                   type="text"
-                  placeholder="John Doe"
+                  required
+                  placeholder="Enter name"
                   className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-indigo-500 outline-none transition"
                 />
               </div>
@@ -109,7 +163,11 @@ export default function ContactPage() {
                   Email Address
                 </label>
                 <input
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
                   type="email"
+                  required
                   placeholder="example@email.com"
                   className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-indigo-500 outline-none transition"
                 />
@@ -120,8 +178,12 @@ export default function ContactPage() {
                   Subject
                 </label>
                 <input
+                  name="subject"
+                  value = {formData.subject}
+                  onChange={handleChange}
                   type="text"
-                  placeholder="Course inquiry"
+                  required
+                  placeholder="Write your query here"
                   className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-indigo-500 outline-none transition"
                 />
               </div>
@@ -131,7 +193,11 @@ export default function ContactPage() {
                   Message
                 </label>
                 <textarea
-                  rows="6"
+                  name="message"
+                  value={formData.message}
+                  onChange={handleChange}
+                  rows="5"
+                  required
                   placeholder="Write your message here..."
                   className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-indigo-500 outline-none transition"
                 ></textarea>
@@ -140,10 +206,14 @@ export default function ContactPage() {
               <div className="md:col-span-2">
                 <button
                   type="submit"
+                  disabled = {loading}
                   className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-full font-medium transition flex items-center justify-center gap-2"
                 >
-                  Send Message <Send className="h-5 w-5" />
+                  {loading ? "Sending..." : "Send Message"}
+                  <Send className="h-5 w-5" />
                 </button>
+                {success && <p className="text-green-600 mt-4">{success}</p>}
+                {error && <p className="text-red-600 mt-4">{error}</p>}
               </div>
 
             </form>

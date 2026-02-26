@@ -2,13 +2,25 @@
 
 import { GraduationCap, Menu, X } from "lucide-react"
 import Link from "next/link"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { usePathname } from "next/navigation"
 import { brandName } from "../contants"
 
 const Navbar = () => {
   const [open, setOpen] = useState(false)
   const pathname = usePathname()
+
+  useEffect(()=>{
+    const handleClick = () =>{
+      setOpen(false)
+    }
+    if(open){
+      document.addEventListener("click",handleClick)
+    }
+    return () =>{
+      document.removeEventListener("click",handleClick)
+    }
+  })
 
   const links = [
     { name: "Home", path: "/" },

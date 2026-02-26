@@ -4,10 +4,10 @@ import { brandName } from "../contants";
 
 const Footer = () => {
   return (
-    <div>
-      <div className="border-t border-gray-800 mt-12 pt-8 text-center">
+    <div className='bg-[#283618] pt-1'>
+      <div className="border-t border-black mt-12 pt-8 text-center">
     </div>
-      <footer className=" text-gray-300 py-16">
+      <footer className=" text-gray-300 bg-[#283618] py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-4 gap-12">
             <div>
