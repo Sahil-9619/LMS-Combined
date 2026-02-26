@@ -59,7 +59,7 @@ const handleSubmit = async (e) => {
 
 
   return (
-    <main className="bg-gradient-to-br from-gray-700 via-blue-900 to-indigo-400 text-gray-100">
+    <main className="bg-[#FEFAE0] text-[#BC6C25]">
 
       <Nav />
 
@@ -73,7 +73,7 @@ const handleSubmit = async (e) => {
           <h1 className="text-5xl font-extrabold mb-6 tracking-tight">
             We’d love to hear from you
           </h1>
-          <p className="max-w-2xl mx-auto text-gray-300 text-lg leading-relaxed">
+          <p className="max-w-2xl mx-auto text-gray-900 text-lg leading-relaxed">
             Whether you have a question about courses, subscriptions,
             partnerships, or technical support — our team is ready to help.
           </p>
@@ -96,26 +96,26 @@ const handleSubmit = async (e) => {
             <div className="space-y-6">
 
               <div className="flex items-start gap-4">
-                <Mail className="h-6 w-6 text-indigo-300 mt-1" />
+                <Mail className="h-6 w-6 text-[#283618] mt-1" />
                 <div>
                   <h3 className="font-semibold">Email</h3>
-                  <p className="text-gray-300 text-sm">support@educationjal.com</p>
+                  <p className="text-gray-900 text-sm">support@educationjal.com</p>
                 </div>
               </div>
 
               <div className="flex items-start gap-4">
-                <Phone className="h-6 w-6 text-indigo-300 mt-1" />
+                <Phone className="h-6 w-6 text-[#283618]  mt-1" />
                 <div>
                   <h3 className="font-semibold">Phone</h3>
-                  <p className="text-gray-300 text-sm">+91 98765 43210</p>
+                  <p className="text-gray-900 text-sm">+91 98765 43210</p>
                 </div>
               </div>
 
               <div className="flex items-start gap-4">
-                <MapPin className="h-6 w-6 text-indigo-300 mt-1" />
+                <MapPin className="h-6 w-6 text-[#283618]  mt-1" />
                 <div>
                   <h3 className="font-semibold">Office</h3>
-                  <p className="text-gray-300 text-sm">
+                  <p className="text-gray-900 text-sm">
                     Connaught Place, New Delhi, India
                   </p>
                 </div>
@@ -126,7 +126,7 @@ const handleSubmit = async (e) => {
             {/* Divider */}
             <div className="h-px bg-white/20"></div>
 
-            <p className="text-gray-300 text-sm leading-relaxed">
+            <p className="text-gray-900 text-sm leading-relaxed">
               Our support team typically responds within 24 hours during
               business days.
             </p>
@@ -156,7 +156,7 @@ const handleSubmit = async (e) => {
                   type="text"
                   required
                   placeholder="Enter name"
-                  className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-indigo-500 outline-none transition"
+                  className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-gray-900 outline-none transition"
                 />
               </div>
 
@@ -171,7 +171,7 @@ const handleSubmit = async (e) => {
                   type="email"
                   required
                   placeholder="example@email.com"
-                  className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-indigo-500 outline-none transition"
+                  className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-gray-900 outline-none transition"
                 />
               </div>
 
@@ -186,7 +186,7 @@ const handleSubmit = async (e) => {
                   type="text"
                   required
                   placeholder="Write your query here"
-                  className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-indigo-500 outline-none transition"
+                  className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-gray-900 outline-none transition"
                 />
               </div>
 
@@ -201,7 +201,7 @@ const handleSubmit = async (e) => {
                   rows="5"
                   required
                   placeholder="Write your message here..."
-                  className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-indigo-500 outline-none transition"
+                  className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-gray-900 outline-none transition"
                 ></textarea>
               </div>
 
@@ -209,7 +209,7 @@ const handleSubmit = async (e) => {
                 <button
                   type="submit"
                   disabled = {loading}
-                  className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-full font-medium transition flex items-center justify-center gap-2"
+                  className="w-full bg-[#606C38] hover:bg-[#283618] text-white py-3 rounded-full font-medium transition flex items-center justify-center gap-2"
                 >
                   {loading ? "Sending..." : "Send Message"}
                   <Send className="h-5 w-5" />
@@ -243,11 +243,15 @@ const handleSubmit = async (e) => {
           <h2 className="text-4xl font-bold mb-6">
             Ready to level up your skills?
           </h2>
-          <p className="text-gray-300 mb-8">
+          <p className="text-gray-900 mb-8">
             Explore our courses and start your learning journey today.
           </p>
-          <Link href="/courses" className="bg-white text-indigo-700 px-8 py-3 rounded-full font-semibold hover:scale-105 transition">
-            Explore Courses
+          <Link
+  href="/courses"
+  className="bg-[#BC6C25] text-white px-8 py-3 rounded-full font-semibold 
+  transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] 
+  hover:scale-105 hover:bg-[#DDA15E] hover:shadow-xl hover:shadow-[#BC6C25]/40"
+>Explore Courses
           </Link>
         </div>
       </section>

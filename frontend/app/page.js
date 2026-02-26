@@ -185,7 +185,7 @@ useEffect(() => {
       viewport={{ once: true }}
     >
       <h2 className="text-4xl md:text-5xl font-bold mb-6">
-        About <span className="text-[#BC6C25]">EduMaster Institute</span>
+        About <span className="text-[#BC6C25]">{brandName} Institute</span>
       </h2>
 
       <p className="text-[#283618]/85 text-lg mb-6 leading-relaxed">
