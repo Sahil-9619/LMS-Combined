@@ -31,11 +31,7 @@ const contactSchema = new mongoose.Schema(
       required: true,
     },
 
-    status: {
-      type: String,
-      enum: ["pending", "resolved"],
-      default: "pending",
-    },
+   
   },
   { timestamps: true }
 );

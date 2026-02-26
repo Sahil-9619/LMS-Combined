@@ -125,3 +125,30 @@ exports.updateContactStatus = async (req, res) => {
     });
   }
 };
+
+/* ===============================
+   5️⃣ Delete Contact (Admin)
+=================================*/
+exports.deleteContact = async (req, res) => {
+  try {
+    const deletedContact = await Contact.findByIdAndDelete(req.params.id);  
+
+    if (!deletedContact) {
+      return res.status(404).json({
+        success: false,
+        message: "Contact not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Contact deleted successfully",
+    });
+  } catch (error) {
+    console.error("Delete Contact Error:", error);
+    res.status(500).json({  
+      success: false,
+      message: "Server Error",
+    });
+  }
+};
