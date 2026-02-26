@@ -32,7 +32,7 @@ const handleSubmit = async (e) => {
   setError("");
 
   try {
-    const res = await fetch("/api/contact", {
+    const res = await fetch("http://localhost:5000/api/contact/create", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(formData)
@@ -55,6 +55,8 @@ const handleSubmit = async (e) => {
     setLoading(false);
   }
 };
+
+
 
   return (
     <main className="bg-gradient-to-br from-gray-700 via-blue-900 to-indigo-400 text-gray-100">
