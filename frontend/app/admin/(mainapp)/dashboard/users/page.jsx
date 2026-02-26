@@ -40,6 +40,16 @@ const AllUsers = () => {
 
   const [localSearch, setLocalSearch] = useState(filters.search || "");
 
+  // 🔥 AUTO SEARCH WITH DEBOUNCE
+  useEffect(() => {
+  const delay = setTimeout(() => {
+    dispatch(setUserFilters({ search: localSearch }));
+    dispatch(setUserPagination({ page: 1 }));
+  }, 10); // 10ms delay
+
+  return () => clearTimeout(delay);
+}, [localSearch, dispatch]);
+
   // fetch whenever filters/pagination change
   useEffect(() => {
     dispatch(
@@ -63,11 +73,11 @@ const AllUsers = () => {
     [pagination.totalPages]
   );
 
-  const handleSearchSubmit = (e) => {
+  /*const handleSearchSubmit = (e) => {
     e.preventDefault();
     dispatch(setUserFilters({ search: localSearch }));
     dispatch(setUserPagination({ page: 1 }));
-  };
+  };*/
 
   const handleRoleChange = (value) => {
     dispatch(setUserFilters({ role: value === "all" ? "" : value }));
@@ -106,7 +116,7 @@ const AllUsers = () => {
         <h1 className="text-2xl font-semibold">Users</h1>
         <div className="flex-1" />
         <form
-          onSubmit={handleSearchSubmit}
+          //onSubmit={handleSearchSubmit}
           className="flex items-center gap-2 max-w-md w-full"
         >
           <Input
@@ -128,10 +138,10 @@ const AllUsers = () => {
               <SelectItem value="user">User</SelectItem>
             </SelectContent>
           </Select>
-          <Button type="submit">Search</Button>
+          <Button type="button">Search</Button>
         </form>
         <Button asChild>
-          <Link href="/admin/(mainapp)/dashboard/users/add-user">Add User</Link>
+          <Link href="/admin/dashboard/users/add-user">Add User</Link>
         </Button>
       </div>
 
