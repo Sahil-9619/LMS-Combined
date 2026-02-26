@@ -39,6 +39,7 @@ const handleSubmit = async (e) => {
       setFormData({
         name: "",
         email: "",
+        phone: "",
         subject: "",
         message: ""
       });
@@ -112,7 +113,7 @@ const handleSubmit = async (e) => {
                 <div>
                   <h3 className="font-semibold">Office</h3>
                   <p className="text-gray-900 text-sm">
-                    Connaught Place, New Delhi, India
+                    SK Palace, Patna, Bihar, India
                   </p>
                 </div>
               </div>
@@ -152,6 +153,21 @@ const handleSubmit = async (e) => {
                   type="text"
                   required
                   placeholder="Enter name"
+                  className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-gray-900 outline-none transition"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Phone no.
+                </label>
+                <input
+                  name = "phone"
+                  value = {formData.phone}
+                  onChange={handleChange}
+                  type="text"
+                  required
+                  placeholder="Enter phone number"
                   className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-gray-900 outline-none transition"
                 />
               </div>

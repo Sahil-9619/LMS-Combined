@@ -89,139 +89,170 @@ const popularPosts = [
 ];
 
   return (
-    <main className="bg-gradient-to-br from-gray-700 via-blue-900 to-indigo-400 text-gray-100 overflow-hidden">
+    <main className="bg-[#FEFAE0] text-[#283618] overflow-hidden">
 
       <Nav />
 
       {/* ================= HERO ================= */}
-      <section className="pt-32 pb-20 px-6">
-        <div className="max-w-7xl mx-auto">
+<section className="relative pt-36 pb-28 px-6 bg-[#283618] text-[#FEFAE0] overflow-hidden">
 
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7 }}
-            className="max-w-3xl"
-          >
-            <p className="uppercase tracking-widest text-indigo-300 text-sm mb-4">
-              Educational Blog
-            </p>
+  {/* Soft Background Glow */}
+  <motion.div
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 0.2 }}
+    transition={{ duration: 2 }}
+    className="absolute -top-40 -right-40 w-[500px] h-[500px] bg-[#BC6C25] blur-[150px] rounded-full"
+  />
 
-            <h1 className="text-5xl md:text-6xl font-extrabold leading-tight mb-6">
-              Practical insights for
-              <br />
-              modern learners.
-            </h1>
+  <div className="relative max-w-7xl mx-auto">
 
-            <p className="text-gray-300 text-lg leading-relaxed">
-              Career guidance, technical roadmaps, industry trends,
-              and learning strategies — designed to help you grow faster.
-            </p>
-          </motion.div>
+    <motion.p
+      initial={{ opacity: 0, y: 40 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 1 }}
+      className="uppercase tracking-widest text-[#DDA15E] text-sm mb-6"
+    >
+      Educational Blog
+    </motion.p>
 
-        </div>
-      </section>
+    <motion.h1
+      initial={{ opacity: 0, y: 80 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 1.3, ease: [0.16,1,0.3,1] }}
+      className="text-6xl font-extrabold leading-tight mb-8"
+    >
+      Practical insights for
+      <br />
+      disciplined learners.
+    </motion.h1>
+
+    <motion.p
+      initial={{ opacity: 0, y: 50 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 1.4, delay: 0.2 }}
+      className="text-[#FEFAE0]/80 text-lg max-w-2xl"
+    >
+      Career guidance, structured learning roadmaps,
+      and industry-focused strategies for real growth.
+    </motion.p>
+
+  </div>
+</section>
 
       {/* ================= FEATURED POST ================= */}
-      <section className="pb-28 px-6">
-        <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center">
+<section className="py-16 px-6 bg-[#FEFAE0] text-[#283618]">
+  <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-20 items-center">
 
-          <div className="rounded-3xl overflow-hidden">
+    <motion.div
+      initial={{ opacity: 0, x: -80 }}
+      whileInView={{ opacity: 1, x: 0 }}
+      transition={{ duration: 1.2, ease: [0.16,1,0.3,1] }}
+      viewport={{ once: true }}
+      className="rounded-3xl overflow-hidden shadow-2xl group"
+    >
+      <img
+        src="/images/featuredev.png"
+        className="w-full h-[500px] object-cover transition-transform duration-[2000ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-110"
+      />
+    </motion.div>
+
+    <motion.div
+      initial={{ opacity: 0, x: 80 }}
+      whileInView={{ opacity: 1, x: 0 }}
+      transition={{ duration: 1.2 }}
+      viewport={{ once: true }}
+    >
+      <p className="text-[#BC6C25] text-sm mb-4 uppercase tracking-wide">
+        Featured
+      </p>
+
+      <h2 className="text-4xl font-bold mb-6">
+        The Complete Roadmap to Becoming
+        a Full Stack Developer in 2026
+      </h2>
+
+      <p className="text-[#606C38] mb-8 leading-relaxed">
+        A structured, step-by-step guide covering frontend,
+        backend, deployment, and portfolio building.
+      </p>
+
+      <button className="flex items-center gap-2 text-[#BC6C25] hover:gap-4 transition-all duration-500">
+        Read Article <ArrowRight size={18} />
+      </button>
+    </motion.div>
+
+  </div>
+</section>
+
+
+      {/* ================= LATEST ARTICLES GRID ================= */}
+<section className="py-16 px-6 bg-[#283618] text-[#FEFAE0]">
+  <div className="max-w-7xl mx-auto">
+
+    <motion.h2
+      initial={{ opacity: 0, y: 50 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      transition={{ duration: 1 }}
+      viewport={{ once: true }}
+      className="text-4xl font-bold mb-20 text-center text-[#DDA15E]"
+    >
+      Latest Articles
+    </motion.h2>
+
+    <motion.div
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true }}
+      variants={{
+        hidden: {},
+        visible: { transition: { staggerChildren: 0.2 } }
+      }}
+      className="grid md:grid-cols-2 lg:grid-cols-3 gap-16"
+    >
+
+      {blogPosts.map((item) => (
+        <motion.article
+          key={item.id}
+          variants={{
+            hidden: { opacity: 0, y: 80 },
+            visible: { opacity: 1, y: 0 }
+          }}
+          transition={{ duration: 1, ease: [0.16,1,0.3,1] }}
+          whileHover={{ y: -12 }}
+          className="group"
+        >
+          <div className="rounded-3xl overflow-hidden mb-6 shadow-xl">
             <img
-              src="/images/featuredev.png"
-              alt="Featured"
-              className="w-full h-[450px] object-contain"
+              src={item.img}
+              className="w-full h-[260px] object-cover transition-transform duration-[2000ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-110"
             />
           </div>
 
-          <div>
-            <p className="text-indigo-300 text-sm mb-4 uppercase tracking-wide">
-              Featured
-            </p>
+          <p className="text-[#DDA15E] text-xs mb-3 uppercase">
+            {item.category}
+          </p>
 
-            <h2 className="text-4xl font-bold mb-6 leading-tight">
-              The Complete Roadmap to Becoming
-              a Full Stack Developer in 2026
-            </h2>
+          <h3 className="text-xl font-semibold mb-4">
+            {item.title}
+          </h3>
 
-            <p className="text-gray-300 leading-relaxed mb-6">
-              A structured, step-by-step guide covering frontend,
-              backend, deployment, and portfolio building —
-              without wasting time on outdated resources.
-            </p>
+          <p className="text-[#FEFAE0]/75 text-sm mb-4">
+            {item.excerpt}
+          </p>
 
-            <button className="flex items-center gap-2 text-indigo-300 hover:text-white transition">
-              Read Article <ArrowRight size={18} />
-            </button>
-          </div>
+          <span className="text-[#FEFAE0]/50 text-xs">
+            {item.readTime} • {item.date}
+          </span>
+        </motion.article>
+      ))}
 
-        </div>
-      </section>
+    </motion.div>
 
-      {/* ================= CATEGORY FILTER ================= */}
-      <section className="pb-20 px-6">
-        <div className="max-w-7xl mx-auto flex flex-wrap gap-4">
-
-          {[
-            "All",
-            "Career Guidance",
-            "Development",
-            "Data Science",
-            "Study Tips",
-            "Industry Trends",
-          ].map((cat, i) => (
-            <button
-              key={i}
-              className="px-5 py-2 rounded-full border border-white/30 text-sm hover:bg-white/10 transition"
-            >
-              {cat}
-            </button>
-          ))}
-
-        </div>
-      </section>
-
-      {/* ================= LATEST ARTICLES GRID ================= */}
-      <section className="pb-28 px-6">
-        <div className="max-w-7xl mx-auto grid md:grid-cols-2 lg:grid-cols-3 gap-12">
-
-          {blogPosts.map((item) => (
-            <motion.article
-              key={item.id}
-              whileHover={{ y: -8 }}
-              className="group"
-            >
-              <div className="rounded-2xl overflow-hidden mb-5">
-                <img
-                  src={item.img}
-                  alt={item.title}
-                  className="w-full h-[250px] object-cover group-hover:scale-105 transition duration-500"
-                />
-              </div>
-
-              <p className="text-indigo-300 text-xs mb-3 uppercase tracking-wide">
-                {item.category}
-              </p>
-
-              <h3 className="text-xl font-semibold mb-3 leading-snug">
-                {item.title}
-              </h3>
-
-              <p className="text-gray-300 text-sm leading-relaxed mb-4">
-                {item.excerpt}
-              </p>
-
-              <span className="text-gray-400 text-xs">
-                {item.readTime} • {item.date}
-              </span>
-            </motion.article>
-          ))}
-
-        </div>
-      </section>
+  </div>
+</section>
 
       {/* ================= POPULAR POSTS ================= */}
-      <section className="pb-28 px-6 bg-white/5">
+      <section className="py-12 px-6 bg-[#283618] text-[#FEFAE0]">
         <div className="max-w-7xl mx-auto">
 
           <h2 className="text-3xl font-bold mb-12">
@@ -240,10 +271,10 @@ const popularPosts = [
                   />
                 </div>
                 <div>
-                  <h3 className="font-semibold mb-2">
+                  <h3 className="font-semibold text-white mb-2">
                     {item.title}
                   </h3>
-                  <p className="text-gray-400 text-sm">
+                  <p className="text-gray-300 text-sm">
                     {item.excerpt}
                     </p>
                 </div>
@@ -256,53 +287,44 @@ const popularPosts = [
       </section>
 
       {/* ================= NEWSLETTER ================= */}
-      <section className="py-28 px-6">
-        <div className="max-w-4xl mx-auto text-center">
+<section className="relative py-32 px-6 bg-[#FEFAE0] text-[#283618] text-center overflow-hidden">
 
-          <h2 className="text-4xl font-bold mb-6">
-            Get smarter every week.
-          </h2>
+  <motion.div
+    initial={{ opacity: 0 }}
+    whileInView={{ opacity: 0.15 }}
+    transition={{ duration: 2 }}
+    viewport={{ once: true }}
+    className="absolute left-1/2 -translate-x-1/2 top-0 w-[500px] h-[500px] bg-[#BC6C25] blur-[150px] rounded-full"
+  />
 
-          <p className="text-gray-300 mb-10">
-            Join our newsletter for curated learning resources,
-            career advice, and industry updates.
-          </p>
+  <div className="relative max-w-4xl mx-auto">
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <input
-              type="email"
-              placeholder="Enter your email"
-              className="px-6 py-3 rounded-full bg-white/10 border border-white/30 text-white outline-none w-full sm:w-auto"
-            />
-            <button className="px-8 py-3 bg-indigo-600 hover:bg-indigo-700 rounded-full transition">
-              Subscribe
-            </button>
-          </div>
+    <motion.h2
+      initial={{ opacity: 0, y: 60 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      transition={{ duration: 1 }}
+      className="text-5xl font-bold mb-8"
+    >
+      Get smarter every week.
+    </motion.h2>
 
-        </div>
-      </section>
+    <p className="text-[#BC6C25] mb-12">
+      Join our newsletter for structured learning resources.
+    </p>
 
-      {/* ================= CTA ================= */}
-      <section className="py-28 px-6 bg-white/5 text-center">
-        <div className="max-w-3xl mx-auto">
+    <div className="flex flex-col sm:flex-row gap-4 justify-center">
+      <input
+        type="email"
+        placeholder="Enter your email"
+        className="px-6 py-3 rounded-full border border-[#BC6C25]/40 outline-none"
+      />
+      <button className="px-8 py-3 bg-[#BC6C25] hover:bg-[#DDA15E] text-white rounded-full transition-all duration-500 hover:scale-105">
+        Subscribe
+      </button>
+    </div>
 
-          <h2 className="text-4xl font-bold mb-6">
-            Ready to apply what you learn?
-          </h2>
-
-          <p className="text-gray-300 mb-10">
-            Explore our structured courses and start building
-            real-world skills today.
-          </p>
-
-          <Link 
-          href="/courses"
-          className="bg-indigo-600 hover:bg-indigo-700 px-10 py-4 rounded-full text-lg font-medium transition">
-            Explore Courses
-          </Link>
-
-        </div>
-      </section>
+  </div>
+</section>
 
       <Footer />
 
