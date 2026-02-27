@@ -3,6 +3,7 @@ import { GalleryVerticalEnd } from "lucide-react";
 import { LoginForm } from "@/components/login-form";
 import { brandName } from "@/app/contants";
 import { RegisterForm } from "@/components/register-form";
+import Link from "next/link";
 
 export default function LoginPage() {
   return (
@@ -13,7 +14,7 @@ export default function LoginPage() {
             <div className="bg-primary text-primary-foreground flex size-6 items-center justify-center rounded-md">
               <GalleryVerticalEnd className="size-4" />
             </div>
-            {brandName}.
+           <Link href="/">{brandName}</Link>
           </a>
         </div>
         <div className="flex flex-1 items-center justify-center">

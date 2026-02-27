@@ -10,10 +10,21 @@ import { useRouter } from "next/navigation";
 import { registerUser } from "@/lib/store/features/authSlice";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import {
+  InputOTP,
+  InputOTPGroup,
+  InputOTPSeparator,
+  InputOTPSlot,
+} from "@/components/ui/input-otp"
 
 export function RegisterForm({ className, ...props }) {
   const dispatch = useDispatch();
   const router = useRouter();
+  //for otp
+  const [otp, setOtp] = useState("");
+  const [showOtp, setShowOtp] = useState(false);
+  const [tempUserData, setTempUserData] = useState(null);
+
   const { registerStatus, error } = useSelector((state) => state.auth);
 
   // const [formData, setFormData] = useState({
@@ -35,6 +46,7 @@ export function RegisterForm({ className, ...props }) {
       toast.error(error.message);
     }
   }, [error]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
@@ -43,15 +55,43 @@ export function RegisterForm({ className, ...props }) {
       password: formData.get("password"),
       name: formData.get("name"),
     };
+
+    setTempUserData(credentials);
+
+    toast.success("OTP sent to your email");
+
+    // Show OTP section
+    setShowOtp(true);
+    /**
     console.log(credentials, "sfsd");
     const result = await dispatch(registerUser(credentials));
     if (registerUser.fulfilled.match(result)) {
       toast.success(result.payload.message || "Registered successfully!");
 
       router.push("/user/login"); // Redirect on success
-    }
+    }*/
   };
+
+  const handleVerifyOtp = async () => {
+  if (otp.length !== 5) {
+    toast.error("Enter valid 5-digit OTP");
+    return;
+  }
+
+  // Call backend to verify OTP
+  // await dispatch(verifyOtp({ email: tempUserData.email, otp }))
+
+  // If OTP correct → now register user
+  const result = await dispatch(registerUser(tempUserData));
+
+  if (registerUser.fulfilled.match(result)) {
+    toast.success("Registered successfully!");
+    router.push("/user/login");
+  }
+};
+
   return (
+    <>{!showOtp ? (
     <form
       className={cn("flex flex-col gap-6", className)}
       {...props}
@@ -70,7 +110,7 @@ export function RegisterForm({ className, ...props }) {
             id="name"
             name="name"
             type="text"
-            placeholder="abcd"
+            placeholder="Enter full name"
             required
           />
         </div>
@@ -94,6 +134,7 @@ export function RegisterForm({ className, ...props }) {
               Forgot your password?
             </a>
           </div>
+
           <Input id="password" name="password" type="password" required />
         </div>
         <Button type="submit" className="w-full">
@@ -107,5 +148,32 @@ export function RegisterForm({ className, ...props }) {
         </Link>
       </div>
     </form>
+    ) : (
+      <div className="flex flex-col gap-6 items-center">
+  <h2 className="text-xl font-semibold">Verify OTP</h2>
+  <p className="text-sm text-muted-foreground">
+    Enter the OTP sent to your email
+  </p>
+
+  <InputOTP
+    maxLength={5}
+    value={otp}
+    onChange={(value) => setOtp(value)}
+  >
+    <InputOTPGroup>
+      <InputOTPSlot index={0} />
+      <InputOTPSlot index={1} />
+      <InputOTPSlot index={2} />
+      <InputOTPSlot index={3} />
+      <InputOTPSlot index={4} />
+    </InputOTPGroup>
+  </InputOTP>
+
+  <Button className="w-full mt-4" onClick={handleVerifyOtp}>
+    Verify OTP
+  </Button>
+</div>
+    )}
+    </>
   );
 }
