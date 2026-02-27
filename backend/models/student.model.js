@@ -9,10 +9,7 @@ const studentSchema = new mongoose.Schema(
       trim: true,
     },
 
-    rollNumber: {
-      type: Number,
-      required: true,
-    },
+   
 
     firstName: {
       type: String,
@@ -51,15 +48,10 @@ const studentSchema = new mongoose.Schema(
 
     profileImage: String,
 
-    classId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Class",
-      required: true,
-    },
+    
 
     academicYear: {
       type: String,
-      required: true,
     },
 
     status: {

@@ -1,8 +1,13 @@
 const express = require("express");
 const router = express.Router();
-const controller = require("../../controllers/admins/student.controller");
+const multer = require("multer");
 
-router.post("/", controller.createStudent);
+const controller = require("../../controllers/admins/student.controller");
+const upload = multer({
+  dest: "uploads/",   // folder ban jayega automatically
+});
+
+router.post("/",   upload.single("photo"), controller.createStudent);
 router.get("/class/:classId", controller.getStudentsByClass);
 
 module.exports = router;
