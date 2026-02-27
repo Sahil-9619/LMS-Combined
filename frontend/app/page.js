@@ -132,10 +132,10 @@ useEffect(() => {
           </Link>
 
           <Link 
-            href="/courses"
+            href="/admission"
             className="border-2 border-[#FEFAE0] text-[#FEFAE0] px-8 py-3 rounded-full font-medium hover:bg-[#FEFAE0] hover:text-[#283618] transition-all"
           >
-            Browse Courses
+            GET ADMISSION
           </Link>
 
         </div>
@@ -143,6 +143,65 @@ useEffect(() => {
     </div>
   </div>
   
+</section>
+
+{/* Admission Section (Redesigned) */}
+<section className="py-10 bg-gradient-to-br from-[#283618] via-[#606C38] to-[#BC6C25] text-[#FEFAE0] overflow-hidden">
+  <div className="max-w-6xl mx-auto px-6 text-center">
+
+    {/* Heading */}
+    <motion.div
+      initial={{ opacity: 0, y: 60 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
+      viewport={{ once: true }}
+      className="mb-14"
+    >
+      <h2 className="text-4xl md:text-5xl font-bold mb-6">
+        Admissions Open 2026
+      </h2>
+
+      <p className="text-lg text-[#FEFAE0]/85 max-w-2xl mx-auto leading-relaxed">
+        Secure your seat at <span className="text-[#DDA15E] font-semibold">EduMaster Institute</span> 
+        and begin your journey toward career-focused classroom excellence.
+      </p>
+    </motion.div>
+
+    {/* Features Line */}
+    <motion.div
+      initial={{ opacity: 0, y: 40 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      transition={{ duration: 1, delay: 0.2 }}
+      viewport={{ once: true }}
+      className="flex flex-wrap justify-center gap-8 mb-14 text-sm md:text-base"
+    >
+      <div className="flex items-center gap-2">
+        <Check className="h-5 w-5 text-[#DDA15E]" />
+        Limited Seats Available
+      </div>
+
+      <div className="flex items-center gap-2">
+        <Check className="h-5 w-5 text-[#DDA15E]" />
+        Industry-Focused Curriculum
+      </div>
+    </motion.div>
+
+    {/* CTA Button */}
+    <motion.div
+      initial={{ opacity: 0, scale: 0.8 }}
+      whileInView={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.6, delay: 0.3 }}
+      viewport={{ once: true }}
+    >
+      <Link
+        href="/admission"
+        className="inline-block px-10 py-4 bg-[#BC6C25] text-[#FEFAE0] font-semibold rounded-full hover:bg-[#DDA15E] transition-all duration-300"
+      >
+        Apply for Admission →
+      </Link>
+    </motion.div>
+
+  </div>
 </section>
 
 {/* About Us Section */}
@@ -504,7 +563,7 @@ useEffect(() => {
       className="text-center mt-20"
     >
       <Link
-        href="/courses"
+        href="/"
         className="inline-block px-6 md:px-8 py-2 md:py-3 text-sm md:text-base border border-[#BC6C25] text-[#BC6C25] rounded-full hover:bg-[#BC6C25] hover:text-[#FEFAE0] transition-all duration-500"
       >
         View All Courses
@@ -739,129 +798,6 @@ useEffect(() => {
   </div>
 </section>
 
-
-{/* Admission Section */}
-<section className="py-28 bg-gradient-to-br from-[#283618] via-[#606C38] to-[#BC6C25] text-[#FEFAE0] overflow-hidden">
-  <div className="max-w-7xl mx-auto px-6">
-
-    {/* Heading */}
-    <motion.div
-      initial={{ opacity: 0, y: 50 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
-      viewport={{ once: true }}
-      className="text-center mb-24"
-    >
-      <h2 className="text-4xl md:text-5xl font-bold mb-6">
-        Admissions Open 2026
-      </h2>
-      <p className="text-lg text-[#FEFAE0]/80 max-w-2xl mx-auto">
-        Join EduMaster Institute and build your future with expert-led
-        classroom training and career-focused programs.
-      </p>
-    </motion.div>
-
-    {/* 3 Column Editorial Layout */}
-    <motion.div
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true }}
-      variants={{
-        hidden: {},
-        visible: { transition: { staggerChildren: 0.2 } }
-      }}
-      className="grid grid-cols-1 md:grid-cols-3 gap-16"
-    >
-      {[
-        {
-          number: "#1",
-          title: "Professional Courses",
-          content: [
-            "Web Development",
-            "UI/UX Design",
-            "Digital Marketing",
-            "Computer Basics"
-          ],
-          button: "Apply Now",
-          style: "solid"
-        },
-        {
-          number: "#2",
-          title: "Admission Process",
-          content: [
-            "Fill Registration Form",
-            "Counseling Session",
-            "Batch Allotment",
-            "Start Classes"
-          ],
-          button: "Download Brochure",
-          style: "outline"
-        },
-        {
-          number: "#3",
-          title: "Need Help?",
-          content: [
-            "📞 +91 98765 43210",
-            "📧 info@edumaster.com",
-            "📍 Patna, Bihar, India"
-          ],
-          button: "Contact Us",
-          style: "dark"
-        }
-      ].map((item, index) => (
-        <motion.div
-          key={index}
-          variants={{
-            hidden: { opacity: 0, y: 60 },
-            visible: { opacity: 1, y: 0 }
-          }}
-          transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
-          className="relative group"
-        >
-          {/* Large Background Number */}
-          <div className="absolute text-[120px] font-extrabold text-[#FEFAE0]/5 -top-10 -left-4 select-none">
-            {item.number}
-          </div>
-
-          <h3 className="text-2xl font-bold mb-6 text-[#DDA15E] relative z-10">
-            {item.title}
-          </h3>
-
-          <ul className="space-y-3 mb-8 text-[#FEFAE0]/85 relative z-10">
-            {item.content.map((text, i) => (
-              <li key={i} className="flex items-center">
-                <Check className="h-4 w-4 text-[#BC6C25] mr-2" />
-                {text}
-              </li>
-            ))}
-          </ul>
-
-          {/* Divider */}
-          <div className="w-12 h-[2px] bg-[#DDA15E] mb-6 transition-all duration-500 group-hover:w-20" />
-
-          {/* Button */}
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.96 }}
-            transition={{ duration: 0.3 }}
-            className={`px-6 py-3 rounded-full text-sm font-semibold transition-all ${
-              item.style === "solid"
-                ? "bg-[#BC6C25] text-[#FEFAE0] hover:bg-[#DDA15E]"
-                : item.style === "outline"
-                ? "border border-[#FEFAE0] hover:bg-[#FEFAE0]/10"
-                : "bg-[#606C38] hover:bg-[#283618]"
-            }`}
-          >
-            {item.button}
-          </motion.button>
-
-        </motion.div>
-      ))}
-    </motion.div>
-
-  </div>
-</section>
-
 {/* Top Students Section */}
 <section className="py-28 bg-[#283618] text-[#FEFAE0] overflow-hidden">
   <div className="max-w-7xl mx-auto px-6">
@@ -985,10 +921,10 @@ useEffect(() => {
       </Link>
 
       <Link
-        href="/courses"
+        href="/admission"
         className="border-2 border-[#BC6C25] text-[#BC6C25] px-8 py-3 rounded-full font-medium hover:bg-[#DDA15E]/20 transition-all"
       >
-        Browse Courses
+        Get Admission
       </Link>
     </div>
   </div>

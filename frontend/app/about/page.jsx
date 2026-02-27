@@ -511,10 +511,10 @@ export default function AboutPage() {
         </h2>
 
         <Link
-          href="/courses"
+          href="/admission"
           className="inline-block bg-[#BC6C25] hover:bg-[#DDA15E] text-[#FEFAE0] px-12 py-4 rounded-full text-lg font-semibold transition-all duration-500 hover:scale-105"
         >
-          Explore Our Courses
+          Apply for Admission
         </Link>
       </section>
 

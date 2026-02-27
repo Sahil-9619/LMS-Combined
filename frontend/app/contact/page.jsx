@@ -256,14 +256,14 @@ const handleSubmit = async (e) => {
             Ready to level up your skills?
           </h2>
           <p className="text-gray-900 mb-8">
-            Explore our courses and start your learning journey today.
+            Get admission today!
           </p>
           <Link
-  href="/courses"
+  href="/admission"
   className="bg-[#BC6C25] text-white px-8 py-3 rounded-full font-semibold 
   transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] 
   hover:scale-105 hover:bg-[#DDA15E] hover:shadow-xl hover:shadow-[#BC6C25]/40"
->Explore Courses
+>Apply for Admission
           </Link>
         </div>
       </section>
