@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const Student = require("../../models/student.model");
 const Class = require("../../models/class.model");
 
@@ -16,18 +17,42 @@ exports.createStudent = async (req, res) => {
       academicYear,
       parentName,
       parentPhone,
+      phone,
+      email,
     } = req.body;
 
-    // Check required fields
-    if (!admissionNumber || !firstName || !classId || !academicYear || !rollNumber) {
+    // ========================
+    // Required Fields Check
+    // ========================
+    if (
+      !admissionNumber ||
+      !firstName ||
+      !lastName ||
+      !academicYear ||
+      !rollNumber ||
+      !classId
+    ) {
       return res.status(400).json({
         success: false,
         message: "Required fields missing",
       });
     }
 
-    // Check class exists
+    // ========================
+    // Validate ObjectId
+    // ========================
+    if (!mongoose.Types.ObjectId.isValid(classId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Class ID",
+      });
+    }
+
+    // ========================
+    // Check Class Exists
+    // ========================
     const classExists = await Class.findById(classId);
+
     if (!classExists) {
       return res.status(404).json({
         success: false,
@@ -35,16 +60,21 @@ exports.createStudent = async (req, res) => {
       });
     }
 
+    // ========================
+    // Create Student
+    // ========================
     const student = await Student.create({
-      admissionNumber,
-      rollNumber,
-      firstName,
-      lastName,
+      admissionNumber: admissionNumber.trim(),
+      rollNumber: Number(rollNumber),
+      firstName: firstName.trim(),
+      lastName: lastName.trim(),
       gender,
-      classId,
-      academicYear,
+      classId,                 // ✅ IMPORTANT
+      academicYear: academicYear.trim(),
       parentName,
       parentPhone,
+      phone,
+      email,
     });
 
     res.status(201).json({
@@ -67,6 +97,13 @@ exports.createStudent = async (req, res) => {
 exports.getStudentsByClass = async (req, res) => {
   try {
     const { classId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(classId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Class ID",
+      });
+    }
 
     const students = await Student.find({ classId })
       .populate("classId");
