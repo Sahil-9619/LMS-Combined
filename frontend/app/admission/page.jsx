@@ -4,6 +4,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import Nav from "../sections/Nav";
 import Footer from "../sections/Footer";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { registrationService } from "@/services/user/registration.service";
+
 
 export default function AdmissionPage() {
   const [step, setStep] = useState(1);
@@ -25,32 +28,44 @@ export default function AdmissionPage() {
     preview: null,
   });
 
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+
   /*HANDLE SUBMIT  */
+  const router = useRouter();
 
-  const handleSubmit = async() => {
-    try{
-        const form = new FormData();
+const handleSubmit = async (e) => {
+  console.log("Submitting form with data:", formData);
+  e.preventDefault();
+  setLoading(true);
+  setError("");
+  setSuccess("");
 
-        Object.keys(formData).forEach(key => {
-            if(key === "preview"){
-                form.append(key, formData[key]);
-            }
+  try {
+
+    const payload = new FormData();
+
+    Object.keys(formData).forEach((key) => {
+      if (key !== "preview") {
+        payload.append(key, formData[key]);
+      }
     });
-    const res = await fetch("/api/admission", {
-        method: "POST",
-        body: form
-    }); 
 
-    const data = await res.json();
+    const res = await registrationService.registerStudent(payload);
 
-    if(res.ok){ throw new Error(data.message || "Something went wrong"); }
+    setSuccess("Student registered successfully");
 
-    alert("Registration successful!"); 
-    }catch(err){
-        alert(err.message);
-        }
-    };
+    setTimeout(() => {
+      router.push("/admission/registered");
+    }, 1000);
 
+  } catch (err) {
+    setError(err?.response?.data?.message || "Registration failed");
+  } finally {
+    setLoading(false);
+  }
+};
   /*HANDLE CHANGE  */
 
   const handleChange = (e) => {
@@ -154,6 +169,13 @@ export default function AdmissionPage() {
                   <Input label="Parent Phone" name="parentPhone" value={formData.parentPhone} onChange={handleChange} />
                   <Input label="Email" name="email" type="email" value={formData.email} onChange={handleChange} />
                   <Input label="Date of Birth" name="dob" type="date" value={formData.dob} onChange={handleChange} />
+                  <select name="gender" value={formData.gender} onChange={handleChange} className="input">
+                    <option value="">Select Gender</option> 
+                    <option value="male"> Male</option>
+                    <option value="female"> Female</option>
+                    <option value="other"> Other</option>
+                  </select> 
+                  
                 </div>
 
                 <div className="flex justify-end pt-12">
@@ -235,10 +257,11 @@ export default function AdmissionPage() {
                   className="input"
                 >
                   <option value="">Select Class</option>
-                  <option>Class 6</option>
-                  <option>Class 7</option>
-                  <option>Class 8</option>
-                  <option>Class 9</option>
+                  <option value="6">Class 6</option>
+                  <option value="7">Class 7</option>
+                  <option value="8">Class 8</option>
+                  <option value="9">Class 9</option>
+                  <option value="10">Class 10</option>
                 </select>
 
                 <div className="space-y-4">
@@ -303,7 +326,9 @@ export default function AdmissionPage() {
                 <motion.button
                   whileHover={{ scale: 1.07 }}
                   whileTap={{ scale: 0.95 }}
+                  type="button"
                   onClick={handleSubmit}
+                  disabled={loading}
                   className="px-14 py-4 bg-[#BC6C25] text-white font-bold text-lg rounded-full shadow-lg hover:bg-[#DDA15E] transition-all duration-300"
                 >
                   Pay ₹2000 Securely →

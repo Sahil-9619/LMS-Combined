@@ -2,19 +2,35 @@ const mongoose = require("mongoose");
 const Student = require("../../models/student.model");
 const Class = require("../../models/class.model");
 
-// ================================
-// CREATE STUDENT
-// ================================
+// =====================================
+// AUTO GENERATE ADMISSION NUMBER
+// =====================================
+const generateAdmissionNumber = async () => {
+  const lastStudent = await Student.findOne()
+    .sort({ createdAt: -1 })
+    .select("admissionNumber");
+
+  if (!lastStudent) {
+    return "ADM1001";
+  }
+
+  const lastNumber = parseInt(
+    lastStudent.admissionNumber.replace("ADM", "")
+  );
+
+  return `ADM${lastNumber + 1}`;
+};
+
+// =====================================
+// CREATE STUDENT (AUTO CLASS FETCH)
+// =====================================
 exports.createStudent = async (req, res) => {
   try {
     const {
-      admissionNumber,
-      rollNumber,
       firstName,
       lastName,
       gender,
-      classId,
-      academicYear,
+      course, // 👈 frontend se aayega (e.g. "10")
       parentName,
       parentPhone,
       phone,
@@ -24,57 +40,47 @@ exports.createStudent = async (req, res) => {
     // ========================
     // Required Fields Check
     // ========================
-    if (
-      !admissionNumber ||
-      !firstName ||
-      !lastName ||
-      !academicYear ||
-      !rollNumber ||
-      !classId
-    ) {
+    if (!firstName || !course) {
       return res.status(400).json({
         success: false,
-        message: "Required fields missing",
+        message: "First Name and Class are required",
       });
     }
 
     // ========================
-    // Validate ObjectId
+    // AUTO FETCH CLASS
     // ========================
-    if (!mongoose.Types.ObjectId.isValid(classId)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid Class ID",
-      });
-    }
+    const classData = await Class.findOne({
+      className: course,
+      status: "active",
+    });
 
-    // ========================
-    // Check Class Exists
-    // ========================
-    const classExists = await Class.findById(classId);
-
-    if (!classExists) {
+    if (!classData) {
       return res.status(404).json({
         success: false,
-        message: "Class not found",
+        message: "Selected class not found",
       });
     }
+
+    // ========================
+    // Generate Admission Number
+    // ========================
+    const admissionNumber = await generateAdmissionNumber();
 
     // ========================
     // Create Student
     // ========================
     const student = await Student.create({
-      admissionNumber: admissionNumber.trim(),
-      rollNumber: Number(rollNumber),
+      admissionNumber,
       firstName: firstName.trim(),
-      lastName: lastName.trim(),
+      lastName: lastName?.trim(),
       gender,
-      classId,                 // ✅ IMPORTANT
-      academicYear: academicYear.trim(),
+      classId: classData._id, // 👈 automatically set
       parentName,
       parentPhone,
       phone,
       email,
+      profileImage: req.file?.filename,
     });
 
     res.status(201).json({
@@ -84,6 +90,8 @@ exports.createStudent = async (req, res) => {
     });
 
   } catch (error) {
+    console.error("Create Student Error:", error);
+
     res.status(500).json({
       success: false,
       message: error.message,
@@ -91,9 +99,9 @@ exports.createStudent = async (req, res) => {
   }
 };
 
-// ================================
+// =====================================
 // GET STUDENTS BY CLASS
-// ================================
+// =====================================
 exports.getStudentsByClass = async (req, res) => {
   try {
     const { classId } = req.params;
@@ -106,7 +114,8 @@ exports.getStudentsByClass = async (req, res) => {
     }
 
     const students = await Student.find({ classId })
-      .populate("classId");
+      .populate("classId")
+      .sort({ createdAt: 1 });
 
     res.status(200).json({
       success: true,
@@ -115,6 +124,8 @@ exports.getStudentsByClass = async (req, res) => {
     });
 
   } catch (error) {
+    console.error("Get Students Error:", error);
+
     res.status(500).json({
       success: false,
       message: error.message,
