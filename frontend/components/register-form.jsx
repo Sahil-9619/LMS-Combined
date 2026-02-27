@@ -16,16 +16,18 @@ import {
   InputOTPSeparator,
   InputOTPSlot,
 } from "@/components/ui/input-otp"
+import axios from "axios";
+import { authService } from "../services/user/auth.service"; 
 
 export function RegisterForm({ className, ...props }) {
-  const dispatch = useDispatch();
+  
   const router = useRouter();
   //for otp
   const [otp, setOtp] = useState("");
   const [showOtp, setShowOtp] = useState(false);
-  const [tempUserData, setTempUserData] = useState(null);
+  const [signupEmail, setSignupEmail] = useState("");
+  const [otpError, setOtpError] = useState(false);
 
-  const { registerStatus, error } = useSelector((state) => state.auth);
 
   // const [formData, setFormData] = useState({
   //   name: "",
@@ -41,52 +43,41 @@ export function RegisterForm({ className, ...props }) {
   //   });
   // };
 
-  useEffect(() => {
+/*  useEffect(() => {
     if (error) {
       toast.error(error.message);
     }
-  }, [error]);
+  }, [error]);*/
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     const formData = new FormData(e.target);
-    const credentials = {
-      email: formData.get("email"),
-      password: formData.get("password"),
-      name: formData.get("name"),
-    };
+    const email = formData.get("email");
+    const password = formData.get("password");
+    const name = formData.get("name");
 
-    setTempUserData(credentials);
 
-    toast.success("OTP sent to your email");
-
-    // Show OTP section
-    setShowOtp(true);
-    /**
-    console.log(credentials, "sfsd");
-    const result = await dispatch(registerUser(credentials));
-    if (registerUser.fulfilled.match(result)) {
-      toast.success(result.payload.message || "Registered successfully!");
-
-      router.push("/user/login"); // Redirect on success
-    }*/
+    try {
+      const response = await authService.registerUser({ name, email, password });
+      toast.success(response.message);
+      setSignupEmail(email);
+      setShowOtp(true);
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Signup failed");
+    }
   };
 
   const handleVerifyOtp = async () => {
-  if (otp.length !== 5) {
-    toast.error("Enter valid 5-digit OTP");
-    return;
-  }
+    try {
+      const response = await authService.verifyEmail(signupEmail, otp);
+      toast.success(response.message);
+      router.push("/user/login"); 
+      
 
-  // Call backend to verify OTP
-  // await dispatch(verifyOtp({ email: tempUserData.email, otp }))
-
-  // If OTP correct → now register user
-  const result = await dispatch(registerUser(tempUserData));
-
-  if (registerUser.fulfilled.match(result)) {
-    toast.success("Registered successfully!");
-    router.push("/user/login");
+  } catch (error) {
+     setOtpError(true);
+      toast.error(error.response?.data?.message || "Invalid OTP");
   }
 };
 
@@ -156,16 +147,20 @@ export function RegisterForm({ className, ...props }) {
   </p>
 
   <InputOTP
-    maxLength={5}
-    value={otp}
-    onChange={(value) => setOtp(value)}
+  maxLength={5}
+  value={otp}
+  onChange={(value) => {
+    setOtp(value);
+    setOtpError(false); // remove red when typing again
+  }}
+  className={otpError ? "border-red-500" : ""}
   >
     <InputOTPGroup>
-      <InputOTPSlot index={0} />
-      <InputOTPSlot index={1} />
-      <InputOTPSlot index={2} />
-      <InputOTPSlot index={3} />
-      <InputOTPSlot index={4} />
+      <InputOTPSlot index={0} className={otpError ? "border-red-500" : ""} />
+      <InputOTPSlot index={1} className={otpError ? "border-red-500" : ""} />
+      <InputOTPSlot index={2} className={otpError ? "border-red-500" : ""} />
+      <InputOTPSlot index={3} className={otpError ? "border-red-500" : ""} />
+      <InputOTPSlot index={4} className={otpError ? "border-red-500" : ""} />
     </InputOTPGroup>
   </InputOTP>
 

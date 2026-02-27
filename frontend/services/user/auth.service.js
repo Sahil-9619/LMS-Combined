@@ -84,4 +84,18 @@ export const authService = {
     );
     return response.data;
   },
+  verifyEmail: async (email, otp) => {
+    const response = await axiosInstance.post("/user/verifyEmail", {
+      email,
+      otp,
+    });
+    return response.data;
+  },
+  resendEmailVerification: async (email) => {
+    const response = await axiosInstance.post("/user/sendEmailForVerification", {
+      email,
+    });
+    return response.data;
+  },  
+  
 };
