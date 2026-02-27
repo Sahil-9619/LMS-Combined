@@ -1,4 +1,6 @@
+import { create } from "domain";
 import axiosInstance from "../../app/utils/axiosinterceptor";
+import { get } from "http";
 
 export const adminServices = {
   // Get all courses
@@ -33,4 +35,29 @@ export const adminServices = {
     const response = await axiosInstance.delete(`/admin/users/${id}`);
     return response.data;
   },
+  createStudent: async (data) => {
+    const response = await axiosInstance.post(`/students`, data);
+    return response.data;
+  },
+  getAllClasses: async () => {
+    const response = await axiosInstance.get(`/class`);
+    return response.data;
+  },
+  createClass: async (data) => {
+    const response = await axiosInstance.post(`/class`, data);
+    return response.data;
+  },
+  getClassById: async (id) => {
+    const response = await axiosInstance.get(`/class/${id}`);
+    return response.data;
+  },  
+  updateClass: async (id, data) => {
+    const response = await axiosInstance.put(`/class/${id}`, data);
+    return response.data;
+  },
+  deleteClass: async (id) => {
+    const response = await axiosInstance.delete(`/class/${id}`);
+    return response.data;
+  },  
+    
 };
