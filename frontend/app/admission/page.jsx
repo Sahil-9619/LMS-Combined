@@ -25,15 +25,82 @@ export default function AdmissionPage() {
     preview: null,
   });
 
+  /*HANDLE SUBMIT  */
+
+  const handleSubmit = async() => {
+    try{
+        const form = new FormData();
+
+        Object.keys(formData).forEach(key => {
+            if(key === "preview"){
+                form.append(key, formData[key]);
+            }
+    });
+    const res = await fetch("/api/admission", {
+        method: "POST",
+        body: form
+    }); 
+
+    const data = await res.json();
+
+    if(res.ok){ throw new Error(data.message || "Something went wrong"); }
+
+    alert("Registration successful!"); 
+    }catch(err){
+        alert(err.message);
+        }
+    };
+
+  /*HANDLE CHANGE  */
+
   const handleChange = (e) => {
     if (e.target.type === "file") {
-      setFormData({ ...formData, photo: e.target.files[0] });
+      const file = e.target.files[0];
+      if (file) {
+        setFormData((prev) => ({
+          ...prev,
+          photo: file,
+          preview: URL.createObjectURL(file),
+        }));
+      }
     } else {
-      setFormData({ ...formData, [e.target.name]: e.target.value });
+      setFormData((prev) => ({
+        ...prev,
+        [e.target.name]: e.target.value,
+      }));
     }
   };
 
-  const nextStep = () => setStep((prev) => Math.min(prev + 1, 4));
+  /* ================== VALIDATION ================== */
+
+  const isStep1Valid =
+    formData.firstName &&
+    formData.lastName &&
+    formData.fatherName &&
+    formData.motherName &&
+    formData.phone &&
+    formData.parentPhone &&
+    formData.email &&
+    formData.dob;
+
+  const isStep2Valid =
+    formData.address &&
+    formData.category;
+
+  const isStep3Valid =
+    formData.course &&
+    formData.photo;
+
+  const nextStep = () => {
+    if (
+      (step === 1 && isStep1Valid) ||
+      (step === 2 && isStep2Valid) ||
+      (step === 3 && isStep3Valid)
+    ) {
+      setStep((prev) => Math.min(prev + 1, 4));
+    }
+  };
+
   const prevStep = () => setStep((prev) => Math.max(prev - 1, 1));
 
   return (
@@ -59,49 +126,6 @@ export default function AdmissionPage() {
         />
       </div>
 
-      {/* STEP NAVIGATION */}
-      <div className="max-w-4xl mx-auto px-6 mt-12">
-        <div className="flex justify-between relative">
-          {["Personal", "Address", "Class", "Payment"].map((label, index) => {
-            const stepNumber = index + 1;
-            const isActive = step === stepNumber;
-            const isCompleted = step > stepNumber;
-
-            return (
-              <div key={index} className="flex-1 text-center relative">
-                <button
-                  type="button"
-                  onClick={() => setStep(stepNumber)}
-                  className={`pb-4 text-sm font-semibold transition-all duration-300
-                    ${
-                      isActive
-                        ? "text-[#BC6C25]"
-                        : isCompleted
-                        ? "text-[#606C38]"
-                        : "text-[#283618]/50"
-                    }
-                  `}
-                >
-                  {label}
-                </button>
-
-                <div
-                  className={`absolute bottom-0 left-0 w-full h-[3px] transition-all duration-500
-                    ${
-                      isActive
-                        ? "bg-[#BC6C25]"
-                        : isCompleted
-                        ? "bg-[#606C38]"
-                        : "bg-[#606C38]/20"
-                    }
-                  `}
-                />
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
       {/* FORM */}
       <section className="py-20 px-6">
         <div className="max-w-4xl mx-auto overflow-hidden">
@@ -122,22 +146,28 @@ export default function AdmissionPage() {
                 </h2>
 
                 <div className="grid md:grid-cols-2 gap-8">
-                  <Input required label="First Name" name="firstName" onChange={handleChange} />
-                  <Input required label="Last Name" name="lastName" onChange={handleChange} />
-                  <Input required label="Father's Name" name="fatherName" onChange={handleChange} />
-                  <Input required label="Mother's Name" name="motherName" onChange={handleChange} />
-                  <Input required label="Student Phone" name="phone" onChange={handleChange} />
-                  <Input required label="Parent Phone" name="parentPhone" onChange={handleChange} />
-                  <Input required label="Email" name="email" type="email" onChange={handleChange} />
-                  <Input required label="Date of Birth" name="dob" type="date" onChange={handleChange} />
+                  <Input label="First Name" name="firstName" value={formData.firstName} onChange={handleChange} />
+                  <Input label="Last Name" name="lastName" value={formData.lastName} onChange={handleChange} />
+                  <Input label="Father's Name" name="fatherName" value={formData.fatherName} onChange={handleChange} />
+                  <Input label="Mother's Name" name="motherName" value={formData.motherName} onChange={handleChange} />
+                  <Input label="Student Phone" name="phone" value={formData.phone} onChange={handleChange} />
+                  <Input label="Parent Phone" name="parentPhone" value={formData.parentPhone} onChange={handleChange} />
+                  <Input label="Email" name="email" type="email" value={formData.email} onChange={handleChange} />
+                  <Input label="Date of Birth" name="dob" type="date" value={formData.dob} onChange={handleChange} />
                 </div>
 
                 <div className="flex justify-end pt-12">
                   <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
+                    whileHover={isStep1Valid ? { scale: 1.05 } : {}}
+                    whileTap={isStep1Valid ? { scale: 0.95 } : {}}
+                    disabled={!isStep1Valid}
                     onClick={nextStep}
-                    className="px-10 py-3 bg-[#BC6C25] text-white font-semibold rounded-full shadow-md hover:bg-[#DDA15E] transition-all duration-300"
+                    className={`px-10 py-3 font-semibold rounded-full shadow-md transition-all duration-300
+                      ${
+                        isStep1Valid
+                          ? "bg-[#BC6C25] text-white hover:bg-[#DDA15E]"
+                          : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                      }`}
                   >
                     Next →
                   </motion.button>
@@ -159,11 +189,16 @@ export default function AdmissionPage() {
                   Address & Category
                 </h2>
 
-                <Textarea label="Residential Address" name="address" onChange={handleChange} />
+                <Textarea label="Residential Address" name="address" value={formData.address} onChange={handleChange} />
 
                 <div>
                   <label className="block mb-2">Category</label>
-                  <select name="category" onChange={handleChange} className="input">
+                  <select
+                    name="category"
+                    value={formData.category}
+                    onChange={handleChange}
+                    className="input"
+                  >
                     <option value="">Select Category</option>
                     <option>General</option>
                     <option>OBC</option>
@@ -174,7 +209,7 @@ export default function AdmissionPage() {
 
                 <div className="flex justify-between pt-12">
                   <AnimatedBack prevStep={prevStep} />
-                  <AnimatedNext nextStep={nextStep} />
+                  <AnimatedNext nextStep={nextStep} disabled={!isStep2Valid} />
                 </div>
               </motion.div>
             )}
@@ -190,10 +225,15 @@ export default function AdmissionPage() {
                 className="space-y-6"
               >
                 <h2 className="text-2xl font-bold text-[#BC6C25]">
-                 Select Class & Photo
+                  Select Class & Photo
                 </h2>
 
-                <select name="course" onChange={handleChange} className="input">
+                <select
+                  name="course"
+                  value={formData.course}
+                  onChange={handleChange}
+                  className="input"
+                >
                   <option value="">Select Class</option>
                   <option>Class 6</option>
                   <option>Class 7</option>
@@ -202,61 +242,43 @@ export default function AdmissionPage() {
                 </select>
 
                 <div className="space-y-4">
+                  <label className="block font-semibold text-[#283618]">
+                    Upload Your Photo
+                  </label>
 
-                <label className="block font-semibold text-[#283618]">
-                  Upload Your Photo
-                </label>
+                  <div className="flex items-center gap-6">
+                    <label className="cursor-pointer bg-gray-200 hover:bg-gray-300 text-[#283618] px-6 py-3 rounded-lg font-medium transition-all duration-300">
+                      Choose File
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleChange}
+                        className="hidden"
+                      />
+                    </label>
 
-  {/* Styled Upload Area */}
-              <div className="flex items-center gap-6">
+                    {formData.photo && (
+                      <span className="text-sm text-[#606C38]">
+                        {formData.photo.name}
+                      </span>
+                    )}
+                  </div>
 
-                {/* Custom Button */}
-                <label className="cursor-pointer bg-gray-200 hover:bg-gray-300 text-[#283618] px-6 py-3 rounded-lg font-medium transition-all duration-300">
-                  Choose File
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => {
-                      handleChange(e);
-                      const file = e.target.files[0];
-                      if (file) {
-                        setFormData((prev) => ({
-                          ...prev,
-                          photo: file,
-                          preview: URL.createObjectURL(file),
-                        }));
-                      }
-                    }}
-                    className="hidden"
-                  />
-                </label>
-                
-                {/* File Name */}
-                {formData.photo && (
-                  <span className="text-sm text-[#606C38]">
-                    {formData.photo.name}
-                  </span>
-                )}
-
-              </div>
-            
-              {/* Image Preview */}
-              {formData.preview && (
-                <div className="mt-4">
-                  <img
-                    src={formData.preview}
-                    alt="Preview"
-                    className="w-32 h-32 object-cover rounded-xl border border-[#606C38]/30 shadow-md"
-                  />
+                  {formData.preview && (
+                    <div className="mt-4">
+                      <img
+                        src={formData.preview}
+                        alt="Preview"
+                        className="w-32 h-32 object-cover rounded-xl border border-[#606C38]/30 shadow-md"
+                      />
+                    </div>
+                  )}
                 </div>
-              )}
 
-            </div>
-          
-            <div className="flex justify-between pt-12">
-            <AnimatedBack prevStep={prevStep} />
-            <AnimatedNext nextStep={nextStep} />
-            </div>
+                <div className="flex justify-between pt-12">
+                  <AnimatedBack prevStep={prevStep} />
+                  <AnimatedNext nextStep={nextStep} disabled={!isStep3Valid} />
+                </div>
               </motion.div>
             )}
 
@@ -273,14 +295,15 @@ export default function AdmissionPage() {
                 <h2 className="text-2xl font-bold text-[#BC6C25]">
                   Registration Fee Payment
                 </h2>
-
+            
                 <p className="text-lg">
                   Admission Registration Fee: <strong>₹2000</strong>
                 </p>
-
+            
                 <motion.button
                   whileHover={{ scale: 1.07 }}
                   whileTap={{ scale: 0.95 }}
+                  onClick={handleSubmit}
                   className="px-14 py-4 bg-[#BC6C25] text-white font-bold text-lg rounded-full shadow-lg hover:bg-[#DDA15E] transition-all duration-300"
                 >
                   Pay ₹2000 Securely →
@@ -289,25 +312,30 @@ export default function AdmissionPage() {
                 <AnimatedBack prevStep={prevStep} />
               </motion.div>
             )}
+            </AnimatePresence>
+                    </div>
+                  </section>
 
-          </AnimatePresence>
-        </div>
-      </section>
-
-      <Footer />
-    </main>
-  );
-}
+                  <Footer />
+                </main>
+              );
+            }
 
 /* BUTTON COMPONENTS */
 
-function AnimatedNext({ nextStep }) {
+function AnimatedNext({ nextStep, disabled }) {
   return (
     <motion.button
-      whileHover={{ scale: 1.05 }}
-      whileTap={{ scale: 0.95 }}
+      whileHover={!disabled ? { scale: 1.05 } : {}}
+      whileTap={!disabled ? { scale: 0.95 } : {}}
       onClick={nextStep}
-      className="px-10 py-3 bg-[#BC6C25] text-white font-semibold rounded-full shadow-md hover:bg-[#DDA15E] transition-all duration-300"
+      disabled={disabled}
+      className={`px-10 py-3 font-semibold rounded-full shadow-md transition-all duration-300
+        ${
+          disabled
+            ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+            : "bg-[#BC6C25] text-white hover:bg-[#DDA15E]"
+        }`}
     >
       Next →
     </motion.button>
@@ -329,14 +357,14 @@ function AnimatedBack({ prevStep }) {
 
 /* INPUT COMPONENTS */
 
-function Input({ label, name, type="text", onChange }) {
+function Input({ label, name, type="text", onChange, value }) {
   return (
     <div>
       <label className="block mb-2">{label}</label>
       <input
         name={name}
         type={type}
-        required
+        value={value}
         onChange={onChange}
         className="input"
       />
@@ -344,14 +372,14 @@ function Input({ label, name, type="text", onChange }) {
   );
 }
 
-function Textarea({ label, name, onChange }) {
+function Textarea({ label, name, onChange, value }) {
   return (
     <div>
       <label className="block mb-2">{label}</label>
       <textarea
         name={name}
         rows="1"
-        required
+        value={value}
         onChange={onChange}
         className="input"
       />
