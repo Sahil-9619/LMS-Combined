@@ -13,7 +13,7 @@ export default function AuthProvider({ children }) {
   // Check authentication on app load
   useEffect(() => {
     // Skip auth check for public pages
-    const publicPages = ["/user/login", "/user/register", "/","/courses","/gallery","/blog","/about","/contact"];
+    const publicPages = ["/user/login", "/user/register", "/","/courses","/gallery","/blog","/about","/contact","/admission"];
 
     if (publicPages.includes(pathname)) {
       return;

@@ -120,3 +120,6 @@
     @apply bg-background text-foreground;
   }
 }
+.input {
+  @apply w-full px-4 py-3 border-b-2 border-[#606C38]/40 bg-transparent outline-none focus:border-[#BC6C25] transition;
+}
