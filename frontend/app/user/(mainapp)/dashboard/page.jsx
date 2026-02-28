@@ -6,6 +6,7 @@ import Courses from "../courses/page";
 import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { registrationService } from "@/services/user/registration.service";
+import { admissionService } from "@/services/admission.service";
 
 export default function Home() {
   const {
@@ -17,20 +18,24 @@ export default function Home() {
   const router = useRouter();
   const [hasAdmission, setHasAdmission] = useState(null);
 
-  useEffect(() => {
-    const checkUserAdmission = async () => {
-      try {
-        const res = await registrationService.checkAdmission();  
-        setHasAdmission(res.hasAdmission);
-      } catch (error) {
-        console.error("Admission has failed!:", error);
-      }
-    };
+useEffect(() => {
+  const checkUserAdmission = async () => {
+    try {
+      const res = await admissionService.checkAdmission();
+      setHasAdmission(res?.hasAdmission === true);
+    } catch (error) {
+      setHasAdmission(false);
+    }
+  };
 
-    checkUserAdmission();
-  }, []);
+  checkUserAdmission();
+}, []);
 
-  if (hasAdmission === null) return <div>Loading...</div>;
+
+
+ if (status === "loading" || hasAdmission === null) {
+  return <div>Loading...</div>;
+}
 
   if (!hasAdmission) {
     return (

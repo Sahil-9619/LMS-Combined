@@ -81,7 +81,7 @@ const studentSchema = new mongoose.Schema(
 // Indexes
 studentSchema.index({ classId: 1 });
 studentSchema.index({ admissionNumber: 1 });
-studentSchema.index({ classId: 1 }, { unique: true });
+
 
 // Virtual full name
 studentSchema.virtual("fullName").get(function () {

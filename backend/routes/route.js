@@ -13,6 +13,7 @@ router.use("/class", require("./admins/class.route"));
 router.use("/studentfee", require("./admins/studentFee.routes"));
 router.use("/students", require("./admins/student.route"));
 router.use("/contact", require("./contactUs.route"));
+router.use("/admission", require("./admission.route"));
 
 // router.use("/instructor", require("./instructor/auth.route")); // /api/instructor/login
 // router.use("/admin", require("./admin/dashboard.route")); // /api/admin/...
