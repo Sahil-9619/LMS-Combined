@@ -206,7 +206,7 @@ const AllUsers = () => {
                 <TableCell>
                   <div className="flex items-center gap-3">
                     <Avatar>
-                      <AvatarImage src={getMediaUrl(u.profileImage) || ""} />
+                      const isStudent = u.role?.name === "student";
                       <AvatarFallback>
                         {u.name
                           ?.split(" ")
@@ -238,7 +238,7 @@ const AllUsers = () => {
                 </TableCell>
                 <TableCell className="text-right space-x-2">
                   <Button variant="outline" asChild>
-                    <Link href={`/admin/(mainapp)/dashboard/users/${u._id}`}>
+                    <Link href={`/admin/(mainapp)/dashboard/students/${u.studentId || u._id}`}>
                       View
                     </Link>
                   </Button>

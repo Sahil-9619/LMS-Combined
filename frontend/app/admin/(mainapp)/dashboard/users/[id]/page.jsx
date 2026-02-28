@@ -1,76 +1,80 @@
 "use client";
-import React, { useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { fetchUserById } from "@/lib/store/features/adminSlice";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { getMediaUrl } from "@/app/utils/getAssetsUrl";
 import { adminServices } from "@/services/admin/admin.service";
 
-const UserDetailPage = () => {
+const mergedDataPage = () => {
   const params = useParams();
   const id = params?.id;
-  const dispatch = useDispatch();
   const router = useRouter();
-  const { userDetail, userDetailStatus, userDetailError } = useSelector(
-    (s) => s.admin
-  );
+
+  const [student, setStudent] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    if (id) dispatch(fetchUserById(id));
-  }, [dispatch, id]);
+    const fetchStudent = async () => {
+      try {
+        const res = await adminServices.getStudentById(id);
+          console.log("API RESPONSE:", res.data); 
+        setStudent(res.data.data);
+      } catch (err) {
+        setError("Failed to load student");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (id) fetchStudent();
+  }, [id]);
 
   const handleDelete = async () => {
     if (!id) return;
-    const ok = window.confirm("Delete this user? This action cannot be undone.");
+    const ok = window.confirm("Delete this student? This action cannot be undone.");
     if (!ok) return;
     try {
-      await adminServices.deleteUser(id);
+      await adminServices.deleteStudent(id);
       router.push("/admin/(mainapp)/dashboard/users");
     } catch (e) {
-      alert(e?.response?.data?.message || "Failed to delete user");
+      alert("Failed to delete student");
     }
   };
 
-  if (userDetailStatus === "loading")
-    return <div className="p-4">Loading user...</div>;
-  if (userDetailStatus === "failed")
-    return (
-      <div className="p-4 text-red-600">
-        {userDetailError || "Failed to load user"}
-      </div>
-    );
+  if (loading) return <div className="p-4">Loading user...</div>;
+  if (error) return <div className="p-4 text-red-600">{error}</div>;
+  if (!student) return null;
 
-  if (!userDetail) return null;
+  const displayData = student; // 🔥 only change
 
   return (
     <div className="p-4 space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Avatar className="h-16 w-16">
-            <AvatarImage src={getMediaUrl(userDetail.profileImage) || ""} />
+            <AvatarImage src={getMediaUrl(displayData.profileImage) || ""} />
             <AvatarFallback>
-              {userDetail.name
-                ?.split(" ")
-                ?.map((n) => n[0])
-                .join("") || "U"}
+              {displayData.firstName
+                ? `${displayData.firstName[0]}${displayData.lastName?.[0] || ""}`
+                : "S"}
             </AvatarFallback>
           </Avatar>
           <div>
-            <h1 className="text-2xl font-semibold">{userDetail.name}</h1>
-            <div className="text-muted-foreground">{userDetail.email}</div>
+            <h1 className="text-2xl font-semibold">
+              {displayData.firstName
+                ? `${displayData.firstName} ${displayData.lastName || ""}`
+                : "-"}
+            </h1>
+            <div className="text-muted-foreground">{displayData.email}</div>
             <div className="mt-2 flex items-center gap-2">
-              <Badge variant="secondary">{userDetail.role?.name || "-"}</Badge>
-              {userDetail.isVerified ? (
-                <Badge className="bg-green-600 hover:bg-green-600">
-                  Verified
-                </Badge>
-              ) : (
-                <Badge className="bg-gray-400 hover:bg-gray-400">Pending</Badge>
-              )}
+              <Badge variant="secondary">student</Badge>
+              <Badge className="bg-green-600 hover:bg-green-600">
+                {displayData.status}
+              </Badge>
             </div>
           </div>
         </div>
@@ -79,9 +83,13 @@ const UserDetailPage = () => {
             <Link href="/admin/(mainapp)/dashboard/users">Back</Link>
           </Button>
           <Button asChild variant="secondary">
-            <Link href={`/admin/(mainapp)/dashboard/users/${id}/edit`}>Edit</Link>
+            <Link href={`/admin/(mainapp)/dashboard/users/${id}/edit`}>
+              Edit
+            </Link>
           </Button>
-          <Button variant="destructive" onClick={handleDelete}>Delete</Button>
+          <Button variant="destructive" onClick={handleDelete}>
+            Delete
+          </Button>
         </div>
       </div>
 
@@ -91,21 +99,19 @@ const UserDetailPage = () => {
           <div className="rounded border p-4 space-y-2">
             <div>
               <span className="font-medium">Phone:</span>{" "}
-              {userDetail.phone || "-"}
+              {displayData.phone || "-"}
             </div>
             <div>
-              <span className="font-medium">Designation:</span>{" "}
-              {userDetail.designation || "-"}
+              <span className="font-medium">Parent Name:</span>{" "}
+              {displayData.parentName || "-"}
             </div>
             <div>
-              <span className="font-medium">Experience:</span>{" "}
-              {userDetail.experience ?? "-"} years
+              <span className="font-medium">Parent Phone:</span>{" "}
+              {displayData.parentPhone || "-"}
             </div>
             <div>
-              <span className="font-medium">Skills:</span>{" "}
-              {Array.isArray(userDetail.skills) && userDetail.skills.length > 0
-                ? userDetail.skills.map((s) => s.name).join(", ")
-                : "-"}
+              <span className="font-medium">Class:</span>{" "}
+              {displayData.classId?.className || "-"}
             </div>
           </div>
         </div>
@@ -114,20 +120,20 @@ const UserDetailPage = () => {
           <h2 className="text-lg font-semibold">Location</h2>
           <div className="rounded border p-4 space-y-2">
             <div>
-              <span className="font-medium">Country:</span>{" "}
-              {userDetail.location?.country || "-"}
-            </div>
-            <div>
-              <span className="font-medium">State:</span>{" "}
-              {userDetail.location?.state || "-"}
-            </div>
-            <div>
-              <span className="font-medium">City:</span>{" "}
-              {userDetail.location?.city || "-"}
-            </div>
-            <div>
               <span className="font-medium">Address:</span>{" "}
-              {userDetail.location?.address || "-"}
+              {displayData.address || "-"}
+            </div>
+            <div>
+              <span className="font-medium">Category:</span>{" "}
+              {displayData.category || "-"}
+            </div>
+            <div>
+              <span className="font-medium">Gender:</span>{" "}
+              {displayData.gender || "-"}
+            </div>
+            <div>
+              <span className="font-medium">Academic Year:</span>{" "}
+              {displayData.academicYear || "-"}
             </div>
           </div>
         </div>
@@ -136,26 +142,11 @@ const UserDetailPage = () => {
       <div className="space-y-2">
         <h2 className="text-lg font-semibold">Social</h2>
         <div className="rounded border p-4 space-y-2">
-          <div>
-            <span className="font-medium">Facebook:</span>{" "}
-            {userDetail.social?.facebook || "-"}
-          </div>
-          <div>
-            <span className="font-medium">LinkedIn:</span>{" "}
-            {userDetail.social?.linkedin || "-"}
-          </div>
-          <div>
-            <span className="font-medium">Twitter:</span>{" "}
-            {userDetail.social?.twitter || "-"}
-          </div>
-          <div>
-            <span className="font-medium">Instagram:</span>{" "}
-            {userDetail.social?.instagram || "-"}
-          </div>
+          <div>-</div>
         </div>
       </div>
     </div>
   );
 };
 
-export default UserDetailPage;
+export default mergedDataPage;

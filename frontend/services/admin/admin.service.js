@@ -59,5 +59,15 @@ export const adminServices = {
     const response = await axiosInstance.delete(`/class/${id}`);
     return response.data;
   },  
+
+  getstudentsByClass: async (classId) => {
+    const response = await axiosInstance.get(`/students/class/${classId}`);
+    return response.data;
+  },
+
+  getStudentById: async (id) => {
+    const response = await axiosInstance.get(`/students/${id}`);
+    return response.data;
+  },
     
 };
