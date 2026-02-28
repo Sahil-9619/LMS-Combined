@@ -94,6 +94,7 @@ const handleSubmit = async (e) => {
         ...prev,
         [e.target.name]: e.target.value,
       }));
+
     }
   };
 
@@ -168,7 +169,7 @@ const handleSubmit = async (e) => {
                 className="space-y-8"
               >
                 <h2 className="text-2xl font-bold text-[#BC6C25]">
-                  Personal Details
+                  Fill Personal Details
                 </h2>
 
                 <div className="grid md:grid-cols-2 gap-8">

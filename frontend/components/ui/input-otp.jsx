@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils"
 
 function InputOTP({
   className,
-  containerClassName,
+  containerClassName, 
   ...props
 }) {
   return (
