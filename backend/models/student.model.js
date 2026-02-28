@@ -8,6 +8,11 @@ const studentSchema = new mongoose.Schema(
       unique: true,
       trim: true,
     },
+        classId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Class",
+      required: true,
+    },
 
    
 
@@ -71,7 +76,7 @@ const studentSchema = new mongoose.Schema(
 // Indexes
 studentSchema.index({ classId: 1 });
 studentSchema.index({ admissionNumber: 1 });
-studentSchema.index({ classId: 1, rollNumber: 1 }, { unique: true });
+studentSchema.index({ classId: 1 }, { unique: true });
 
 // Virtual full name
 studentSchema.virtual("fullName").get(function () {
