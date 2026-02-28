@@ -3,9 +3,10 @@
 import { motion, AnimatePresence } from "framer-motion";
 import Nav from "../sections/Nav";
 import Footer from "../sections/Footer";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { registrationService } from "@/services/user/registration.service";
+import { useSelector } from "react-redux";
 
 
 export default function AdmissionPage() {
@@ -32,8 +33,18 @@ export default function AdmissionPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  /*HANDLE SUBMIT  */
-  const router = useRouter();
+const router = useRouter();
+
+const { user } = useSelector((state) => state.auth);
+
+useEffect(() => {
+  if (user?.email) {
+    setFormData((prev) => ({
+      ...prev,
+      email: user.email,
+    }));
+  }
+}, [user]);
 
 const handleSubmit = async (e) => {
   console.log("Submitting form with data:", formData);
@@ -167,7 +178,8 @@ const handleSubmit = async (e) => {
                   <Input label="Mother's Name" name="motherName" value={formData.motherName} onChange={handleChange} />
                   <Input label="Student Phone" name="phone" value={formData.phone} onChange={handleChange} />
                   <Input label="Parent Phone" name="parentPhone" value={formData.parentPhone} onChange={handleChange} />
-                  <Input label="Email" name="email" type="email" value={formData.email} onChange={handleChange} />
+                  <Input label="Email" name="email" type="email" value={formData.email} onChange={handleChange} readOnly />
+                  <Input label="Alternate Email" name="altEmail" type="email" value={formData.altEmail} onChange={handleChange} />
                   <Input label="Date of Birth" name="dob" type="date" value={formData.dob} onChange={handleChange} />
                   <select name="gender" value={formData.gender} onChange={handleChange} className="input">
                     <option value="">Select Gender</option> 
@@ -382,7 +394,7 @@ function AnimatedBack({ prevStep }) {
 
 /* INPUT COMPONENTS */
 
-function Input({ label, name, type="text", onChange, value }) {
+function Input({ label, name, type="text", onChange, value, readOnly=false }) {
   return (
     <div>
       <label className="block mb-2">{label}</label>
@@ -391,6 +403,7 @@ function Input({ label, name, type="text", onChange, value }) {
         type={type}
         value={value}
         onChange={onChange}
+        readOnly={readOnly}
         className="input"
       />
     </div>

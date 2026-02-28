@@ -14,8 +14,6 @@ const studentSchema = new mongoose.Schema(
       required: true,
     },
 
-   
-
     firstName: {
       type: String,
       required: true,
@@ -45,6 +43,11 @@ const studentSchema = new mongoose.Schema(
       lowercase: true,
       trim: true,
     },
+    altEmail:{
+      type: String,
+      lowercase: true,
+      trim: true,
+   },
 
     address: String,
 

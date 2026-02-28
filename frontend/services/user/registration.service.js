@@ -24,5 +24,10 @@ export const registrationService = {
     return response.data;
   },
 
+  getLoggedInUser: async () => {
+  const response = await axiosInstance.get("user/loginwithemail");
+  return response.data;
+  }, 
+
 
 };

@@ -11,8 +11,8 @@ export default function AdmissionSuccess() {
     <main className="bg-[#283618] text-[#FEFAE0] min-h-screen overflow-hidden">
 
       <Nav />
-
       {/* ================= HERO SUCCESS ================= */}
+
       <section className="relative min-h-[90vh] flex items-center justify-center pt-30 pb-10 px-6">
 
         {/* Animated Gradient Glow Background */}
@@ -28,8 +28,8 @@ export default function AdmissionSuccess() {
           {/* Animated Check Icon */}
           <motion.div
             initial={{ scale: 0, rotate: -180 }}
-            animate={{ scale: 1, rotate: 0 }}
             transition={{ type: "spring", stiffness: 120, damping: 12 }}
+            animate={{ scale: 1, rotate: 0 }}
             className="flex justify-center mb-10"
           >
             <CheckCircle className="w-28 h-28 text-[#DDA15E]" />
