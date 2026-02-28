@@ -14,12 +14,6 @@ const studentSchema = new mongoose.Schema(
       required: true,
     },
 
-    userId: {
-  type: mongoose.Schema.Types.ObjectId,
-  ref: "User",
-  required: true,
-},
-
    
 
     firstName: {
@@ -51,6 +45,11 @@ const studentSchema = new mongoose.Schema(
       lowercase: true,
       trim: true,
     },
+    altEmail:{
+      type: String,
+      lowercase: true,
+      trim: true,
+   },
 
     address: String,
 

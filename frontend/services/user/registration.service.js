@@ -18,4 +18,16 @@ export const registrationService = {
     return response.data;
   },
 
+  // 🔹 Check Admission Status
+  checkAdmission: async () => {
+    const response = await axiosInstance.get("/user/check-admission");
+    return response.data;
+  },
+
+  getLoggedInUser: async () => {
+  const response = await axiosInstance.get("user/loginwithemail");
+  return response.data;
+  }, 
+
+
 };
