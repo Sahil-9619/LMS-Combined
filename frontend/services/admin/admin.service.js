@@ -69,5 +69,10 @@ export const adminServices = {
     const response = await axiosInstance.get(`/students/${id}`);
     return response.data;
   },
-    
+   
+  getUserWithStudentCheck: async (id) => {
+    const response = await axiosInstance.get(`/admin/user-with-student/${id}`);
+    return response.data;
+  },
+
 };

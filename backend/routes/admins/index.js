@@ -6,6 +6,7 @@ const {
   getUserByIdWithDetail,
   createUser,
   updateUserByAdmin,
+  getUserWithStudentCheck,
   deleteUserByAdmin,
 } = require("../../controllers/admins/admin.controller");
 const { authenticateToken } = require("../../middlewares/user.auth");
@@ -15,6 +16,7 @@ router.get("/users", authenticateToken, getAllUsersWithRole);
 router.get("/users/:id", authenticateToken, getUserByIdWithDetail);
 router.post("/users", authenticateToken, createUser);
 router.put("/users/:id", authenticateToken, updateUserByAdmin);
+router.get("/user-with-student/:id", authenticateToken, getUserWithStudentCheck);
 router.delete("/users/:id", authenticateToken, deleteUserByAdmin);
 
 module.exports = router;
