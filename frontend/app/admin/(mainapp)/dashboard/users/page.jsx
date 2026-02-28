@@ -237,10 +237,10 @@ const AllUsers = () => {
                   )}
                 </TableCell>
                 <TableCell className="text-right space-x-2">
-                  <Button variant="outline" asChild>
-                    <Link href={`/admin/(mainapp)/dashboard/students/${u.studentId || u._id}`}>
+                  <Button 
+                  onClick={() =>
+                    router.push(`/admin/dashboard/users/view/${u._id}`)}>
                       View
-                    </Link>
                   </Button>
                   {/* <Button variant="secondary" asChild>
                     <Link

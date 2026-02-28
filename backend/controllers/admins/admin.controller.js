@@ -3,6 +3,7 @@ const Enrollment = require("../../models/enrollment.model");
 const User = require("../../models/user.model");
 const Role = require("../../models/role.model");
 const bcrypt = require("bcrypt");
+const Student = require("../../models/student.model");
 
 const getInstructorProfile = async (req, res) => {
   try {
@@ -514,6 +515,41 @@ const getAllUsersWithRole = async (req, res) => {
   }
 };
 
+//fetch student details
+const getUserWithStudentCheck = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // 1️⃣ User find karo
+    const user = await User.findById(id).populate("role", "name");
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // 2️⃣ Student table me same email check karo
+    const student = await Student.findOne({ email: user.email });
+
+    // 3️⃣ Agar student mil gaya
+    if (student) {
+      return res.status(200).json({
+        type: "student",
+        data: student,
+      });
+    }
+
+    // 4️⃣ Nahi mila to normal user bhejo
+    return res.status(200).json({
+      type: "user",
+      data: user,
+    });
+
+  } catch (error) {
+    console.error("Error in user-student check:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
 // Fetch a single user with full details and populated role
 const getUserByIdWithDetail = async (req, res) => {
   try {
@@ -595,4 +631,5 @@ module.exports = {
   createUser,
   updateUserByAdmin,
   deleteUserByAdmin,
+  getUserWithStudentCheck,
 };
