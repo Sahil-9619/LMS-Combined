@@ -79,10 +79,10 @@ export default function AdmissionSuccess() {
             </Link>
 
             <Link
-              href="/courses"
+              href="/user/dashboard"
               className="px-10 py-4 border-2 border-[#DDA15E] text-[#DDA15E] font-semibold rounded-full hover:bg-[#DDA15E] hover:text-[#283618] transition-all duration-300"
             >
-              Explore Courses
+              Go to Dashboard
             </Link>
           </motion.div>
 

@@ -3,6 +3,9 @@ import UserNavbar from "@/components/UsersNavbar";
 import Image from "next/image";
 import { useSelector } from "react-redux";
 import Courses from "../courses/page";
+import { use, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { registrationService } from "@/services/user/registration.service";
 
 export default function Home() {
   const {
@@ -10,6 +13,42 @@ export default function Home() {
 
     user,
   } = useSelector((state) => state.auth);
+
+  const router = useRouter();
+  const [hasAdmission, setHasAdmission] = useState(null);
+
+  useEffect(() => {
+    const checkUserAdmission = async () => {
+      try {
+        const res = await registrationService.checkAdmission();  
+        setHasAdmission(res.hasAdmission);
+      } catch (error) {
+        console.error("Admission has failed!:", error);
+      }
+    };
+
+    checkUserAdmission();
+  }, []);
+
+  if (hasAdmission === null) return <div>Loading...</div>;
+
+  if (!hasAdmission) {
+    return (
+      <div className="text-center p-10">
+        <h2 className="text-2xl font-bold mb-4">
+          You have not taken admission yet.
+        </h2>
+    
+        <button
+          onClick={() => router.push("/admission")}
+          className="bg-[#BC6C25] text-white px-6 py-3 rounded-full"
+        >
+          Get Admission
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="h-full bg-gray-50">
       <Courses />
