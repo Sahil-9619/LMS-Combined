@@ -57,6 +57,8 @@ const menuItems = [
       },
     ],
   },
+
+  { name: "Student Details", icon: HeartHandshake, href: "/admin/dashboard/students_details" },
   { name: "Support", icon: HeartHandshake, href: "/admin/dashboard/support" },
   { name: "Categories", icon: Coins, href: "/admin/dashboard/categories" },
   { name: "Settings", icon: Settings, href: "/admin/dashboard/settings" },
