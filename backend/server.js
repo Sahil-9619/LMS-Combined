@@ -41,6 +41,7 @@ mongoose
 //run this for the first time to seed roles and permissions
 app.use(morgan("dev")); // Shows :method :url :status :response-time ms
 app.use(express.urlencoded({ extended: true }));
+app.use("/uploads", express.static("uploads"));
 
 // all routs in route folder
 app.use("/api", routes); // All routes prefixed with /api
