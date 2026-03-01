@@ -23,9 +23,7 @@ import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import Nav from './sections/Nav'
 import Footer from "./sections/Footer";
-import dev from '../public/images/dev.jpg'
-import uiux from '../public/images/uiux.jpg'
-import digmar from '../public/images/digmar.jpg'
+
 
 
 const Home = () => {
@@ -34,10 +32,8 @@ const Home = () => {
   
   const [index, setIndex] = useState(0);
 const images = [
-  "/images/pic2.jpg", 
-  "/images/pic4.jpg",
-  "/images/pic1.png", 
-  "/images/pic5.jpg",
+  "/images/banner1.png", 
+  "/images/banner2.png",
 ];
 
 const courses = [
@@ -82,7 +78,7 @@ useEffect(() => {
 
   
   return (
-<div className="font-sans bg-[#283618] text-[#FEFAE0] min-h-screen overflow-x-hidden">
+<div className="font-sans   min-h-screen overflow-x-hidden">
         {/* Navigation */}
       <Nav/>
 
@@ -91,7 +87,7 @@ useEffect(() => {
      <section className="relative pt-35 pb-10 w-full overflow-hidden">
 
   {/* Background Images Fade */}
-  <div className="absolute inset-0 bg-gradient-to-br from-[#283618]/95 via-[#606C38]/85 to-[#283618]/95">
+  <div className="absolute inset-0 ">
     {images.map((img, i) => (
       <motion.div
         key={i}
@@ -105,19 +101,19 @@ useEffect(() => {
   </div>
   
   {/* Olive Overlay Instead of Black */}
-  <div className="absolute inset-0 bg-[#283618]/70" />
+  <div className="absolute inset-0 bg-[white]/80" />
   
   {/* Content */}
   <div className="relative z-10 h-full flex items-center">
     <div className="max-w-7xl mx-auto px-6">
       <div className="max-w-2xl text-[#FEFAE0]">
 
-        <h1 className="text-5xl md:text-6xl font-bold leading-tight mb-6">
+        <h1 className="text-5xl  text-black md:text-6xl font-bold leading-tight mb-6">
           Learn New Skills Online With{" "}
-          <span className="text-[#DDA15E]">EduMaster</span>
+          <span className="text-cyan-500">{brandName}</span>
         </h1>
 
-        <p className="text-xl text-[#FEFAE0]/90 mb-8">
+        <p className="text-xl text-gray-800 mb-8">
           Access 5,000+ courses from top instructors around the globe.
           Grow your skills today.
         </p>
@@ -126,14 +122,14 @@ useEffect(() => {
 
           <Link 
             href="/user/login"
-            className="bg-[#BC6C25] text-[#FEFAE0] px-8 py-3 rounded-full font-medium hover:bg-[#DDA15E] transition-all"
+            className="bg-[#178F9E] text-[#FEFAE0] px-8 py-3 rounded-full font-medium hover:bg-[#0F6F7C] transition-all"
           >
             Get Started
           </Link>
 
           <Link 
             href="/admission"
-            className="border-2 border-[#FEFAE0] text-[#FEFAE0] px-8 py-3 rounded-full font-medium hover:bg-[#FEFAE0] hover:text-[#283618] transition-all"
+            className="bg-[#178F9E] text-[#FEFAE0] px-8 py-3 rounded-full font-medium hover:bg-[#0F6F7C] hover:text-[#FEFAE0] transition-all"
           >
             GET ADMISSION
           </Link>
@@ -145,8 +141,8 @@ useEffect(() => {
   
 </section>
 
-{/* Admission Section (Redesigned) */}
-<section className="py-10 bg-gradient-to-br from-[#283618] via-[#606C38] to-[#BC6C25] text-[#FEFAE0] overflow-hidden">
+{/* Admission Section*/}
+<section className="py-10 bg-gradient-to-br from-[#0F6F7C] via-[#178F9E] to-[#46B7C3] text-white overflow-hidden">
   <div className="max-w-6xl mx-auto px-6 text-center">
 
     {/* Heading */}
@@ -161,8 +157,8 @@ useEffect(() => {
         Admissions Open 2026
       </h2>
 
-      <p className="text-lg text-[#FEFAE0]/85 max-w-2xl mx-auto leading-relaxed">
-        Secure your seat at <span className="text-[#DDA15E] font-semibold">EduMaster Institute</span> 
+      <p className="text-lg text-white max-w-2xl mx-auto leading-relaxed">
+        Secure your seat at <span className="text-cyan-300 font-semibold">{brandName}</span><p> </p>  
         and begin your journey toward career-focused classroom excellence.
       </p>
     </motion.div>
@@ -176,17 +172,17 @@ useEffect(() => {
       className="flex flex-wrap justify-center gap-8 mb-14 text-sm md:text-base"
     >
       <div className="flex items-center gap-2">
-        <Check className="h-5 w-5 text-[#DDA15E]" />
+        <Check className="h-5 w-5 text-green-300" />
         Limited Seats Available
       </div>
 
       <div className="flex items-center gap-2">
-        <Check className="h-5 w-5 text-[#DDA15E]" />
+        <Check className="h-5 w-5 text-green-300" />
         Industry-Focused Curriculum
       </div>
     </motion.div>
 
-    {/* CTA Button */}
+    {/*Button */}
     <motion.div
       initial={{ opacity: 0, scale: 0.8 }}
       whileInView={{ opacity: 1, scale: 1 }}
@@ -195,7 +191,7 @@ useEffect(() => {
     >
       <Link
         href="/admission"
-        className="inline-block px-10 py-4 bg-[#BC6C25] text-[#FEFAE0] font-semibold rounded-full hover:bg-[#DDA15E] transition-all duration-300"
+        className="border-2 border-white inline-block px-10 py-4 bg-[#178F9E] text-white font-semibold rounded-full hover:bg-[#0F6F7C] transition-all duration-300"
       >
         Apply for Admission →
       </Link>
@@ -205,7 +201,7 @@ useEffect(() => {
 </section>
 
 {/* About Us Section */}
-<section className="py-24 bg-[#FEFAE0] text-[#283618] overflow-hidden">
+<section className="py-24 bg-white text-gray-900 overflow-hidden">
   <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-12 items-center">
 
     {/* Left Image */}
@@ -229,9 +225,9 @@ useEffect(() => {
         whileInView={{ opacity: 1, scale: 1 }}
         transition={{ delay: 0.4, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
         viewport={{ once: true }}
-        className="absolute -bottom-6 -right-6 bg-[#283618] text-[#FEFAE0] p-6 rounded-2xl shadow-xl"
+        className="absolute -bottom-6 -right-6 bg-[#0F6F7C] text-white p-6 rounded-2xl shadow-xl"
       >
-        <h3 className="text-3xl font-bold text-[#DDA15E]">10+ Years</h3>
+        <h3 className="text-3xl font-bold text-cyan-300">10+ Years</h3>
         <p className="text-sm">Of Excellence</p>
       </motion.div>
     </motion.div>
@@ -243,8 +239,8 @@ useEffect(() => {
       transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
       viewport={{ once: true }}
     >
-      <h2 className="text-4xl md:text-5xl font-bold mb-6">
-        About <span className="text-[#BC6C25]">{brandName} Institute</span>
+      <h2 className="text-4xl md:text-5xl text-gray-700 font-bold mb-6">
+        About <span className="text-cyan-500">{brandName} Institute</span>
       </h2>
 
       <p className="text-[#283618]/85 text-lg mb-6 leading-relaxed">
@@ -290,7 +286,7 @@ useEffect(() => {
             transition={{ duration: 0.6 }}
             className="flex items-center gap-3"
           >
-            <Check className="h-6 w-6 text-[#BC6C25]" />
+            <Check className="h-6 w-6 text-[#178F9E]" />
             <span>{item}</span>
           </motion.div>
         ))}
@@ -303,7 +299,7 @@ useEffect(() => {
       >
         <Link
           href="/about"
-          className="inline-flex items-center bg-[#BC6C25] hover:bg-[#283618] text-[#FEFAE0] px-8 py-3 rounded-full font-medium transition-all"
+          className="inline-flex items-center bg-cyan-600 hover:bg-cyan-800 text-[#FEFAE0] px-8 py-3 rounded-full font-medium transition-all"
         >
           Learn More <ChevronRight className="ml-2 h-5 w-5" />
         </Link>
@@ -315,11 +311,11 @@ useEffect(() => {
 
 
       {/* Stats Section */}
-<section className="relative py-28 overflow-hidden bg-[#FEFAE0]">
+<section className="relative py-28 overflow-hidden bg-white">
 
   {/* Soft Ambient Glow */}
-  <div className="absolute w-[600px] h-[600px] bg-[#DDA15E]/20 blur-3xl rounded-full top-[-150px] left-[-150px]" />
-  <div className="absolute w-[500px] h-[500px] bg-[#606C38]/20 blur-3xl rounded-full bottom-[-150px] right-[-150px]" />
+  <div className="absolute w-[600px] h-[600px] bg-[#46B7C3]/20 blur-3xl rounded-full top-[-150px] left-[-150px]" />
+  <div className="absolute w-[500px] h-[500px] bg-[#178F9E]/20 blur-3xl rounded-full bottom-[-150px] right-[-150px]" />
 
   <div className="relative max-w-7xl mx-auto px-6">
 
@@ -366,13 +362,13 @@ useEffect(() => {
   transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
   className="group"
 >
-  <item.icon className="h-6 w-6 md:h-8 md:w-8 text-[#BC6C25] mx-auto mb-3 transition-transform duration-500 group-hover:scale-110" />
+  <item.icon className="h-6 w-6 md:h-8 md:w-8 text-[#178F9E] mx-auto mb-3 transition-transform duration-500 group-hover:scale-110" />
 
-  <h3 className="text-2xl md:text-5xl font-extrabold text-[#283618] mb-2">
+  <h3 className="text-2xl md:text-5xl font-extrabold text-cyan-600 mb-2">
     {item.number}
   </h3>
 
-  <p className="text-[#606C38] text-[11px] md:text-base leading-tight">
+  <p className="text-cyan-900 text-[11px] md:text-base leading-tight">
     {item.label}
   </p>
 </motion.div>
@@ -385,7 +381,7 @@ useEffect(() => {
 
 {/* Why Choose Us */}
 
-<section className="py-24 bg-[#283618] overflow-hidden">
+<section className="py-24 bg-gray-100 text-cyan-700 overflow-hidden">
   <div className="max-w-7xl mx-auto px-6">
 
     {/* Heading */}
@@ -396,10 +392,10 @@ useEffect(() => {
       viewport={{ once: true }}
       className="text-center mb-20"
     >
-      <h2 className="text-3xl md:text-5xl text-[#FEFAE0] font-bold mb-4">
+      <h2 className="text-3xl md:text-5xl font-bold mb-4">
         Why Choose {brandName} Institute
       </h2>
-      <p className="text-base md:text-xl text-[#FEFAE0]/80 max-w-2xl mx-auto">
+      <p className="text-base md:text-xl text-gray-600 max-w-2xl mx-auto">
         Experience classroom excellence with expert mentorship,
         practical training, and career-focused learning.
       </p>
@@ -433,15 +429,15 @@ useEffect(() => {
           transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
           className="group"
         >
-          <feature.icon className="h-8 w-8 text-[#BC6C25] mb-6 transition-transform duration-500 group-hover:scale-110" />
+          <feature.icon className="h-8 w-8 text-cyan-600 mb-6 transition-transform duration-500 group-hover:scale-110" />
 
-          <h3 className="text-lg md:text-xl text-[#FEFAE0] font-semibold mb-3">
+          <h3 className="text-lg md:text-xl text-black font-semibold mb-3">
             {feature.title}
           </h3>
 
-          <div className="w-10 h-[2px] bg-[#DDA15E] mb-4 transition-all duration-500 group-hover:w-16" />
+          <div className="w-10 h-[2px] bg-cyan-500 mb-4 transition-all duration-500 group-hover:w-16" />
 
-          <p className="text-[#FEFAE0]/70 text-sm md:text-base leading-relaxed">
+          <p className="text-gray-600 text-sm md:text-base leading-relaxed">
             {feature.desc}
           </p>
         </motion.div>
@@ -451,7 +447,7 @@ useEffect(() => {
 </section>
 
       {/* Popular Courses */}
-<section className="py-24 bg-[#FEFAE0] overflow-hidden">
+<section className="py-24 bg-[#F4FDFE] overflow-hidden">
   <div className="max-w-7xl mx-auto px-4 md:px-6">
 
     {/* Heading */}
@@ -504,33 +500,33 @@ useEffect(() => {
 
           {/* Category & Rating */}
           <div className="flex justify-between items-center mb-3 text-[10px] md:text-sm">
-            <span className="text-[#BC6C25] font-medium uppercase tracking-wide">
+            <span className="text-teal-500 font-medium uppercase tracking-wide">
               {item.category}
             </span>
 
-            <div className="flex items-center text-[#BC6C25]">
+            <div className="flex items-center text-teal-500">
               <Star className="h-3 w-3 md:h-4 md:w-4 fill-current" />
-              <span className="ml-1 text-[#283618]">{item.rating}</span>
+              <span className="ml-1 text-teal-600">{item.rating}</span>
             </div>
           </div>
 
           {/* Title */}
-          <h3 className="text-sm md:text-xl font-bold text-[#283618] mb-3 leading-snug">
+          <h3 className="text-sm md:text-xl font-bold text-cyan-700 mb-3 leading-snug">
             {item.title}
           </h3>
 
           {/* Divider */}
-          <div className="w-8 h-[2px] bg-[#DDA15E] mb-4 transition-all duration-500 group-hover:w-16" />
+          <div className="w-8 h-[2px] bg-cyan-500 mb-4 transition-all duration-500 group-hover:w-16" />
 
           {/* Meta */}
           <div className="flex justify-between text-[10px] md:text-sm text-[#606C38] mb-4">
             <span className="flex items-center">
-              <BookOpen className="h-3 w-3 md:h-4 md:w-4 mr-1 text-[#BC6C25]" />
+              <BookOpen className="h-3 w-3 md:h-4 md:w-4 mr-1 text-teal-500" />
               {item.lessons}
             </span>
 
             <span className="flex items-center">
-              <Clock className="h-3 w-3 md:h-4 md:w-4 mr-1 text-[#BC6C25]" />
+              <Clock className="h-3 w-3 md:h-4 md:w-4 mr-1 text-teal-500" />
               {item.duration}
             </span>
           </div>
@@ -544,7 +540,7 @@ useEffect(() => {
             <motion.button
               whileHover={{ x: 5 }}
               transition={{ duration: 0.3 }}
-              className="text-[#BC6C25] flex items-center font-medium"
+              className="text-cyan-600 flex items-center font-medium"
             >
               Enroll <ChevronRight className="h-3 w-3 md:h-4 md:w-4 ml-1" />
             </motion.button>
@@ -564,7 +560,7 @@ useEffect(() => {
     >
       <Link
         href="/"
-        className="inline-block px-6 md:px-8 py-2 md:py-3 text-sm md:text-base border border-[#BC6C25] text-[#BC6C25] rounded-full hover:bg-[#BC6C25] hover:text-[#FEFAE0] transition-all duration-500"
+        className="inline-block px-6 md:px-8 py-2 md:py-3 text-sm md:text-base border border-[#178F9E] text-[#178F9E] rounded-full hover:bg-cyan-800 hover:text-white transition-all duration-500"
       >
         View All Courses
       </Link>
@@ -575,7 +571,7 @@ useEffect(() => {
 
 
 {/* Proud Moments - Collage Design */}
-<section className="py-28 bg-gradient-to-br from-[#283618] via-[#606C38] to-[#BC6C25] text-[#FEFAE0] overflow-hidden">
+<section className="py-28 bg-gradient-to-br from-[#0F6F7C] via-[#178F9E] to-[#46B7C3] text-[#FEFAE0] overflow-hidden">
   <div className="max-w-7xl mx-auto px-6">
 
     {/* Heading */}
@@ -586,10 +582,10 @@ useEffect(() => {
       viewport={{ once: true }}
       className="text-center mb-24"
     >
-      <h2 className="text-4xl md:text-5xl font-bold mb-6">
+      <h2 className="text-4xl text-white md:text-5xl font-bold mb-6">
         Our Proud Moments
       </h2>
-      <p className="text-[#FEFAE0]/80 text-lg max-w-2xl mx-auto">
+      <p className="text-white text-lg max-w-2xl mx-auto">
         Celebrating our journey, achievements, and student success stories.
       </p>
     </motion.div>
@@ -619,10 +615,10 @@ useEffect(() => {
         transition={{ duration: 1.1, ease: [0.16, 1, 0.3, 1] }}
         viewport={{ once: true }}
       >
-        <h3 className="text-2xl md:text-3xl font-bold mb-6 text-[#DDA15E]">
+        <h3 className="text-2xl md:text-3xl font-bold mb-6 text-white">
           Grand Annual Tech Fest
         </h3>
-        <p className="text-[#FEFAE0]/85 leading-relaxed text-lg">
+        <p className="text-gray-100 leading-relaxed text-lg">
           Our institute hosts large-scale technical festivals every year
           where students showcase projects, innovations, and creativity.
           Industry experts participate and guide students for future growth.
@@ -641,10 +637,10 @@ useEffect(() => {
         viewport={{ once: true }}
         className="order-2 md:order-1"
       >
-        <h3 className="text-2xl md:text-3xl font-bold mb-6 text-[#DDA15E]">
+        <h3 className="text-2xl md:text-3xl font-bold mb-6 text-white">
           Placement Success Stories
         </h3>
-        <p className="text-[#FEFAE0]/85 leading-relaxed text-lg">
+        <p className="text-gray-100 leading-relaxed text-lg">
           Our students consistently secure placements in reputed companies.
           Through continuous mentorship, mock interviews, and skill-building
           programs, we ensure every student is industry-ready.
@@ -687,11 +683,11 @@ useEffect(() => {
         />
       </div>
 
-      <h3 className="text-2xl md:text-3xl font-bold mb-6 text-[#DDA15E]">
+      <h3 className="text-2xl md:text-3xl font-bold mb-6 text-white">
         Certification & Achievement Ceremony
       </h3>
 
-      <p className="text-[#FEFAE0]/85 text-lg leading-relaxed">
+      <p className="text-gray-100 text-lg leading-relaxed">
         We proudly celebrate our students' accomplishments through
         grand certification ceremonies. Recognizing hard work and
         dedication motivates students to aim higher and achieve more.
@@ -703,7 +699,7 @@ useEffect(() => {
 
 
       {/* Testimonials */}
-<section className="py-24 bg-[#FEFAE0] overflow-hidden">
+<section className="py-24 bg-[#F4FDFE] overflow-hidden">
   <div className="max-w-7xl mx-auto px-4 md:px-6">
 
     {/* Heading */}
@@ -745,7 +741,7 @@ useEffect(() => {
         >
           {/* Profile */}
           <div className="flex items-center mb-6">
-            <div className="h-10 w-10 md:h-14 md:w-14 rounded-full overflow-hidden mr-4 border border-[#BC6C25]">
+            <div className="h-10 w-10 md:h-14 md:w-14 rounded-full overflow-hidden mr-4 border border-[#178F9E]">
               <img
                 src={`https://randomuser.me/api/portraits/${
                   item === 1 ? "women" : item === 2 ? "men" : "women"
@@ -782,12 +778,12 @@ useEffect(() => {
           </p>
 
           {/* Divider */}
-          <div className="w-8 h-[2px] bg-[#DDA15E] mb-4 transition-all duration-500 group-hover:w-16" />
+          <div className="w-8 h-[2px] bg-cyan-500 mb-4 transition-all duration-500 group-hover:w-16" />
 
           {/* Rating */}
           <div className="flex text-[#DDA15E]">
             {[1, 2, 3, 4, 5].map((star) => (
-              <Star key={star} className="h-3 w-3 md:h-5 md:w-5 fill-current" />
+              <Star key={star} className="h-3 w-3 text-teal-500 md:h-5 md:w-5 fill-current" />
             ))}
           </div>
 
@@ -799,7 +795,7 @@ useEffect(() => {
 </section>
 
 {/* Top Students Section */}
-<section className="py-28 bg-[#283618] text-[#FEFAE0] overflow-hidden">
+<section className="py-28 bg-[#F4FDFE] text-black overflow-hidden">
   <div className="max-w-7xl mx-auto px-6">
 
     {/* Heading */}
@@ -813,7 +809,7 @@ useEffect(() => {
       <h2 className="text-4xl md:text-5xl font-bold mb-4">
         Our Top Students
       </h2>
-      <p className="text-[#FEFAE0]/80 text-lg max-w-2xl mx-auto">
+      <p className="text-gray-600 text-lg max-w-2xl mx-auto">
         Recognizing excellence and celebrating outstanding achievements.
       </p>
     </motion.div>
@@ -869,7 +865,7 @@ useEffect(() => {
             <motion.img
               src={student.img}
               alt={student.name}
-              className="w-full h-full rounded-full object-cover border-2 border-[#BC6C25]"
+              className="w-full h-full rounded-full object-cover border-2 border-[#178F9E]"
               whileHover={{ scale: 1.08 }}
               transition={{ duration: 0.5 }}
             />
@@ -881,15 +877,15 @@ useEffect(() => {
           </h3>
 
           {/* Accent Line */}
-          <div className="w-8 h-[2px] bg-[#DDA15E] mx-auto mb-3 transition-all duration-500 group-hover:w-16" />
+          <div className="w-8 h-[2px] bg-cyan-500 mx-auto mb-3 transition-all duration-500 group-hover:w-16" />
 
           {/* Course */}
-          <p className="text-[#DDA15E] text-xs md:text-sm mb-2">
+          <p className="text-black text-xs md:text-sm mb-2">
             {student.course}
           </p>
 
           {/* Company */}
-          <p className="text-[#FEFAE0]/70 text-xs md:text-sm">
+          <p className="text-cyan-700 text-xs md:text-sm">
             {student.company}
           </p>
 
@@ -902,7 +898,7 @@ useEffect(() => {
 
 
 {/* CTA Section */}
-<section className="py-20 bg-[#FEFAE0]">
+<section className="py-20 bg-cyan-100/20">
   <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
     <h2 className="text-3xl font-bold mb-6 text-[#283618]">
       Ready to Start Learning?
@@ -915,14 +911,14 @@ useEffect(() => {
     <div className="flex flex-wrap justify-center gap-4">
       <Link
         href="/user/login"
-        className="bg-[#BC6C25] text-[#FEFAE0] px-8 py-3 rounded-full font-medium hover:bg-[#DDA15E] transition-all flex items-center"
+        className="bg-[#178F9E] text-[#FEFAE0] px-8 py-3 rounded-full font-medium hover:bg-[#0F6F7C] transition-all flex items-center"
       >
         Get Started <ChevronRight className="ml-2 h-5 w-5" />
       </Link>
 
       <Link
         href="/admission"
-        className="border-2 border-[#BC6C25] text-[#BC6C25] px-8 py-3 rounded-full font-medium hover:bg-[#DDA15E]/20 transition-all"
+        className="border border-[#178F9E] text-[#178F9E] rounded-full hover:bg-cyan-800 hover:text-white px-8 py-3 rounded-full font-medium hover:bg-[#DDA15E]/20 transition-all"
       >
         Get Admission
       </Link>
@@ -933,14 +929,14 @@ useEffect(() => {
 
 
 {/* Branches Section */}
-<section className="py-24 bg-gradient-to-br from-[#283618] via-[#606C38] to-[#BC6C25] text-[#FEFAE0]">
+<section className="py-14 pb-4 bg-gradient-to-br from-[#0F6F7C] via-[#178F9E] to-[#46B7C3] text-white">
   <div className="max-w-7xl mx-auto px-6">
 
     <div className="text-center mb-16">
-      <h2 className="text-4xl font-bold mb-4">
+      <h2 className="text-4xl  font-bold mb-4">
         Our Branches
       </h2>
-      <p className="text-[#FEFAE0]/80 text-lg max-w-2xl mx-auto">
+      <p className="text-gray-200 text-lg max-w-2xl mx-auto">
         Expanding quality classroom education across multiple cities.
       </p>
     </div>
@@ -1007,7 +1003,7 @@ useEffect(() => {
     ].map((stateData, index) => (
       <div key={index} className="mb-20">
 
-        <h3 className="text-3xl font-bold text-[#DDA15E] mb-10">
+        <h3 className="text-3xl font-bold mb-10">
           {stateData.state}
         </h3>
 
@@ -1015,18 +1011,18 @@ useEffect(() => {
           {stateData.branches.map((branch, i) => (
             <div
               key={i}
-              className="bg-[#606C38]/40 backdrop-blur-lg border border-[#DDA15E]/40 rounded-2xl shadow-lg hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 overflow-hidden"
+              className="bg-[#178F9E]/30 backdrop-blur-lg border border-cyan-200 rounded-2xl shadow-lg hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 overflow-hidden"
             >
               <div className="p-6">
                 <h4 className="text-xl font-bold text-[#FEFAE0] mb-2">
                   {branch.name}
                 </h4>
 
-                <p className="text-[#FEFAE0]/80 mb-3 text-sm">
+                <p className="text-gray-100 mb-3 text-sm">
                   📍 {branch.address}
                 </p>
 
-                <p className="text-[#FEFAE0]/70 text-sm">
+                <p className="text-gray-100 text-sm">
                   📞 {branch.phone}
                 </p>
               </div>
