@@ -1,4 +1,4 @@
-import { Metadata } from "next";
+
 import { Geist, Geist_Mono, Edu_NSW_ACT_Foundation } from "next/font/google";
 import Sidebar from "../components/sidebar";
 
