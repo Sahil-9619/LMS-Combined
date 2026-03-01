@@ -31,7 +31,7 @@ const AddUsers = () => {
     lastName: "",
     fatherName: "",
     motherName: "",
-    studentPhone: "",
+    Phone: "",
     parentPhone: "",
     dateOfBirth: "",
     gender: "",
