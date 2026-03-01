@@ -31,7 +31,7 @@ const AddUsers = () => {
     lastName: "",
     fatherName: "",
     motherName: "",
-    Phone: "",
+    phone: "",
     parentPhone: "",
     dateOfBirth: "",
     gender: "",
@@ -153,7 +153,7 @@ const AddUsers = () => {
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
-                  <Input name="studentPhone" placeholder="Student Phone" onChange={onChange} />
+                  <Input name="phone" placeholder="Student Phone" onChange={onChange} />
                   <Input name="parentPhone" placeholder="Parent Phone" onChange={onChange} />
                 </div>
 

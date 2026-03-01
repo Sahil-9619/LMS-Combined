@@ -206,7 +206,6 @@ const AllUsers = () => {
                 <TableCell>
                   <div className="flex items-center gap-3">
                     <Avatar>
-                      const isStudent = u.role?.name === "student";
                       <AvatarFallback>
                         {u.name
                           ?.split(" ")
