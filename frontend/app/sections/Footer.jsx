@@ -4,18 +4,19 @@ import { brandName } from "../contants"
 
 const Footer = () => {
   return (
-    <div className="bg-[#0F6F7C] pt-1">
+    <div className="bg-cyan-900 pt-1">
       
       <div className="border-t border-[#46B7C3]/40 mt-12 pt-8 text-center"></div>
 
-      <footer className="text-[#E6F7F9] bg-[#0F6F7C] py-16">
+      <footer className="text-[#E6F7F9]  py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-4 gap-12">
 
             {/* Logo Section */}
             <div>
               <div className="flex items-center mb-6">
-                <GraduationCap className="h-8 w-8 text-[#46B7C3]" />
+                <img src="/images/logo.png" alt="Logo"
+              className="w-12 h-8 scale-[1.5] " />
                 <span className="ml-2 text-2xl font-bold text-white">
                   {brandName}
                 </span>

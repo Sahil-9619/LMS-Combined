@@ -89,19 +89,19 @@ const popularPosts = [
 ];
 
   return (
-    <main className="bg-[#FEFAE0] text-[#283618] overflow-hidden">
+    <main className="bg-[#F4FDFE] text-[#0F6F7C] overflow-hidden">
 
       <Nav />
 
       {/* ================= HERO ================= */}
-<section className="relative pt-36 pb-28 px-6 bg-[#283618] text-[#FEFAE0] overflow-hidden">
+<section className="relative pt-36 pb-28 px-6 bg-[#0F6F7C] text-[#F4FDFE] overflow-hidden">
 
   {/* Soft Background Glow */}
   <motion.div
     initial={{ opacity: 0 }}
     animate={{ opacity: 0.2 }}
     transition={{ duration: 2 }}
-    className="absolute -top-40 -right-40 w-[500px] h-[500px] bg-[#BC6C25] blur-[150px] rounded-full"
+    className="absolute -top-40 -right-40 w-[500px] h-[500px] bg-[#178F9E] blur-[150px] rounded-full"
   />
 
   <div className="relative max-w-7xl mx-auto">
@@ -110,7 +110,7 @@ const popularPosts = [
       initial={{ opacity: 0, y: 40 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 1 }}
-      className="uppercase tracking-widest text-[#DDA15E] text-sm mb-6"
+      className="uppercase tracking-widest text-white text-md mb-6"
     >
       Educational Blog
     </motion.p>
@@ -130,7 +130,7 @@ const popularPosts = [
       initial={{ opacity: 0, y: 50 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 1.4, delay: 0.2 }}
-      className="text-[#FEFAE0]/80 text-lg max-w-2xl"
+      className="text-[#F4FDFE]/80 text-lg max-w-2xl"
     >
       Career guidance, structured learning roadmaps,
       and industry-focused strategies for real growth.
@@ -140,7 +140,7 @@ const popularPosts = [
 </section>
 
       {/* ================= FEATURED POST ================= */}
-<section className="py-16 px-6 bg-[#FEFAE0] text-[#283618]">
+<section className="py-16 px-6 bg-[#F4FDFE] text-[#0F6F7C]">
   <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-20 items-center">
 
     <motion.div
@@ -162,7 +162,7 @@ const popularPosts = [
       transition={{ duration: 1.2 }}
       viewport={{ once: true }}
     >
-      <p className="text-[#BC6C25] text-sm mb-4 uppercase tracking-wide">
+      <p className="text-[#178F9E] text-sm mb-4 uppercase tracking-wide">
         Featured
       </p>
 
@@ -171,12 +171,12 @@ const popularPosts = [
         a Full Stack Developer in 2026
       </h2>
 
-      <p className="text-[#606C38] mb-8 leading-relaxed">
+      <p className="text-[#178F9E] mb-8 leading-relaxed">
         A structured, step-by-step guide covering frontend,
         backend, deployment, and portfolio building.
       </p>
 
-      <button className="flex items-center gap-2 text-[#BC6C25] hover:gap-4 transition-all duration-500">
+      <button className="flex items-center gap-2 text-[#178F9E] hover:gap-4 transition-all duration-500">
         Read Article <ArrowRight size={18} />
       </button>
     </motion.div>
@@ -186,7 +186,7 @@ const popularPosts = [
 
 
       {/* ================= LATEST ARTICLES GRID ================= */}
-<section className="py-16 px-6 bg-[#283618] text-[#FEFAE0]">
+<section className="py-16 px-6 bg-[#0F6F7C] text-[#F4FDFE]">
   <div className="max-w-7xl mx-auto">
 
     <motion.h2
@@ -194,7 +194,7 @@ const popularPosts = [
       whileInView={{ opacity: 1, y: 0 }}
       transition={{ duration: 1 }}
       viewport={{ once: true }}
-      className="text-4xl font-bold mb-20 text-center text-[#DDA15E]"
+      className="text-4xl font-bold mb-20 text-center text-white"
     >
       Latest Articles
     </motion.h2>
@@ -228,7 +228,7 @@ const popularPosts = [
             />
           </div>
 
-          <p className="text-[#DDA15E] text-xs mb-3 uppercase">
+          <p className="text-[#46B7C3] text-xs mb-3 uppercase">
             {item.category}
           </p>
 
@@ -236,11 +236,11 @@ const popularPosts = [
             {item.title}
           </h3>
 
-          <p className="text-[#FEFAE0]/75 text-sm mb-4">
+          <p className="text-[#F4FDFE]/75 text-sm mb-4">
             {item.excerpt}
           </p>
 
-          <span className="text-[#FEFAE0]/50 text-xs">
+          <span className="text-[#F4FDFE]/50 text-xs">
             {item.readTime} • {item.date}
           </span>
         </motion.article>
@@ -252,7 +252,7 @@ const popularPosts = [
 </section>
 
       {/* ================= POPULAR POSTS ================= */}
-      <section className="py-12 px-6 bg-[#283618] text-[#FEFAE0]">
+      <section className="py-12 px-6 bg-[#0F6F7C] text-[#F4FDFE]">
         <div className="max-w-7xl mx-auto">
 
           <h2 className="text-3xl font-bold mb-12">
@@ -287,14 +287,14 @@ const popularPosts = [
       </section>
 
       {/* ================= NEWSLETTER ================= */}
-<section className="relative py-32 px-6 bg-[#FEFAE0] text-[#283618] text-center overflow-hidden">
+<section className="relative py-32 px-6 bg-[#F4FDFE] text-[#0F6F7C] text-center overflow-hidden">
 
   <motion.div
     initial={{ opacity: 0 }}
     whileInView={{ opacity: 0.15 }}
     transition={{ duration: 2 }}
     viewport={{ once: true }}
-    className="absolute left-1/2 -translate-x-1/2 top-0 w-[500px] h-[500px] bg-[#BC6C25] blur-[150px] rounded-full"
+    className="absolute left-1/2 -translate-x-1/2 top-0 w-[500px] h-[500px] bg-[#178F9E] blur-[150px] rounded-full"
   />
 
   <div className="relative max-w-4xl mx-auto">
@@ -308,7 +308,7 @@ const popularPosts = [
       Get smarter every week.
     </motion.h2>
 
-    <p className="text-[#BC6C25] mb-12">
+    <p className="text-[#178F9E] mb-12">
       Join our newsletter for structured learning resources.
     </p>
 
@@ -316,9 +316,9 @@ const popularPosts = [
       <input
         type="email"
         placeholder="Enter your email"
-        className="px-6 py-3 rounded-full border border-[#BC6C25]/40 outline-none"
+        className="px-6 py-3 rounded-full border border-[#178F9E]/40 outline-none"
       />
-      <button className="px-8 py-3 bg-[#BC6C25] hover:bg-[#DDA15E] text-white rounded-full transition-all duration-500 hover:scale-105">
+      <button className="px-8 py-3 bg-[#178F9E] hover:bg-[#46B7C3] text-white rounded-full transition-all duration-500 hover:scale-105">
         Subscribe
       </button>
     </div>

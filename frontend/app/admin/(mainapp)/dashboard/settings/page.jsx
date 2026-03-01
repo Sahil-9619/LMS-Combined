@@ -533,7 +533,7 @@ const Settings = () => {
                           platformName: e.target.value,
                         }))
                       }
-                      placeholder="e.g. EduMaster LMS"
+                      placeholder="e.g. vigyan academy"
                     />
                   </div>
 

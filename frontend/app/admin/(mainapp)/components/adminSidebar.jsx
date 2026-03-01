@@ -101,11 +101,11 @@ export default function AdminSidebar() {
   };
 
   return (
-    <aside className="flex h-full bg-gray-900 text-gray-100">
+    <aside className="flex h-full  text-gray-100">
       <div
         className={`${
           open ? "w-64" : "w-20"
-        } bg-gray-900 p-4 pt-6 relative duration-300`}
+        } bg-cyan-900 p-4 pt-6 relative duration-300`}
       >
         {/* Toggle Sidebar */}
         <button

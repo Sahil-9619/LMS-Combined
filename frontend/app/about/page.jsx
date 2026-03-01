@@ -4,22 +4,23 @@ import { motion } from "framer-motion";
 import Nav from "../sections/Nav";
 import Footer from "../sections/Footer";
 import Link from "next/link";
+import { brandName } from "../contants";
 
 export default function AboutPage() {
   return (
-    <main className="bg-[#FEFAE0] text-[#283618] overflow-hidden">
+    <main className="bg-[#F4FDFE] text-slate-700 overflow-hidden">
 
       <Nav />
 
       {/* ================= HERO ================= */}
-<section className="relative min-h-[95vh] flex items-center px-6 bg-[#283618] text-[#FEFAE0] overflow-hidden">
+<section className="relative min-h-[95vh] flex items-center px-6 bg-[#0F6F7C] text-[#F4FDFE] overflow-hidden">
 
   {/* Soft Moving Glow */}
   <motion.div
     initial={{ opacity: 0 }}
     animate={{ opacity: 0.25 }}
     transition={{ duration: 2 }}
-    className="absolute top-0 right-0 w-[600px] h-[600px] bg-[#BC6C25] blur-[150px] rounded-full"
+    className="absolute top-0 right-0 w-[600px] h-[600px] bg-[#178F9E] blur-[150px] rounded-full"
   />
 
   <div className="max-w-6xl mx-auto relative z-10">
@@ -29,9 +30,9 @@ export default function AboutPage() {
       initial={{ opacity: 0, y: 80 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
-      className="text-6xl text-[#DDA15E] font-extrabold leading-tight mb-6"
+      className="text-6xl text-cyan-400 font-extrabold tracking-tight mb-6"
     >
-      About EduMaster
+      <span className="text-white">About</span> {brandName}
     </motion.h1>
 
     {/* Subtitle stagger */}
@@ -65,9 +66,9 @@ export default function AboutPage() {
       initial={{ opacity: 0, y: 40 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 1.4, delay: 0.4 }}
-      className="max-w-2xl text-lg text-[#FEFAE0]/80 mt-6"
+      className="max-w-2xl text-lg text-white/80 mt-6"
     >
-      EduMaster Institute is a disciplined, classroom-driven learning
+      {brandName} is a disciplined, classroom-driven learning
       institution committed to academic excellence, practical training,
       and real career outcomes.
     </motion.p>
@@ -76,7 +77,7 @@ export default function AboutPage() {
 </section>
 
 {/* ================= HISTORY ================= */}
-<section className="py-32 px-6 bg-[#FEFAE0] overflow-hidden">
+<section className="py-32 px-6 bg-[#F4FDFE] overflow-hidden">
   <div className="max-w-6xl mx-auto">
 
     {/* Header Animation */}
@@ -87,10 +88,10 @@ export default function AboutPage() {
       viewport={{ once: true }}
       className="mb-24"
     >
-      <h2 className="text-5xl font-bold text-[#BC6C25] mb-6">
+      <h2 className="text-5xl font-bold text-[#178F9E] mb-6">
         Our Journey
       </h2>
-      <p className="text-[#606C38] text-lg max-w-2xl">
+      <p className="text-[#178F9E] text-lg max-w-2xl">
         A disciplined path of growth, consistency, and academic excellence.
       </p>
     </motion.div>
@@ -103,7 +104,7 @@ export default function AboutPage() {
         whileInView={{ height: "100%" }}
         transition={{ duration: 2, ease: "easeInOut" }}
         viewport={{ once: true }}
-        className="absolute left-4 top-0 w-1 bg-[#DDA15E]"
+        className="absolute left-4 top-0 w-1 bg-[#46B7C3]"
       />
 
       <div className="space-y-20">
@@ -145,14 +146,14 @@ export default function AboutPage() {
               initial={{ scale: 0 }}
               whileInView={{ scale: 1 }}
               transition={{ duration: 0.6 }}
-              className="absolute -left-[34px] top-1 w-6 h-6 bg-[#BC6C25] rounded-full border-4 border-[#FEFAE0] shadow-lg"
+              className="absolute -left-[34px] top-1 w-6 h-6 bg-[#178F9E] rounded-full border-4 border-[#F4FDFE] shadow-lg"
             />
 
-            <h3 className="text-2xl font-semibold text-[#283618] mb-4">
+            <h3 className="text-2xl font-semibold text-[#0F6F7C] mb-4">
               {item.title}
             </h3>
 
-            <p className="text-[#606C38] leading-relaxed">
+            <p className="text-[#178F9E] leading-relaxed">
               {item.desc}
             </p>
 
@@ -166,7 +167,7 @@ export default function AboutPage() {
   </div>
 </section>
       {/* ================= VISION & MISSION ================= */}
-<section className="relative py-32 px-6 bg-[#283618] text-[#FEFAE0] overflow-hidden">
+<section className="relative py-32 px-6 bg-[#0F6F7C] text-[#F4FDFE] overflow-hidden">
 
   {/* Soft Moving Background Glow */}
   <motion.div
@@ -174,7 +175,7 @@ export default function AboutPage() {
     whileInView={{ opacity: 0.2 }}
     transition={{ duration: 2 }}
     viewport={{ once: true }}
-    className="absolute -top-40 -right-40 w-[500px] h-[500px] bg-[#BC6C25] blur-[140px] rounded-full"
+    className="absolute -top-40 -right-40 w-[500px] h-[500px] bg-[#178F9E] blur-[140px] rounded-full"
   />
 
   <div className="relative max-w-6xl mx-auto grid md:grid-cols-2 gap-24">
@@ -188,13 +189,13 @@ export default function AboutPage() {
       whileHover={{ y: -8 }}
       className="group"
     >
-      <div className="mb-8 h-[3px] w-16 bg-[#DDA15E] group-hover:w-32 transition-all duration-700" />
+      <div className="mb-8 h-[3px] w-16 bg-[#46B7C3] group-hover:w-32 transition-all duration-700" />
 
-      <h3 className="text-4xl font-extrabold mb-6 text-[#DDA15E] tracking-wide">
+      <h3 className="text-4xl font-extrabold mb-6 text-white tracking-wide">
         Our Vision
       </h3>
 
-      <p className="text-[#FEFAE0]/85 text-lg leading-relaxed">
+      <p className="text-gray-100 text-lg leading-relaxed">
         To become a leading offline education institute recognized
         for discipline, academic excellence, and career-focused training.
         We aim to create professionals who are not only skilled,
@@ -212,13 +213,13 @@ export default function AboutPage() {
       whileHover={{ y: -8 }}
       className="group"
     >
-      <div className="mb-8 h-[3px] w-16 bg-[#DDA15E] group-hover:w-32 transition-all duration-700" />
+      <div className="mb-8 h-[3px] w-16 bg-[#46B7C3] group-hover:w-32 transition-all duration-700" />
 
-      <h3 className="text-4xl font-extrabold mb-6 text-[#DDA15E] tracking-wide">
+      <h3 className="text-4xl font-extrabold mb-6 text-white tracking-wide">
         Our Mission
       </h3>
 
-      <p className="text-[#FEFAE0]/85 text-lg leading-relaxed">
+      <p className="text-gray-100 text-lg leading-relaxed">
         To provide structured courses, hands-on practical learning,
         and personalized mentorship that empowers students to succeed
         confidently in competitive industries. Our mission is to ensure
@@ -230,7 +231,7 @@ export default function AboutPage() {
 </section>
 
       {/* ================= ACADEMIC FRAMEWORK ================= */}
- <section className="relative py-15 px-6 bg-[#FEFAE0] overflow-hidden">
+ <section className="relative py-15 px-6 bg-[#F4FDFE] overflow-hidden">
 
   {/* Soft Accent Glow */}
   <motion.div
@@ -238,7 +239,7 @@ export default function AboutPage() {
     whileInView={{ opacity: 0.15 }}
     transition={{ duration: 2 }}
     viewport={{ once: true }}
-    className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-[#DDA15E] blur-[150px] rounded-full"
+    className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-[#46B7C3] blur-[150px] rounded-full"
   />
 
   <div className="relative max-w-7xl mx-auto">
@@ -251,10 +252,10 @@ export default function AboutPage() {
       viewport={{ once: true }}
       className="text-center mb-20"
     >
-      <h2 className="text-5xl font-extrabold text-[#BC6C25] mb-6">
+      <h2 className="text-5xl font-extrabold text-[#178F9E] mb-6">
         Our Academic Framework
       </h2>
-      <p className="text-[#606C38] max-w-2xl mx-auto text-lg">
+      <p className="text-[#178F9E] max-w-2xl mx-auto text-lg">
         A structured system designed to build clarity, competence,
         and measurable academic excellence.
       </p>
@@ -301,13 +302,13 @@ export default function AboutPage() {
         >
 
           {/* Top Accent Line */}
-          <div className="h-[3px] w-14 bg-[#DDA15E] mb-8 group-hover:w-28 transition-all duration-700" />
+          <div className="h-[3px] w-14 bg-[#46B7C3] mb-8 group-hover:w-28 transition-all duration-700" />
 
-          <h3 className="text-2xl font-bold text-[#283618] mb-6">
+          <h3 className="text-2xl font-bold text-[#0F6F7C] mb-6">
             {item.title}
           </h3>
 
-          <p className="text-[#606C38] leading-relaxed text-lg">
+          <p className="text-[#178F9E] leading-relaxed text-lg">
             {item.desc}
           </p>
 
@@ -321,7 +322,7 @@ export default function AboutPage() {
 </section>
 
       {/* ================= STUDENT BENEFITS ================= */}
-<section className="relative py-16 px-6 bg-[#FEFAE0] overflow-hidden">
+<section className="relative py-16 px-6 bg-[#F4FDFE] overflow-hidden">
 
   {/* Soft Accent Background */}
   <motion.div
@@ -329,7 +330,7 @@ export default function AboutPage() {
     whileInView={{ opacity: 0.12 }}
     transition={{ duration: 2 }}
     viewport={{ once: true }}
-    className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#BC6C25] blur-[140px] rounded-full"
+    className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#178F9E] blur-[140px] rounded-full"
   />
 
   <div className="relative max-w-7xl mx-auto">
@@ -342,10 +343,10 @@ export default function AboutPage() {
       viewport={{ once: true }}
       className="text-center mb-24"
     >
-      <h2 className="text-5xl font-extrabold text-[#BC6C25] mb-6">
+      <h2 className="text-5xl font-extrabold text-[#178F9E] mb-6">
         Benefits for Students
       </h2>
-      <p className="text-[#606C38] max-w-2xl mx-auto text-lg">
+      <p className="text-[#178F9E] max-w-2xl mx-auto text-lg">
         Designed to ensure clarity, confidence, and measurable professional growth.
       </p>
     </motion.div>
@@ -389,10 +390,10 @@ export default function AboutPage() {
             initial={{ scale: 0 }}
             whileInView={{ scale: 1 }}
             transition={{ duration: 0.6 }}
-            className="w-6 h-6 mt-1 bg-[#BC6C25] rounded-full shadow-md group-hover:scale-110 transition"
+            className="w-6 h-6 mt-1 bg-[#178F9E] rounded-full shadow-md group-hover:scale-110 transition"
           />
 
-          <p className="text-[#283618] text-lg leading-relaxed font-medium">
+          <p className="text-[#0F6F7C] text-lg leading-relaxed font-medium">
             {text}
           </p>
 
@@ -404,13 +405,13 @@ export default function AboutPage() {
 </section>
 
       {/* ================= ACADEMIC EVENTS ================= */}
-<section className="relative py-32 px-6 bg-[#283618] overflow-hidden">
+<section className="relative py-32 px-6 bg-[#0F6F7C] overflow-hidden">
 
   <div className="max-w-7xl mx-auto text-center mb-20">
-    <h2 className="text-5xl font-extrabold text-olive-300 mb-6">
+    <h2 className="text-5xl font-extrabold text-white mb-6">
       Campus Moments
     </h2>
-    <p className="text-white max-w-2xl mx-auto text-lg">
+    <p className="text-gray-100 max-w-2xl mx-auto text-lg">
       A glimpse into our structured, disciplined, and growth-focused environment.
     </p>
   </div>
@@ -491,11 +492,11 @@ export default function AboutPage() {
       <section className="py-28 px-6 text-center">
         <div className="max-w-4xl mx-auto">
 
-          <h2 className="text-4xl font-bold text-[#BC6C25] mb-8">
-            Why Students Trust EduMaster
+          <h2 className="text-4xl font-bold text-[#178F9E] mb-8">
+            Why Students Trust {brandName}
           </h2>
 
-          <p className="text-[#606C38] leading-relaxed text-lg">
+          <p className="text-gray-700 leading-relaxed text-lg">
             Our commitment to discipline, consistency, and measurable results
             has built strong trust among students and parents. We focus on
             real learning outcomes, not just course completion.
@@ -512,7 +513,7 @@ export default function AboutPage() {
 
         <Link
           href="/admission"
-          className="inline-block bg-[#BC6C25] hover:bg-[#DDA15E] text-[#FEFAE0] px-12 py-4 rounded-full text-lg font-semibold transition-all duration-500 hover:scale-105"
+          className="inline-block bg-[#178F9E] hover:bg-[#46B7C3] text-[#F4FDFE] px-12 py-4 rounded-full text-lg font-semibold transition-all duration-500 hover:scale-105"
         >
           Apply for Admission
         </Link>
@@ -528,10 +529,10 @@ export default function AboutPage() {
 function Feature({ title, desc }) {
   return (
     <div>
-      <h3 className="text-xl font-semibold mb-4 text-[#283618]">
+      <h3 className="text-xl font-semibold mb-4 text-[#0F6F7C]">
         {title}
       </h3>
-      <p className="text-[#606C38]">
+      <p className="text-[#178F9E]">
         {desc}
       </p>
     </div>
@@ -540,7 +541,7 @@ function Feature({ title, desc }) {
 
 function Benefit({ text }) {
   return (
-    <p className="text-[#606C38] text-lg leading-relaxed">
+    <p className="text-[#178F9E] text-lg leading-relaxed">
       • {text}
     </p>
   );

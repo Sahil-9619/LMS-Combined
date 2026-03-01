@@ -81,13 +81,13 @@ const page = () => {
 
 
   return (
-    <div className="bg-[#FEFAE0] text-[#283618] overflow-hidden">
+    <div className="bg-[#F4FDFE] text-[#0F6F7C] overflow-hidden">
         <Nav/>
-<section className="relative pt-32 pb-24 bg-[#283618] overflow-hidden">
+<section className="relative pt-32 pb-24 bg-cyan-100/30 overflow-hidden">
 
   {/* Soft Accent Glow */}
-  <div className="absolute w-[500px] h-[500px] bg-[#DDA15E]/20 blur-3xl rounded-full top-[-150px] left-[-150px]" />
-  <div className="absolute w-[400px] h-[400px] bg-[#BC6C25]/20 blur-3xl rounded-full bottom-[-120px] right-[-120px]" />
+  <div className="absolute w-[500px] h-[500px] bg-[#46B7C3]/20 blur-3xl rounded-full top-[-150px] left-[-150px]" />
+  <div className="absolute w-[400px] h-[400px] bg-[#178F9E]/20 blur-3xl rounded-full bottom-[-120px] right-[-120px]" />
 
   <div className="relative max-w-7xl mx-auto px-6">
 
@@ -98,10 +98,10 @@ const page = () => {
       transition={{ duration: 1 }}
       className="text-center mb-20"
     >
-      <h1 className="text-5xl md:text-6xl font-bold text-[#FEFAE0] mb-6">
+      <h1 className="text-5xl md:text-6xl font-bold text-cyan-800 mb-6">
         Our Learning Environment
       </h1>
-      <p className="text-[#FEFAE0]/80 text-lg max-w-2xl mx-auto">
+      <p className="text-cyan-700 text-lg max-w-2xl mx-auto">
         Explore moments from our classrooms, workshops, labs, and student achievements.
       </p>
     </motion.div>
@@ -210,7 +210,7 @@ const page = () => {
           }`}
         >
           {/* Soft Glow Behind */}
-          <div className="absolute inset-0 bg-gradient-to-tr from-[#DDA15E]/20 to-[#606C38]/20 blur-3xl opacity-0 group-hover:opacity-100 transition duration-1000" />
+          <div className="absolute inset-0 bg-gradient-to-tr from-[#46B7C3]/20 to-[#178F9E]/20 blur-3xl opacity-0 group-hover:opacity-100 transition duration-1000" />
 
           <motion.img
             src={item.img}
@@ -234,11 +234,11 @@ const page = () => {
           viewport={{ once: true }}
           className={`${index % 2 !== 0 ? "md:order-1" : ""}`}
         >
-          <h2 className="text-5xl font-bold mb-8 bg-gradient-to-r from-[#DDA15E] to-[#BC6C25] bg-clip-text text-transparent">
+          <h2 className="text-5xl font-bold mb-8 bg-gradient-to-r from-[#46B7C3] to-[#178F9E] bg-clip-text text-transparent">
             {item.title}
           </h2>
 
-          <p className="text-[#606C38] text-xl leading-relaxed mb-8">
+          <p className="text-gray-700 text-xl leading-relaxed mb-8">
             {item.description}
           </p>
 
@@ -246,7 +246,7 @@ const page = () => {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.96 }}
             transition={{ duration: 0.4 }}
-            className="relative px-8 py-3 rounded-full font-medium bg-[#BC6C25] text-[#FEFAE0] overflow-hidden group"
+            className="relative px-8 py-3 rounded-full font-medium bg-[#178F9E] text-[#F4FDFE] overflow-hidden group"
           >
             <span className="relative z-10">Learn More</span>
 

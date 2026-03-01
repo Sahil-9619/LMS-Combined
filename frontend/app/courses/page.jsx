@@ -17,6 +17,7 @@ import {
 import Nav from '../sections/Nav.jsx'
 import Footer from '../sections/Footer.jsx'
 import Link from "next/link.js";
+import { brandName } from "../contants.jsx";
 
 
 export default function CoursesPage() {
@@ -233,7 +234,7 @@ const freeCourses = [
                             <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
                                 <div className="flex items-center justify-between mb-4">
                                     <div>
-                                        <h3 className="text-4xl text-blue-700 font-bold ">EduMaster Plus</h3>
+                                        <h3 className="text-4xl text-blue-700 font-bold ">{brandName} Plus</h3>
                                         <p className="text-sm text-gray-500">Unlimited access to most courses — monthly or yearly</p>
                                     </div>
                                     <div className="text-right">
@@ -561,7 +562,7 @@ const freeCourses = [
                 <div className="max-w-4xl mx-auto px-6">
                     <h3 className="text-2xl font-bold  text-white mb-6">Frequently asked questions</h3>
                     <details className="mb-3 bg-white p-4 rounded-lg shadow-sm">
-                        <summary className="font-medium cursor-pointer">What is EduMaster Plus?</summary>
+                        <summary className="font-medium cursor-pointer">What is {brandName} Plus?</summary>
                         <div className="mt-2 text-gray-600">A subscription giving unlimited access to most courses and certificates.</div>
                     </details>
                     <details className="mb-3 bg-white p-4 rounded-lg shadow-sm">

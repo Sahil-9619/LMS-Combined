@@ -1,9 +1,10 @@
 "use client";
 import { GalleryVerticalEnd } from "lucide-react";
-
 import { LoginForm } from "../../../components/login-form";
 import { useSelector } from "react-redux";
 import Link from "next/link";
+import { brandName } from "@/app/contants";
+
 
 export default function LoginPage() {
   const { settings } = useSelector((state) => state.appSettings);
@@ -11,14 +12,14 @@ export default function LoginPage() {
   return (
     <div className="grid min-h-svh lg:grid-cols-2">
       <div className="flex flex-col gap-4 p-6 md:p-10">
-        <div className="flex justify-center gap-2 md:justify-start">
-          <a href="#" className="flex items-center gap-2 font-medium">
-            <div className="bg-primary text-primary-foreground flex size-6 items-center justify-center rounded-md">
-              <GalleryVerticalEnd className="size-4" />
+        <div className="flex justify-center gap-2 md:justify-start">          
+            <div className="bg-primary h-11 w-14 text-primary-foreground   flex items-center justify-center rounded-md overflow-hidden">
+              <img 
+              src="/images/logo.png" 
+              alt="Logo" className="h-8 w-auto object-contain" />
             </div>
-            <Link href="/"
-            >{settings?.platformName}</Link> 
-          </a>
+            <Link href="/" className="text-primary font-bold text-2xl"
+            >{brandName}</Link>
         </div>
         <div className="flex flex-1 items-center justify-center">
           <div className="w-full max-w-xs">

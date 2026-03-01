@@ -8,7 +8,7 @@ import Link from "next/link";
 
 export default function AdmissionSuccess() {
   return (
-    <main className="bg-[#283618] text-[#FEFAE0] min-h-screen overflow-hidden">
+    <main className="bg-[#0F6F7C] text-white min-h-screen overflow-hidden">
 
       <Nav />
       {/* ================= HERO SUCCESS ================= */}
@@ -20,7 +20,7 @@ export default function AdmissionSuccess() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 1.5 }}
-          className="absolute inset-0 bg-gradient-to-br from-[#BC6C25]/30 via-[#283618] to-[#DDA15E]/20 blur-3xl"
+          className="absolute inset-0 bg-gradient-to-br from-[#178F9E]/30 via-[#0F6F7C] to-[#46B7C3]/20 blur-3xl"
         />
 
         <div className="relative z-10 text-center max-w-4xl">
@@ -32,7 +32,7 @@ export default function AdmissionSuccess() {
             animate={{ scale: 1, rotate: 0 }}
             className="flex justify-center mb-10"
           >
-            <CheckCircle className="w-28 h-28 text-[#DDA15E]" />
+            <CheckCircle className="w-28 h-28 text-[#46B7C3]" />
           </motion.div>
 
           {/* Heading */}
@@ -50,7 +50,7 @@ export default function AdmissionSuccess() {
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.6 }}
-            className="text-xl text-[#FEFAE0]/80 leading-relaxed mb-10"
+            className="text-xl text-white/80 leading-relaxed mb-10"
           >
             Your registration has been successfully submitted.  
             Our academic team will contact you shortly with further details.
@@ -61,7 +61,7 @@ export default function AdmissionSuccess() {
             initial={{ width: 0 }}
             animate={{ width: "200px" }}
             transition={{ duration: 1.2, delay: 0.9 }}
-            className="h-[3px] bg-[#BC6C25] mx-auto mb-10"
+            className="h-[3px] bg-[#178F9E] mx-auto mb-10"
           />
 
           {/* Action Buttons */}
@@ -73,14 +73,14 @@ export default function AdmissionSuccess() {
           >
             <Link
               href="/"
-              className="px-10 py-4 bg-[#BC6C25] text-white font-semibold rounded-full hover:bg-[#DDA15E] transition-all duration-300"
+              className="px-10 py-4 border-2 border-[#46B7C3] text-white font-semibold rounded-full hover:bg-[#46B7C3]  transition-all duration-300"
             >
               Back to Home
             </Link>
 
             <Link
               href="/user/dashboard"
-              className="px-10 py-4 border-2 border-[#DDA15E] text-[#DDA15E] font-semibold rounded-full hover:bg-[#DDA15E] hover:text-[#283618] transition-all duration-300"
+              className="px-10 py-4 border-2 border-[#46B7C3] text-white font-semibold rounded-full hover:bg-[#46B7C3]  transition-all duration-300"
             >
               Go to Dashboard
             </Link>
@@ -90,13 +90,13 @@ export default function AdmissionSuccess() {
       </section>
 
       {/* ================= SECOND SECTION (Floating Text Reveal) ================= */}
-      <section className="py-28 px-6 text-center bg-[#FEFAE0] text-[#283618]">
+      <section className="py-28 px-6 text-center bg-[#F4FDFE] text-slate-700">
         <motion.h2
           initial={{ opacity: 0, y: 60 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
           viewport={{ once: true }}
-          className="text-4xl font-bold mb-6 text-[#BC6C25]"
+          className="text-4xl font-bold mb-6 text-[#0F6F7C]"
         >
           What Happens Next?
         </motion.h2>

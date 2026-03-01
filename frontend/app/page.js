@@ -214,7 +214,7 @@ useEffect(() => {
     >
       <motion.img
         src="/images/class.png"
-        alt="About EduMaster"
+        alt="About Vigyan Academy"
         className="rounded-2xl shadow-2xl w-full h-[450px] object-cover"
         whileHover={{ scale: 1.04 }}
         transition={{ duration: 0.6 }}
@@ -244,7 +244,7 @@ useEffect(() => {
       </h2>
 
       <p className="text-[#283618]/85 text-lg mb-6 leading-relaxed">
-        EduMaster Institute is a premier offline learning center dedicated to 
+        {brandName} is a premier offline learning center dedicated to 
         providing high-quality classroom education. We focus on practical training, 
         real-time interaction, and hands-on learning experiences that help students 
         build strong foundations and industry-ready skills.

@@ -56,7 +56,7 @@ const handleSubmit = async (e) => {
 
 
   return (
-    <main className="bg-[#FEFAE0] text-[#BC6C25]">
+    <main className="bg-[#F4FDFE] text-[#0F6F7C]">
 
       <Nav />
 
@@ -88,12 +88,12 @@ const handleSubmit = async (e) => {
             transition={{ duration: 0.6 }}
             className="space-y-10"
           >
-            <h2 className="text-2xl font-bold mb-4">Get in touch</h2>
+            <h2 className="text-2xl text-black font-bold mb-4">Get in touch</h2>
 
             <div className="space-y-6">
 
               <div className="flex items-start gap-4">
-                <Mail className="h-6 w-6 text-[#283618] mt-1" />
+                <Mail className="h-6 w-6 text-[#178F9E] mt-1" />
                 <div>
                   <h3 className="font-semibold">Email</h3>
                   <p className="text-gray-900 text-sm">support@educationjal.com</p>
@@ -101,7 +101,7 @@ const handleSubmit = async (e) => {
               </div>
 
               <div className="flex items-start gap-4">
-                <Phone className="h-6 w-6 text-[#283618]  mt-1" />
+                <Phone className="h-6 w-6 text-[#178F9E]  mt-1" />
                 <div>
                   <h3 className="font-semibold">Phone</h3>
                   <p className="text-gray-900 text-sm">+91 98765 43210</p>
@@ -109,7 +109,7 @@ const handleSubmit = async (e) => {
               </div>
 
               <div className="flex items-start gap-4">
-                <MapPin className="h-6 w-6 text-[#283618]  mt-1" />
+                <MapPin className="h-6 w-6 text-[#178F9E]  mt-1" />
                 <div>
                   <h3 className="font-semibold">Office</h3>
                   <p className="text-gray-900 text-sm">
@@ -134,8 +134,7 @@ const handleSubmit = async (e) => {
             initial={{ opacity: 0, x: 40 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6 }}
-            className="lg:col-span-2 bg-white rounded-3xl shadow-2xl p-12 text-gray-900"
-          >
+            className="lg:col-span-2 bg-white rounded-3xl shadow-2xl border border-[#46B7C3]/30 p-12 text-[#0F6F7C]"          >
             <h2 className="text-2xl font-bold mb-8 text-gray-900">
               Send us a message
             </h2>
@@ -153,7 +152,7 @@ const handleSubmit = async (e) => {
                   type="text"
                   required
                   placeholder="Enter name"
-                  className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-gray-900 outline-none transition"
+                  className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-[#178F9E] outline-none transition"
                 />
               </div>
 
@@ -168,7 +167,7 @@ const handleSubmit = async (e) => {
                   type="text"
                   required
                   placeholder="Enter phone number"
-                  className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-gray-900 outline-none transition"
+                  className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-[#178F9E] outline-none transition"
                 />
               </div>
 
@@ -183,7 +182,7 @@ const handleSubmit = async (e) => {
                   type="email"
                   required
                   placeholder="example@email.com"
-                  className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-gray-900 outline-none transition"
+                  className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-[#178F9E] outline-none transition"
                 />
               </div>
 
@@ -198,7 +197,7 @@ const handleSubmit = async (e) => {
                   type="text"
                   required
                   placeholder="Write your query here"
-                  className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-gray-900 outline-none transition"
+                  className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-[#178F9E] outline-none transition"
                 />
               </div>
 
@@ -213,7 +212,7 @@ const handleSubmit = async (e) => {
                   rows="5"
                   required
                   placeholder="Write your message here..."
-                  className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-gray-900 outline-none transition"
+                  className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-[#178F9E] outline-none transition"
                 ></textarea>
               </div>
 
@@ -221,7 +220,7 @@ const handleSubmit = async (e) => {
                 <button
                   type="submit"
                   disabled = {loading}
-                  className="w-full bg-[#606C38] hover:bg-[#283618] text-white py-3 rounded-full font-medium transition flex items-center justify-center gap-2"
+                  className="w-full bg-[#178F9E] hover:bg-[#0F6F7C] text-white py-3 rounded-full font-medium transition flex items-center justify-center gap-2"
                 >
                   {loading ? "Sending..." : "Send Message"}
                   <Send className="h-5 w-5" />
@@ -259,11 +258,11 @@ const handleSubmit = async (e) => {
             Get admission today!
           </p>
           <Link
-  href="/admission"
-  className="bg-[#BC6C25] text-white px-8 py-3 rounded-full font-semibold 
-  transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] 
-  hover:scale-105 hover:bg-[#DDA15E] hover:shadow-xl hover:shadow-[#BC6C25]/40"
->Apply for Admission
+           href="/admission"
+           className="bg-[#178F9E] text-white px-8 py-3 rounded-full font-semibold 
+           transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] 
+           hover:scale-105 hover:bg-[#0F6F7C] hover:shadow-xl hover:shadow-[#178F9E]/40"
+           >Apply for Admission
           </Link>
         </div>
       </section>

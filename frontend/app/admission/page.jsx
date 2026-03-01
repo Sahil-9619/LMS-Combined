@@ -131,25 +131,25 @@ const handleSubmit = async (e) => {
   const prevStep = () => setStep((prev) => Math.max(prev - 1, 1));
 
   return (
-    <main className="bg-[#FEFAE0] text-[#283618] min-h-screen">
+    <main className="bg-[#F4FDFE] text-slate-700 min-h-screen">
       <Nav />
 
       {/* HERO */}
-      <section className="pt-36 pb-16 bg-[#283618] text-center text-[#FEFAE0]">
-        <h1 className="text-5xl font-bold text-[#DDA15E]">
+      <section className="pt-36 pb-16 bg-[#0F6F7C] text-white text-center">
+        <h1 className="text-5xl font-bold text-primary-foreground">
           Admission Registration 2026
         </h1>
-        <p className="mt-4 text-[#FEFAE0]/80">
+        <p className="mt-4 text-white">
           Registration Fee: ₹2000
         </p>
       </section>
 
       {/* PROGRESS BAR */}
-      <div className="w-full h-2 bg-[#606C38]/20">
+      <div className="w-full h-2 bg-[#178F9E]/20">
         <motion.div
           animate={{ width: `${(step / 4) * 100}%` }}
           transition={{ duration: 0.5 }}
-          className="h-full bg-[#BC6C25]"
+          className="h-full bg-[#178F9E]"
         />
       </div>
 
@@ -168,7 +168,7 @@ const handleSubmit = async (e) => {
                 transition={{ duration: 0.5 }}
                 className="space-y-8"
               >
-                <h2 className="text-2xl font-bold text-[#BC6C25]">
+                <h2 className="text-2xl font-bold text-[#0F6F7C]">
                   Fill Personal Details
                 </h2>
 
@@ -200,7 +200,7 @@ const handleSubmit = async (e) => {
                     className={`px-10 py-3 font-semibold rounded-full shadow-md transition-all duration-300
                       ${
                         isStep1Valid
-                          ? "bg-[#BC6C25] text-white hover:bg-[#DDA15E]"
+                          ? "bg-[#178F9E] text-white hover:bg-[#0F6F7C]"
                           : "bg-gray-300 text-gray-500 cursor-not-allowed"
                       }`}
                   >
@@ -220,14 +220,14 @@ const handleSubmit = async (e) => {
                 transition={{ duration: 0.5 }}
                 className="space-y-8"
               >
-                <h2 className="text-2xl font-bold text-[#BC6C25]">
+                <h2 className="text-2xl font-bold text-[#0F6F7C]">
                   Address & Category
                 </h2>
 
                 <Textarea label="Residential Address" name="address" value={formData.address} onChange={handleChange} />
 
                 <div>
-                  <label className="block mb-2">Category</label>
+                  <label className="block mb-2 text-[#0F6F7C] font-medium">Category</label>
                   <select
                     name="category"
                     value={formData.category}
@@ -259,7 +259,7 @@ const handleSubmit = async (e) => {
                 transition={{ duration: 0.5 }}
                 className="space-y-6"
               >
-                <h2 className="text-2xl font-bold text-[#BC6C25]">
+                <h2 className="text-2xl font-bold text-[#0F6F7C]">
                   Select Class & Photo
                 </h2>
 
@@ -278,12 +278,12 @@ const handleSubmit = async (e) => {
                 </select>
 
                 <div className="space-y-4">
-                  <label className="block font-semibold text-[#283618]">
+                  <label className="block font-semibold text-[#0F6F7C]">
                     Upload Your Photo
                   </label>
 
                   <div className="flex items-center gap-6">
-                    <label className="cursor-pointer bg-gray-200 hover:bg-gray-300 text-[#283618] px-6 py-3 rounded-lg font-medium transition-all duration-300">
+                    <label className="cursor-pointer bg-gray-200 hover:bg-gray-300 text-[#0F6F7C] px-6 py-3 rounded-lg font-medium transition-all duration-300">
                       Choose File
                       <input
                         type="file"
@@ -294,7 +294,7 @@ const handleSubmit = async (e) => {
                     </label>
 
                     {formData.photo && (
-                      <span className="text-sm text-[#606C38]">
+                      <span className="text-sm text-slate-500">
                         {formData.photo.name}
                       </span>
                     )}
@@ -305,7 +305,7 @@ const handleSubmit = async (e) => {
                       <img
                         src={formData.preview}
                         alt="Preview"
-                        className="w-32 h-32 object-cover rounded-xl border border-[#606C38]/30 shadow-md"
+                        className="w-32 h-32 object-cover rounded-xl border border-[#178F9E]/30 shadow-md"
                       />
                     </div>
                   )}
@@ -328,7 +328,7 @@ const handleSubmit = async (e) => {
                 transition={{ duration: 0.5 }}
                 className="space-y-8 text-center"
               >
-                <h2 className="text-2xl font-bold text-[#BC6C25]">
+                <h2 className="text-2xl font-bold text-[#0F6F7C]">
                   Registration Fee Payment
                 </h2>
             
@@ -342,7 +342,7 @@ const handleSubmit = async (e) => {
                   type="button"
                   onClick={handleSubmit}
                   disabled={loading}
-                  className="px-14 py-4 bg-[#BC6C25] text-white font-bold text-lg rounded-full shadow-lg hover:bg-[#DDA15E] transition-all duration-300"
+                  className="px-14 py-4 bg-[#178F9E] text-white font-bold text-lg rounded-full shadow-lg  hover:bg-[#0F6F7C]transition-all duration-300"
                 >
                   Pay ₹2000 Securely →
                 </motion.button>
@@ -372,7 +372,7 @@ function AnimatedNext({ nextStep, disabled }) {
         ${
           disabled
             ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-            : "bg-[#BC6C25] text-white hover:bg-[#DDA15E]"
+            : "bg-[#178F9E] text-white hover:bg-[#0F6F7C]"
         }`}
     >
       Next →
@@ -386,7 +386,7 @@ function AnimatedBack({ prevStep }) {
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
       onClick={prevStep}
-      className="px-8 py-3 border-2 border-[#606C38] text-[#283618] font-medium rounded-full hover:bg-[#606C38]/10 transition-all duration-300"
+      className="px-8 py-3 border-2 border-[#178F9E] text-[#0F6F7C]  font-medium rounded-full hover:bg-[#178F9E]/10 transition-all duration-300"
     >
       ← Back
     </motion.button>
@@ -398,7 +398,7 @@ function AnimatedBack({ prevStep }) {
 function Input({ label, name, type="text", onChange, value, readOnly=false }) {
   return (
     <div>
-      <label className="block mb-2">{label}</label>
+      <label className="block mb-2 text-[#0F6F7C] font-medium">{label}</label>
       <input
         name={name}
         type={type}
@@ -414,7 +414,7 @@ function Input({ label, name, type="text", onChange, value, readOnly=false }) {
 function Textarea({ label, name, onChange, value }) {
   return (
     <div>
-      <label className="block mb-2">{label}</label>
+      <label className="block mb-2 text-[#0F6F7C] font-medium">{label}</label>
       <textarea
         name={name}
         rows="1"

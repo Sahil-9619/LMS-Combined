@@ -1,27 +1,20 @@
 "use client"
 
-import { GraduationCap, Menu, X } from "lucide-react"
+import { Menu, X } from "lucide-react"
 import Link from "next/link"
 import { useEffect, useState } from "react"
 import { usePathname } from "next/navigation"
 import { brandName } from "../contants"
-import logo from "../../public/images/logo.png"
 
 const Navbar = () => {
   const [open, setOpen] = useState(false)
   const pathname = usePathname()
 
   useEffect(() => {
-    const handleClick = () => {
-      setOpen(false)
-    }
-    if (open) {
-      document.addEventListener("click", handleClick)
-    }
-    return () => {
-      document.removeEventListener("click", handleClick)
-    }
-  })
+    const handleClick = () => setOpen(false)
+    if (open) document.addEventListener("click", handleClick)
+    return () => document.removeEventListener("click", handleClick)
+  }, [open])
 
   const links = [
     { name: "Home", path: "/" },
@@ -32,23 +25,27 @@ const Navbar = () => {
   ]
 
   return (
-    <header className="fixed top-6 left-1/2 -translate-x-1/2 w-[90%] max-w-7xl z-50">
+    <header className="fixed top-6  left-1/2 -translate-x-1/2 w-[80%] max-w-6xl z-50">
 
-      {/* Glass Container */}
-      <div className="relative backdrop-blur-2xl bg-[rgba(23,143,158,0.15)] border border-[#46B7C3]/40 rounded-2xl shadow-2xl px-8 py-4">
 
-        <div className="relative flex justify-between items-center">
+      {/* Solid Dark Teal Background */}
+      <div className="bg-cyan-900 border-b border-[#46B7C3]/30 border-2 rounded-4xl shadow-lg">
+
+        <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
 
           {/* Logo */}
-          <div className="flex items-center space-x-3 group">
-            <div className=" bg-white/50 rounded-xl h-10 w-10 shadow-lg flex items-center justify-center group-hover:scale-110 transition duration-300">
-              <img src="/images/logo.png" alt="Logo"
-              className="w-8 h-8 scale-[2.5]" />
+          <div className="flex items-center space-x-3">
+            <div className=" h-10 w-10 flex items-center justify-center">
+              <img
+                src="/images/logo.png"
+                alt="Logo"
+                className="w-15 h-7 scale-125"
+              />
             </div>
 
             <Link
               href="/"
-              className="text-2xl font-bold text-cyan-600 tracking-wide"
+              className="text-2xl font-bold text-white tracking-wide"
             >
               {brandName}
             </Link>
@@ -62,21 +59,20 @@ const Navbar = () => {
                 href={item.path}
                 className={`relative transition duration-300 ${
                   pathname === item.path
-                    ? "text-[#178F9E]"
-                    : "hover:text-[#178F9E]"
+                    ? "text-[#46B7C3]"
+                    : "hover:text-[#46B7C3]"
                 }`}
               >
                 {item.name}
 
                 {pathname === item.path && (
-                  <span className="absolute -bottom-2 left-0 w-full h-1 bg-[#178F9E] rounded-full shadow-md"></span>
+                  <span className="absolute -bottom-2 left-0 w-full h-[2px] bg-[#46B7C3]"></span>
                 )}
               </Link>
             ))}
 
-            {/* CTA */}
             <Link href="/user/login">
-              <button className="px-6 py-2 rounded-full font-semibold text-white bg-[#178F9E] hover:bg-[#0F6F7C] transition-all duration-300 shadow-lg">
+              <button className="px-6 py-2 rounded-full font-semibold bg-[#178F9E] hover:bg-[#0F6F7C] transition-all duration-300 text-white">
                 Sign Up
               </button>
             </Link>
@@ -85,37 +81,36 @@ const Navbar = () => {
           {/* Mobile Toggle */}
           <button
             onClick={() => setOpen(!open)}
-            className="md:hidden text-[#178F9E]"
+            className="md:hidden text-white"
           >
             {open ? <X size={28} /> : <Menu size={28} />}
           </button>
         </div>
-      </div>
 
-      {/* Mobile Menu */}
-      <div
-        className={`md:hidden mt-3 backdrop-blur-2xl bg-[rgba(23,143,158,0.25)] border border-[#46B7C3]/40 rounded-2xl shadow-lg transition-all duration-500 overflow-hidden ${
-          open ? "max-h-[600px] py-6 px-6" : "max-h-0"
-        }`}
-      >
-        <div className="flex flex-col space-y-6 text-white font-medium">
-          {links.map((item, i) => (
-            <Link
-              key={i}
-              href={item.path}
-              onClick={() => setOpen(false)}
-              className="hover:text-[#178F9E] transition"
-            >
-              {item.name}
-            </Link>
-          ))}
+        {/* Mobile Menu */}
+        {open && (
+          <div className="md:hidden bg-cyan-800 border-t border-[#46B7C3]/30 px-6 py-6">
+            <div className="flex flex-col space-y-6 text-white font-medium">
+              {links.map((item, i) => (
+                <Link
+                  key={i}
+                  href={item.path}
+                  onClick={() => setOpen(false)}
+                  className="hover:text-[#46B7C3] transition"
+                >
+                  {item.name}
+                </Link>
+              ))}
 
-          <Link href="/user/login">
-            <button className="mt-4 bg-[#178F9E] hover:bg-[#0F6F7C] py-2 rounded-full text-white font-semibold transition">
-              Sign Up
-            </button>
-          </Link>
-        </div>
+              <Link href="/user/login">
+                <button className="bg-[#178F9E] hover:bg-[#0F6F7C] p-1 rounded-sm text-white font-semibold transition">
+                  Sign Up
+                </button>
+              </Link>
+            </div>
+          </div>
+        )}
+
       </div>
     </header>
   )
