@@ -6,16 +6,17 @@ import { useEffect, useState } from "react";
 export default function ClassFeeManagement() {
   
   const [msg,setMsg] = useState("");
+  const [error,setError] = useState("");
   const [classes,setClasses] = useState([]);
   const [classId,setClassId] = useState("");
 
   const [feeId,setFeeId] = useState("");
-  const [tuitionFee,setTuitionFee] = useState(0); 
-  const [admissionFee,setAdmissionFee] = useState(0);
-  const [examFee,setExamFee] = useState(0);
-  const [hostelFee,setHostelFee] = useState(0);
-  const [transportFee,setTransportFee] = useState(0);
-  const [lateFeePerDay,setLateFeePerDay] = useState(0);
+  const [tuitionFee,setTuitionFee] = useState(); 
+  const [admissionFee,setAdmissionFee] = useState();
+  const [examFee,setExamFee] = useState();
+  const [hostelFee,setHostelFee] = useState();
+  const [transportFee,setTransportFee] = useState();
+  const [lateFeePerDay,setLateFeePerDay] = useState();
 
   const [loading,setLoading] = useState(false);
   const [editing,setEditing] = useState(false);
@@ -42,7 +43,11 @@ export default function ClassFeeManagement() {
   /* FETCH CURRENT FEE */
 
   const fetchCurrentFee = async ()=>{
-    if(!classId) return;
+    if(!classId) {
+        setError("Please select a class");
+        return;
+    };
+    setError("");
 
     try{
       setLoading(true);
@@ -71,6 +76,10 @@ export default function ClassFeeManagement() {
   /* UPDATE FEE */
 
 const updateFee = async () => {
+    if(!classId) {
+        setError("Please select a class");
+        return;
+    }
   try {
 
     const payload = {
@@ -110,7 +119,7 @@ const updateFee = async () => {
 const submitChange= (e) =>{
     const id = e.target.value;
   setClassId(id);
-
+  setError("");  
   // reset fields when class changes
   setTuitionFee("");
   setAdmissionFee("");
@@ -153,6 +162,11 @@ const submitChange= (e) =>{
           ))}
 
         </select>
+        {error && (
+          <p className="text-red-600 text-sm mb-3">
+            {error}
+          </p>
+        )}
 
         <button
           onClick={fetchCurrentFee}
@@ -235,6 +249,7 @@ function Input({label,value,setValue,disabled}){
       <input
         type="number"
         value={value}
+        placeholder="Enter Amount"
         disabled={disabled}
         onChange={(e)=>setValue(e.target.value)}
         className="w-full border p-3 rounded-lg appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
