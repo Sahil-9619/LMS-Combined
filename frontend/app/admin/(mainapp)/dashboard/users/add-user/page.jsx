@@ -60,38 +60,41 @@ const AddUsers = () => {
   const onSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true); setError("");
-     setSuccess("");
-      try { 
-        if (form.roleName === "user") { 
-          if (!form.course) { 
-            setError("Please select class"); 
-            setSubmitting(false); return; 
-          } 
-          const formData = new FormData(); Object.keys(form).forEach((key) => { 
-            if (form[key]) { 
-              formData.append(key, form[key]);
-             } }); 
-             const res = await adminServices.createStudent(formData);
-             setSuccess(res?.data?.message || "Student created successfully"); 
-            } else { 
-              const payload = { name: form.name.trim(), email: form.email.trim(), password: form.password, phone: form.phone.trim(), roleName: form.roleName, }; 
-              const res = await adminServices.createUser(payload);
-              setSuccess(res?.data?.message || "User created successfully"); } 
-              setTimeout(() => { 
-                router.push("/admin/dashboard/users"); }, 800); 
-              }
-              catch (err) { setError(err?.response?.data?.message || "Something went wrong"); }
-              finally { setSubmitting(false); }
+    setSuccess("");
+    try {
+      if (form.roleName === "user") {
+        if (!form.course) {
+          setError("Please select class");
+          setSubmitting(false); return;
+        }
+        const formData = new FormData(); Object.keys(form).forEach((key) => {
+          if (form[key]) {
+            formData.append(key, form[key]);
+          }
+        });
+        const res = await adminServices.createStudent(formData);
+        setSuccess(res?.data?.message || "Student created successfully");
+      } else {
+        const payload = { name: form.name.trim(), email: form.email.trim(), password: form.password, phone: form.phone.trim(), roleName: form.roleName, };
+        const res = await adminServices.createUser(payload);
+        setSuccess(res?.data?.message || "User created successfully");
+      }
+      setTimeout(() => {
+        router.push("/admin/dashboard/users");
+      }, 800);
+    }
+    catch (err) { setError(err?.response?.data?.message || "Something went wrong"); }
+    finally { setSubmitting(false); }
   };
 
   return (
-    <div className="p-6">
-      <Card className="max-w-3xl mx-auto shadow-xl rounded-2xl">
-        <CardHeader>
-          <CardTitle className="text-2xl">Create User</CardTitle>
-        </CardHeader>
+    <div className="px-8 py-10 min-h-screen">
+      
+        <div className="border-b pb-4 mb-6">
+          <h1 className="text-2xl font-semibold text-gray-800">Create User</h1>
+        </div>
 
-        <CardContent>
+        <div className="space-y-6">
           <form onSubmit={onSubmit} className="space-y-5">
 
             {error && <div className="text-red-600 text-sm">{error}</div>}
@@ -120,7 +123,7 @@ const AddUsers = () => {
             {/* STUDENT FORM */}
             {form.roleName === "user" ? (
               <>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <Input name="firstName" placeholder="First Name" onChange={onChange} required />
                   <Input name="lastName" placeholder="Last Name" onChange={onChange} required />
                 </div>
@@ -202,13 +205,17 @@ const AddUsers = () => {
               </>
             )}
 
-            <Button type="submit" className="w-full" disabled={submitting}>
+            <Button
+              type="submit"
+              className="w-full bg-[#178F9E] hover:bg-[#0F6F7C] text-white font-medium py-3"
+              disabled={submitting}
+            >
               {submitting ? "Creating..." : "Create"}
             </Button>
 
           </form>
-        </CardContent>
-      </Card>
+        </div>
+    
     </div>
   );
 };

@@ -138,7 +138,7 @@ const submitChange= (e) =>{
         Class Fee Management
       </h1>
 
-      <div className="bg-white p-6 rounded-xl shadow-md border border-[#178F9E]/20 max-w-xl">
+      <div className="max-w-3xl">
 
         {/* CLASS SELECT */}
 
@@ -177,7 +177,7 @@ const submitChange= (e) =>{
 
         {/* FEE FIELDS */}
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
           <Input label="Tuition Fee" value={tuitionFee} setValue={setTuitionFee} disabled={!editing}/>
           <Input label="Admission Fee" value={admissionFee} setValue={setAdmissionFee} disabled={!editing}/>
@@ -190,7 +190,7 @@ const submitChange= (e) =>{
 
         {/* TOTAL FEE */}
 
-        <div className="mt-6 bg-[#F4FDFE] p-3 rounded-lg border">
+        <div className="pt-6 border-t">
 
           <p className="text-gray-500 text-sm">
             Total Fee
@@ -204,7 +204,7 @@ const submitChange= (e) =>{
 
         {/* BUTTONS */}
 
-        <div className="flex gap-3 mt-6">
+        <div className="flex gap-4 pt-6">
 
           {!editing && (
             <button
@@ -252,7 +252,7 @@ function Input({label,value,setValue,disabled}){
         placeholder="Enter Amount"
         disabled={disabled}
         onChange={(e)=>setValue(e.target.value)}
-        className="w-full border p-3 rounded-lg appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+        className="w-full border border-gray-300 focus:border-[#178F9E] focus:ring-1 focus:ring-[#178F9E] p-3 rounded-md appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
             />
           </div>
   )
