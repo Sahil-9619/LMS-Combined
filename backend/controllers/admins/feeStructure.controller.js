@@ -8,7 +8,6 @@ exports.createFeeStructure = async (req, res) => {
   try {
     const {
       classId,
-      academicYear,
       tuitionFee = 0,
       admissionFee = 0,
       examFee = 0,
@@ -18,10 +17,10 @@ exports.createFeeStructure = async (req, res) => {
       lateFeePerDay = 0,
     } = req.body;
 
-    if (!classId || !academicYear) {
+    if (!classId) {
       return res.status(400).json({
         success: false,
-        message: "Class and academic year are required",
+        message: "Class is required",
       });
     }
 
@@ -34,22 +33,21 @@ exports.createFeeStructure = async (req, res) => {
       });
     }
 
-    // ❌ Prevent duplicate for same class + academic year
+    // ❌ Prevent duplicate for same class 
     const existing = await FeeStructure.findOne({
       classId,
-      academicYear,
+     
     });
 
     if (existing) {
       return res.status(400).json({
         success: false,
-        message: "Fee structure already exists for this class and academic year",
+        message: "Fee structure already exists for this class ",
       });
     }
 
     const fee = await FeeStructure.create({
       classId,
-      academicYear,
       tuitionFee,
       admissionFee,
       examFee,
@@ -74,12 +72,12 @@ exports.createFeeStructure = async (req, res) => {
 // ================================
 exports.getAllFeeStructures = async (req, res) => {
   try {
-    const { classId, academicYear } = req.query;
+    const { classId } = req.query;
 
     let filter = {};
 
     if (classId) filter.classId = classId;
-    if (academicYear) filter.academicYear = academicYear;
+  
 
     const fees = await FeeStructure.find(filter)
       .populate("classId")  // 👈 important
