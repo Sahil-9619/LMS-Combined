@@ -57,83 +57,32 @@ const AddUsers = () => {
   };
 
   /* HANDLE SUBMIT */
- const onSubmit = async (e) => {
-  e.preventDefault();
-
-  setSubmitting(true);
-  setError("");
-  setSuccess("");
-
-  try {
-
-    /* ---------------- STUDENT ---------------- */
-
-    if (form.roleName === "user") {
-
-      if (!form.course) {
-        setError("Please select class");
-        setSubmitting(false);
-        return;
-      }
-
-      const formData = new FormData();
-
-      Object.keys(form).forEach((key) => {
-        if (form[key]) {
-          formData.append(key, form[key]);
-        }
-      });
-
-      // 1️⃣ Create Student
-      const studentRes = await adminServices.createStudent(formData);
-
-      const studentId =
-        studentRes?.student?._id ||
-        studentRes?._id;
-
-      // 2️⃣ Assign Fee
-      await adminServices.assignStudentFee({
-        studentId: studentId,
-        className: form.course
-      });
-
-      setSuccess("Student created and fee assigned successfully");
-
-    }
-
-    /* ---------------- ADMIN / INSTRUCTOR ---------------- */
-
-    else {
-
-      const payload = {
-        name: form.name.trim(),
-        email: form.email.trim(),
-        password: form.password,
-        phone: form.phone.trim(),
-        roleName: form.roleName,
-      };
-
-      await adminServices.createUser(payload);
-
-      setSuccess("User created successfully");
-    }
-
-    /* ---------------- REDIRECT ---------------- */
-
-    setTimeout(() => {
-      router.push("/admin/dashboard/users");
-    }, 800);
-
-  } catch (err) {
-
-    setError(err?.response?.data?.message || "Something went wrong");
-
-  } finally {
-
-    setSubmitting(false);
-
-  }
-};
+  const onSubmit = async (e) => {
+    e.preventDefault();
+    setSubmitting(true); setError("");
+     setSuccess("");
+      try { 
+        if (form.roleName === "user") { 
+          if (!form.course) { 
+            setError("Please select class"); 
+            setSubmitting(false); return; 
+          } 
+          const formData = new FormData(); Object.keys(form).forEach((key) => { 
+            if (form[key]) { 
+              formData.append(key, form[key]);
+             } }); 
+             const res = await adminServices.createStudent(formData);
+             setSuccess(res?.data?.message || "Student created successfully"); 
+            } else { 
+              const payload = { name: form.name.trim(), email: form.email.trim(), password: form.password, phone: form.phone.trim(), roleName: form.roleName, }; 
+              const res = await adminServices.createUser(payload);
+              setSuccess(res?.data?.message || "User created successfully"); } 
+              setTimeout(() => { 
+                router.push("/admin/dashboard/users"); }, 800); 
+              }
+              catch (err) { setError(err?.response?.data?.message || "Something went wrong"); }
+              finally { setSubmitting(false); }
+  };
 
   return (
     <div className="p-6">
