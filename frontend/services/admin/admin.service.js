@@ -105,4 +105,12 @@ export const adminServices = {
     const response = await axiosInstance.put(`/admin/fee/student`, data);
     return response.data;
   },
+
+  // Assign fee to student
+assignStudentFee: async (data) => {
+  const response = await axiosInstance.post(`/studentfee/assign`, data);
+  return response.data;
+}
 };
+
+
