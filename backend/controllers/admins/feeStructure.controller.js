@@ -102,7 +102,7 @@ exports.getSingleFeeStructure = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const fee = await FeeStructure.findById(id)
+    const fee = await FeeStructure.findOne({ classId: id })
       .populate("classId");
 
     if (!fee) {
@@ -120,7 +120,6 @@ exports.getSingleFeeStructure = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
-
 // ================================
 // UPDATE FEE STRUCTURE
 // ================================
