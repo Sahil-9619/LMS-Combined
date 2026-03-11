@@ -61,7 +61,7 @@ const menuItems = [
     ],
   },
 
-  { name: "Student Details", icon: HeartHandshake, href: "/admin/dashboard/students_details" },
+  { name: "Student Details", icon: User, href: "/admin/dashboard/students_details" },
   {
     name: "Fee Management",
     icon: Wallet,

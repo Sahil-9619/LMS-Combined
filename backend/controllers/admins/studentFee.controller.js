@@ -100,7 +100,8 @@ exports.getFeeByAdmissionNumber = async (req, res) => {
   try {
     const { admissionNumber } = req.params;
 
-    const student = await Student.findOne({ admissionNumber });
+    const student = await Student.findOne({ admissionNumber })
+    .populate("classId");
 
     if (!student) {
       return res.status(404).json({

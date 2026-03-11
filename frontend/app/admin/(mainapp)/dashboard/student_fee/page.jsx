@@ -10,7 +10,6 @@ const months = [
 
 export default function AdminFeeManagement(){
 
-
 const [admissionNo,setAdmissionNo] = useState("");
 const [student,setStudent] = useState(null);
 const [feeStructure,setFeeStructure] = useState({});
@@ -18,6 +17,7 @@ const [summary,setSummary] = useState({});
 const [monthlyFees,setMonthlyFees] = useState({});
 const [payAmount,setPayAmount] = useState("");
 
+/* ---------------- SEARCH STUDENT ---------------- */
 
 const handleSearch = async ()=>{
 
@@ -27,16 +27,22 @@ const res = await adminServices.getStudentFeeByAdmission(admissionNo);
 
 const data = res?.data || res;
 
-setStudent(data.student || {});
-setFeeStructure(data.feeStructure || {});
+/* Student */
+setStudent(data?.student || {});
+
+/* Fee Structure */
+setFeeStructure(data?.fee?.feeStructureId || {});
+
+/* Summary */
 setSummary({
-totalAssignedFee:data.totalAssignedFee,
-totalPaid:data.totalPaid,
-remainingAmount:data.remainingAmount,
-status:data.status
+totalAssignedFee:data?.fee?.totalAssignedFee || 0,
+totalPaid:data?.fee?.totalPaid || 0,
+remainingAmount:data?.fee?.remainingAmount || 0,
+status:data?.fee?.status || "due"
 });
 
-setMonthlyFees(data.monthlyFees || {});
+/* Monthly Fees */
+setMonthlyFees(data?.monthlyFees || {});
 
 }catch(err){
 console.log(err);
@@ -44,7 +50,7 @@ console.log(err);
 
 };
 
-/* ---------------- Update Fee Structure ---------------- */
+/* ---------------- UPDATE FEE STRUCTURE ---------------- */
 
 const handleChange = (field,value)=>{
 
@@ -55,7 +61,7 @@ setFeeStructure({
 
 };
 
-/* ---------------- Handle Payment ---------------- */
+/* ---------------- HANDLE PAYMENT ---------------- */
 
 const handlePayment = async ()=>{
 
@@ -63,7 +69,7 @@ try{
 
 const payload = {
 admissionNumber:admissionNo,
-payAmount
+payAmount:Number(payAmount)
 };
 
 await adminServices.updateStudentFee(payload);
@@ -127,10 +133,10 @@ Student Information
 
 <div className="grid grid-cols-4 gap-6">
 
-<Input label="Student Name" value={student.name}/>
+<Input label="Student Name" value={student.fullName}/>
 <Input label="Admission No" value={student.admissionNumber}/>
-<Input label="Class" value={student.className}/>
-<Input label="Section" value={student.section}/>
+<Input label="Class" value={student.classId?.className}/>
+<Input label="Section" value={student.classId?.section}/>
 
 </div>
 
