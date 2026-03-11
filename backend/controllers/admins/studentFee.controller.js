@@ -70,3 +70,66 @@ exports.assignFeeToStudent = async (req, res) => {
     });
   }
 };
+
+
+// ================================get fees for a student================
+exports.getFeesByStudent = async (req, res) => {
+  try {
+    const { studentId } = req.params;
+
+    const fees = await StudentFee.find({ studentId })
+      .populate("studentId")
+      .populate("feeStructureId");
+
+    return res.status(200).json({
+      success: true,
+      data: fees,
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+
+// ================================get fees for a student by admission number================
+exports.getFeeByAdmissionNumber = async (req, res) => {
+  try {
+    const { admissionNumber } = req.params;
+
+    const student = await Student.findOne({ admissionNumber });
+
+    if (!student) {
+      return res.status(404).json({
+        success: false,
+        message: "Student not found",
+      });
+    }
+
+    const fee = await StudentFee.findOne({ studentId: student._id })
+      .populate("studentId")
+      .populate("feeStructureId");
+
+    if (!fee) {
+      return res.status(404).json({
+        success: false,
+        message: "Fee not assigned to this student",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      student,
+      fee
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+};

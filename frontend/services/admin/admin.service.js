@@ -94,7 +94,7 @@ export const adminServices = {
 },
   // Get student fee by admission number
   getStudentFeeByAdmission: async (admissionNumber) => {
-    const response = await axiosInstance.get(`/admin/fee/student/${admissionNumber}`);
+    const response = await axiosInstance.get(`/studentfee/admission/${admissionNumber}`);
     return response.data;
   },
 
