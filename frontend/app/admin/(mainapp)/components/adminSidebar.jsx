@@ -31,6 +31,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
 import { logout } from "@/lib/store/features/authSlice";
+import { brandName } from "../../../contants";
 // import { logout } from "@/app/lib/store/features/authSlice"; // make sure path is correct
 
 // menuItems can contain children for collapsible menus
@@ -70,14 +71,9 @@ const menuItems = [
         href: "/admin/dashboard/fee_structure",
       },
       {
-        name: "Fee update",
-        href: "/admin/dashboard/fee_update",
-      },
-      {
-        name: "Fee details",
-        href: "/admin/dashboard/fee_details",
-      },
-      
+        name: "Student Fee",
+        href: "/admin/dashboard/student_fee",
+      },      
     ],
   },
 
@@ -141,11 +137,11 @@ export default function AdminSidebar() {
 
         {/* Logo */}
         <h1
-          className={`text-xl font-bold mb-8 text-center transition-all ${
+          className={`text-l font-bold mb-8 text-center transition-all ${
             !open && "scale-0"
           }`}
         >
-          {settings?.platformName} ADMIN
+          {brandName} ADMIN
         </h1>
 
         {/* Menu Items */}
