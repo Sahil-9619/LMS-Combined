@@ -5,6 +5,7 @@ const feeController = require("../../controllers/admins/feeStructure.controller"
 // Admin Routes
 router.post("/", feeController.createFeeStructure);
 router.get("/", feeController.getAllFeeStructures);
+router.get("/:id", feeController.getSingleFeeStructure);
 router.put("/:id", feeController.updateFeeStructure);
 router.delete("/:id", feeController.deleteFeeStructure);
 
