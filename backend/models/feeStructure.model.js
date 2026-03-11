@@ -15,10 +15,7 @@ const feeStructureSchema = new mongoose.Schema(
       required: true,
     },
 
-    academicYear: {
-      type: String,
-      required: true,
-    },
+   
 
     tuitionFee: { type: Number, default: 0 },
     admissionFee: { type: Number, default: 0 },
