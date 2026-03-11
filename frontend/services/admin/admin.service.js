@@ -102,7 +102,7 @@ export const adminServices = {
 
   // Update student fee payment
   updateStudentFee: async (data) => {
-    const response = await axiosInstance.put(`/admin/fee/student`, data);
+    const response = await axiosInstance.put(`/studentfee/payment`, data);
     return response.data;
   },
 

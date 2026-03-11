@@ -134,3 +134,80 @@ exports.getFeeByAdmissionNumber = async (req, res) => {
     });
   }
 };
+
+// ================================ update student fee (handle payment) =================
+
+exports.updateStudentFee = async (req, res) => {
+  try {
+
+    const { admissionNumber, payAmount } = req.body;
+
+    if (!admissionNumber || !payAmount) {
+      return res.status(400).json({
+        success: false,
+        message: "Admission number and payment amount required",
+      });
+    }
+
+    // 1️⃣ Find student
+    const student = await Student.findOne({ admissionNumber });
+
+    if (!student) {
+      return res.status(404).json({
+        success: false,
+        message: "Student not found",
+      });
+    }
+
+    // 2️⃣ Find student fee
+    const studentFee = await StudentFee.findOne({ studentId: student._id });
+
+    if (!studentFee) {
+      return res.status(404).json({
+        success: false,
+        message: "Fee record not found",
+      });
+    }
+
+    const payment = Number(payAmount);
+
+    // 3️⃣ Update payment
+    studentFee.totalPaid += payment;
+
+    // 4️⃣ Calculate remaining
+    studentFee.remainingAmount =
+      studentFee.totalAssignedFee - studentFee.totalPaid;
+
+    // 5️⃣ Update status
+    if (studentFee.remainingAmount <= 0) {
+
+      studentFee.status = "paid";
+      studentFee.remainingAmount = 0;
+
+    } else if (studentFee.totalPaid > 0) {
+
+      studentFee.status = "partial";
+
+    } else {
+
+      studentFee.status = "due";
+
+    }
+
+    await studentFee.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Payment updated successfully",
+      data: studentFee,
+    });
+
+  } catch (error) {
+
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+
+  }
+};
