@@ -127,8 +127,8 @@ exports.updateFeeStructure = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const updated = await FeeStructure.findByIdAndUpdate(
-      id,
+    const updated = await FeeStructure.findOneAndUpdate(
+      { classId: id },
       req.body,
       { new: true, runValidators: true }
     );
