@@ -4,12 +4,13 @@ import { adminServices } from "@/services/admin/admin.service";
 import { useEffect, useState } from "react";
 
 export default function ClassFeeManagement() {
-
+  
+  const [msg,setMsg] = useState("");
   const [classes,setClasses] = useState([]);
   const [classId,setClassId] = useState("");
 
   const [feeId,setFeeId] = useState("");
-  const [tuitionFee,setTuitionFee] = useState(0);
+  const [tuitionFee,setTuitionFee] = useState(0); 
   const [admissionFee,setAdmissionFee] = useState(0);
   const [examFee,setExamFee] = useState(0);
   const [hostelFee,setHostelFee] = useState(0);
@@ -21,6 +22,11 @@ export default function ClassFeeManagement() {
 
   useEffect(()=>{
     fetchClasses();
+    const clearMessage = () => setMsg("");
+
+  window.addEventListener("click", clearMessage);
+
+  return () => window.removeEventListener("click", clearMessage);
   },[])
 
   const fetchClasses = async()=>{
@@ -93,14 +99,27 @@ const updateFee = async () => {
       }
 
     }
-
-    alert("Fee saved successfully");
+    setMsg("Fee saved successfully!");
     setEditing(false);
 
   } catch (err) {
     console.log(err);
   }
 };
+
+const submitChange= (e) =>{
+    const id = e.target.value;
+  setClassId(id);
+
+  // reset fields when class changes
+  setTuitionFee("");
+  setAdmissionFee("");
+  setExamFee("");
+  setHostelFee("");
+  setTransportFee("");
+  setLateFeePerDay("");
+  setEditing(false);
+}
 
   return (
 
@@ -120,12 +139,14 @@ const updateFee = async () => {
 
         <select
           value={classId}
-          onChange={(e)=>setClassId(e.target.value)}
+          onChange={submitChange}
           className="w-full border rounded-lg p-3 mb-4"
         >
           <option value="">Select Class</option>
 
-          {classes.map((cls)=>(
+          {classes
+          .sort((a,b)=>Number(a.className) - Number(b.className))       
+          .map((cls)=>(
             <option key={cls._id} value={cls._id}>
               Class {cls.className}
             </option>
@@ -188,9 +209,13 @@ const updateFee = async () => {
               Update Fee
             </button>
           )}
-
+        
         </div>
-
+        {msg && (
+          <p id="msg" className="text-green-600 text-center mt-4 font-semibold">
+            {msg}
+          </p>
+        )}
       </div>
 
     </div>
@@ -212,8 +237,8 @@ function Input({label,value,setValue,disabled}){
         value={value}
         disabled={disabled}
         onChange={(e)=>setValue(e.target.value)}
-        className="w-full border p-3 rounded-lg"
-      />
-    </div>
+        className="w-full border p-3 rounded-lg appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+            />
+          </div>
   )
 }
