@@ -1,6 +1,8 @@
 const mongoose = require("mongoose");
 const Student = require("../../models/student.model");
 const Class = require("../../models/class.model");
+const StudentFee = require("../../models/studentFee.model");
+const FeeStructure = require("../../models/feeStructure.model");
 
 // =====================================
 // AUTO GENERATE ADMISSION NUMBER
@@ -82,6 +84,22 @@ exports.createStudent = async (req, res) => {
       email,
       profileImage: req.file?.filename,
     });
+    // ========================
+// AUTO ASSIGN FEE
+// ========================
+const feeStructure = await FeeStructure.findOne({
+  classId: classData._id,
+  status: "active",
+});
+
+if (feeStructure) {
+  await StudentFee.create({
+    studentId: student._id,
+    feeStructureId: feeStructure._id,
+    totalAssignedFee: feeStructure.totalFee,
+    remainingAmount: feeStructure.totalFee,
+  });
+}
 
     res.status(201).json({
       success: true,
