@@ -64,26 +64,43 @@ export default function ClassFeeManagement() {
 
   /* UPDATE FEE */
 
-  const updateFee = async()=>{
-    try{
+const updateFee = async () => {
+  try {
 
-      await adminServices.updateClassFee(classId,{
-        tuitionFee,
-        admissionFee,
-        examFee,
-        hostelFee,
-        transportFee,
-        lateFeePerDay
-      });
+    const payload = {
+      classId,
+      tuitionFee,
+      admissionFee,
+      examFee,
+      hostelFee,
+      transportFee,
+      lateFeePerDay
+    };
 
-      alert("Fee updated successfully");
+    try {
+      // Try updating first
+      await adminServices.updateClassFee(classId, payload);
 
-      setEditing(false);
+    } catch (err) {
 
-    }catch(err){
-      console.log(err);
+      // If not found then create
+      if (err?.response?.data?.message === "Fee structure not found") {
+
+        await adminServices.createFeeStructure(payload);
+
+      } else {
+        throw err;
+      }
+
     }
+
+    alert("Fee saved successfully");
+    setEditing(false);
+
+  } catch (err) {
+    console.log(err);
   }
+};
 
   return (
 
