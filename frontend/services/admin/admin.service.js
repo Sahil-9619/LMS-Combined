@@ -89,7 +89,7 @@ export const adminServices = {
     return response.data;
   },
   createFeeStructure: async (data) => {
-  const response = await axiosInstance.post(`/api/feestructure`, data);
+  const response = await axiosInstance.post(`/feestructure`, data);
   return response.data;
 },
   // Get student fee by admission number
