@@ -149,3 +149,12 @@
 .input {
   @apply w-full px-4 py-3 border-b-2 border-[#178F9E]/30 bg-transparent outline-none focus:border-[#0F6F7C] transition;
 }
+/* Hide scrollbar but keep scroll */
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.hide-scrollbar {
+  -ms-overflow-style: none;  /* IE & Edge */
+  scrollbar-width: none;     /* Firefox */
+}

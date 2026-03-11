@@ -75,4 +75,29 @@ export const adminServices = {
     return response.data;
   },
 
+    // ================= FEE MODULE =================
+
+  // Get class fee by class name
+  getClassFeeByClass: async (classId) => {
+    const response = await axiosInstance.get(`/feestructure/${classId}`);
+    return response.data;
+  },
+
+  // Update class fee
+  updateClassFee: async (classId, data) => {
+    const response = await axiosInstance.put(`/feestructure/${classId}`, data);
+    return response.data;
+  },
+
+  // Get student fee by admission number
+  getStudentFeeByAdmission: async (admissionNumber) => {
+    const response = await axiosInstance.get(`/admin/fee/student/${admissionNumber}`);
+    return response.data;
+  },
+
+  // Update student fee payment
+  updateStudentFee: async (data) => {
+    const response = await axiosInstance.put(`/admin/fee/student`, data);
+    return response.data;
+  },
 };

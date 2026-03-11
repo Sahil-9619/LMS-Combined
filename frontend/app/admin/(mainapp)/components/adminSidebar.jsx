@@ -24,6 +24,8 @@ import {
  HeartHandshake,
   User,
   Settings,
+  Wallet,
+  Wallet2,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -59,6 +61,26 @@ const menuItems = [
   },
 
   { name: "Student Details", icon: HeartHandshake, href: "/admin/dashboard/students_details" },
+  {
+    name: "Fee Management",
+    icon: Wallet,
+    children: [
+      {
+        name: "Fee structure",
+        href: "/admin/dashboard/fee_structure",
+      },
+      {
+        name: "Fee update",
+        href: "/admin/dashboard/fee_update",
+      },
+      {
+        name: "Fee details",
+        href: "/admin/dashboard/fee_details",
+      },
+      
+    ],
+  },
+
   { name: "Support", icon: HeartHandshake, href: "/admin/dashboard/support" },
   { name: "Categories", icon: Coins, href: "/admin/dashboard/categories" },
   { name: "Settings", icon: Settings, href: "/admin/dashboard/settings" },
@@ -103,16 +125,16 @@ export default function AdminSidebar() {
   };
 
   return (
-    <aside className="flex h-full  text-gray-100">
+    <aside className="flex h-screen  text-gray-100">
       <div
         className={`${
-          open ? "w-64" : "w-20"
-        } bg-cyan-900 p-4 pt-6 relative duration-300`}
+          open ? "w-70" : "w-20"
+        } bg-cyan-900 p-4 pt-6 relative duration-300 hide-scrollbar overflow-y-auto h-full`}
       >
         {/* Toggle Sidebar */}
         <button
           onClick={() => setOpen(!open)}
-          className="absolute -right-3 top-8 w-7 h-7 bg-gray-800 border border-gray-700 rounded-full flex items-center justify-center"
+          className="absolute right-2 top-8 w-7 h-7 bg-gray-800 border border-gray-700 rounded-full flex items-center justify-center"
         >
           {open ? <X size={16} /> : <Menu size={16} />}
         </button>
@@ -127,7 +149,7 @@ export default function AdminSidebar() {
         </h1>
 
         {/* Menu Items */}
-        <ul className="space-y-2 text-xl">
+        <ul className="space-y-2 text-xl overflow-y-auto">
           {menuItems.map((item, idx) => (
             <li key={idx}>
               {item.isLogout ? (
