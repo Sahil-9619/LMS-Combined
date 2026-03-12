@@ -2,6 +2,10 @@ const StudentFee = require("../../models/studentFee.model");
 const Student = require("../../models/student.model");
 const FeeStructure = require("../../models/feeStructure.model");
 
+
+// ================================
+// ASSIGN FEE TO STUDENT
+// ================================
 exports.assignFeeToStudent = async (req, res) => {
   try {
     const { studentId } = req.body;
@@ -13,8 +17,8 @@ exports.assignFeeToStudent = async (req, res) => {
       });
     }
 
-    // 1️⃣ Check student
     const student = await Student.findById(studentId);
+
     if (!student) {
       return res.status(404).json({
         success: false,
@@ -22,10 +26,8 @@ exports.assignFeeToStudent = async (req, res) => {
       });
     }
 
-    // 2️⃣ Find active FeeStructure for class
     const feeStructure = await FeeStructure.findOne({
       classId: student.classId,
-      academicYear: student.academicYear,
       status: "active",
     });
 
@@ -36,7 +38,6 @@ exports.assignFeeToStudent = async (req, res) => {
       });
     }
 
-    // 3️⃣ Check duplicate
     const alreadyAssigned = await StudentFee.findOne({
       studentId: student._id,
       feeStructureId: feeStructure._id,
@@ -49,12 +50,12 @@ exports.assignFeeToStudent = async (req, res) => {
       });
     }
 
-    // 4️⃣ Create StudentFee
     const studentFee = await StudentFee.create({
       studentId: student._id,
       feeStructureId: feeStructure._id,
       totalAssignedFee: feeStructure.totalFee,
       remainingAmount: feeStructure.totalFee,
+      totalPaid: 0,
     });
 
     return res.status(201).json({
@@ -64,17 +65,23 @@ exports.assignFeeToStudent = async (req, res) => {
     });
 
   } catch (error) {
+
     return res.status(500).json({
       success: false,
       message: error.message,
     });
+
   }
 };
 
 
-// ================================get fees for a student================
+
+// ================================
+// GET FEES BY STUDENT ID
+// ================================
 exports.getFeesByStudent = async (req, res) => {
   try {
+
     const { studentId } = req.params;
 
     const fees = await StudentFee.find({ studentId })
@@ -87,21 +94,27 @@ exports.getFeesByStudent = async (req, res) => {
     });
 
   } catch (error) {
+
     return res.status(500).json({
       success: false,
       message: error.message,
     });
+
   }
 };
 
 
-// ================================get fees for a student by admission number================
+
+// ================================
+// GET FEES BY ADMISSION NUMBER
+// ================================
 exports.getFeeByAdmissionNumber = async (req, res) => {
   try {
+
     const { admissionNumber } = req.params;
 
     const student = await Student.findOne({ admissionNumber })
-    .populate("classId");
+      .populate("classId");
 
     if (!student) {
       return res.status(404).json({
@@ -110,7 +123,7 @@ exports.getFeeByAdmissionNumber = async (req, res) => {
       });
     }
 
-    const fee = await StudentFee.findOne({ studentId: student._id })
+    let fee = await StudentFee.findOne({ studentId: student._id })
       .populate("studentId")
       .populate("feeStructureId");
 
@@ -121,6 +134,18 @@ exports.getFeeByAdmissionNumber = async (req, res) => {
       });
     }
 
+    // 🔥 auto sync total fee
+    const latestTotalFee = fee.feeStructureId.totalFee;
+
+    if (fee.totalAssignedFee !== latestTotalFee) {
+
+      fee.totalAssignedFee = latestTotalFee;
+      fee.remainingAmount = latestTotalFee - fee.totalPaid;
+
+      await fee.save();
+
+    }
+
     res.status(200).json({
       success: true,
       student,
@@ -128,15 +153,18 @@ exports.getFeeByAdmissionNumber = async (req, res) => {
     });
 
   } catch (error) {
+
     res.status(500).json({
       success: false,
       message: error.message
     });
+
   }
 };
 
-// ================================ update student fee (handle payment) =================
-
+// ================================
+// UPDATE STUDENT FEE (PAYMENT)
+// ================================
 exports.updateStudentFee = async (req, res) => {
   try {
 
@@ -149,7 +177,6 @@ exports.updateStudentFee = async (req, res) => {
       });
     }
 
-    // 1️⃣ Find student
     const student = await Student.findOne({ admissionNumber });
 
     if (!student) {
@@ -159,7 +186,6 @@ exports.updateStudentFee = async (req, res) => {
       });
     }
 
-    // 2️⃣ Find student fee
     const studentFee = await StudentFee.findOne({ studentId: student._id });
 
     if (!studentFee) {
@@ -169,16 +195,26 @@ exports.updateStudentFee = async (req, res) => {
       });
     }
 
+    // 🔥 Get latest FeeStructure
+    const feeStructure = await FeeStructure.findById(studentFee.feeStructureId);
+
+    if (!feeStructure) {
+      return res.status(404).json({
+        success: false,
+        message: "Fee structure missing",
+      });
+    }
+
+    // Sync latest total fee
+    studentFee.totalAssignedFee = feeStructure.totalFee;
+
     const payment = Number(payAmount);
 
-    // 3️⃣ Update payment
     studentFee.totalPaid += payment;
 
-    // 4️⃣ Calculate remaining
     studentFee.remainingAmount =
       studentFee.totalAssignedFee - studentFee.totalPaid;
 
-    // 5️⃣ Update status
     if (studentFee.remainingAmount <= 0) {
 
       studentFee.status = "paid";
