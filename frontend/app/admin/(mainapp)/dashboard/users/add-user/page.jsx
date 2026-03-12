@@ -13,6 +13,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogAction,
+} from "@/components/ui/alert-dialog";
 
 const AddUsers = () => {
   const router = useRouter();
@@ -41,6 +50,7 @@ const AddUsers = () => {
     photo: null,
   });
 
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -79,9 +89,7 @@ const AddUsers = () => {
         const res = await adminServices.createUser(payload);
         setSuccess(res?.data?.message || "User created successfully");
       }
-      setTimeout(() => {
-        router.push("/admin/dashboard/users");
-      }, 800);
+      setShowSuccessDialog(true);
     }
     catch (err) { setError(err?.response?.data?.message || "Something went wrong"); }
     finally { setSubmitting(false); }
@@ -89,133 +97,160 @@ const AddUsers = () => {
 
   return (
     <div className="px-8 py-10 min-h-screen">
-      
-        <div className="border-b pb-4 mb-6">
-          <h1 className="text-2xl font-semibold text-gray-800">Create User</h1>
-        </div>
 
-        <div className="space-y-6">
-          <form onSubmit={onSubmit} className="space-y-5">
+      <div className="border-b pb-4 mb-6">
+        <h1 className="text-2xl font-semibold text-gray-800">Create User</h1>
+      </div>
 
-            {error && <div className="text-red-600 text-sm">{error}</div>}
-            {success && <div className="text-green-600 text-sm">{success}</div>}
+      <div className="space-y-6">
+        <form onSubmit={onSubmit} className="space-y-5">
 
-            {/* ROLE */}
-            <div>
-              <label className="block mb-1 text-sm font-medium">Role</label>
-              <Select
-                value={form.roleName}
-                onValueChange={(value) =>
-                  setForm((prev) => ({ ...prev, roleName: value }))
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select Role" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="user">Student</SelectItem>
-                  <SelectItem value="instructor">Instructor</SelectItem>
-                  <SelectItem value="admin">Admin</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+          {error && <div className="text-red-600 text-sm">{error}</div>}
+          {success && <div className="text-green-600 text-sm">{success}</div>}
 
-            {/* STUDENT FORM */}
-            {form.roleName === "user" ? (
-              <>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <Input name="firstName" placeholder="First Name" onChange={onChange} required />
-                  <Input name="lastName" placeholder="Last Name" onChange={onChange} required />
-                </div>
+          {/* ROLE */}
+          <div>
+            <label className="block mb-1 text-sm font-medium">Role</label>
+            <Select
+              value={form.roleName}
+              onValueChange={(value) =>
+                setForm((prev) => ({ ...prev, roleName: value }))
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select Role" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="user">Student</SelectItem>
+                <SelectItem value="instructor">Instructor</SelectItem>
+                <SelectItem value="admin">Admin</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <Input name="fatherName" placeholder="Father Name" onChange={onChange} />
-                  <Input name="motherName" placeholder="Mother Name" onChange={onChange} />
-                </div>
+          {/* STUDENT FORM */}
+          {form.roleName === "user" ? (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Input name="firstName" placeholder="First Name" onChange={onChange} required />
+                <Input name="lastName" placeholder="Last Name" onChange={onChange} required />
+              </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <Input name="phone" placeholder="Student Phone" onChange={onChange} />
-                  <Input name="parentPhone" placeholder="Parent Phone" onChange={onChange} />
-                </div>
+              <div className="grid grid-cols-2 gap-4">
+                <Input name="fatherName" placeholder="Father Name" onChange={onChange} />
+                <Input name="motherName" placeholder="Mother Name" onChange={onChange} />
+              </div>
 
-                <Input type="email" name="email" placeholder="Email" onChange={onChange} />
+              <div className="grid grid-cols-2 gap-4">
+                <Input name="phone" placeholder="Student Phone" onChange={onChange} />
+                <Input name="parentPhone" placeholder="Parent Phone" onChange={onChange} />
+              </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <Input type="date" name="dateOfBirth" onChange={onChange} />
+              <Input type="email" name="email" placeholder="Email" onChange={onChange} />
 
-                  <Select
-                    value={form.gender}
-                    onValueChange={(value) =>
-                      setForm((prev) => ({ ...prev, gender: value }))
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select Gender" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="male">Male</SelectItem>
-                      <SelectItem value="female">Female</SelectItem>
-                      <SelectItem value="other">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <Input name="address" placeholder="Address" onChange={onChange} />
+              <div className="grid grid-cols-2 gap-4">
+                <Input type="date" name="dateOfBirth" onChange={onChange} />
 
                 <Select
-                  value={form.category}
+                  value={form.gender}
                   onValueChange={(value) =>
-                    setForm((prev) => ({ ...prev, category: value }))
+                    setForm((prev) => ({ ...prev, gender: value }))
                   }
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select Category" />
+                    <SelectValue placeholder="Select Gender" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="general">General</SelectItem>
-                    <SelectItem value="obc">OBC</SelectItem>
-                    <SelectItem value="sc">SC</SelectItem>
-                    <SelectItem value="st">ST</SelectItem>
+                    <SelectItem value="male">Male</SelectItem>
+                    <SelectItem value="female">Female</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
 
-                {/* STATIC CLASS SELECT */}
-                <select
-                  name="course"
-                  value={form.course}
-                  onChange={onChange}
-                  className="input"
-                >
-                  <option value="">Select Class</option>
-                  <option value="6">Class 6</option>
-                  <option value="7">Class 7</option>
-                  <option value="8">Class 8</option>
-                  <option value="9">Class 9</option>
-                  <option value="10">Class 10</option>
-                </select>
+              <Input name="address" placeholder="Address" onChange={onChange} />
 
-                <Input type="file" name="photo" onChange={onChange} />
-              </>
-            ) : (
-              <>
-                <Input name="name" placeholder="Full Name" onChange={onChange} required />
-                <Input type="email" name="email" placeholder="Email" onChange={onChange} required />
-                <Input type="password" name="password" placeholder="Password" onChange={onChange} required />
-                <Input name="phone" placeholder="Phone" onChange={onChange} />
-              </>
-            )}
+              <Select
+                value={form.category}
+                onValueChange={(value) =>
+                  setForm((prev) => ({ ...prev, category: value }))
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select Category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="general">General</SelectItem>
+                  <SelectItem value="obc">OBC</SelectItem>
+                  <SelectItem value="sc">SC</SelectItem>
+                  <SelectItem value="st">ST</SelectItem>
+                </SelectContent>
+              </Select>
 
-            <Button
-              type="submit"
-              className="w-full bg-[#178F9E] hover:bg-[#0F6F7C] text-white font-medium py-3"
-              disabled={submitting}
-            >
-              {submitting ? "Creating..." : "Create"}
-            </Button>
+              {/* STATIC CLASS SELECT */}
+              <select
+                name="course"
+                value={form.course}
+                onChange={onChange}
+                className="input"
+              >
+                <option value="">Select Class</option>
+                <option value="6">Class 6</option>
+                <option value="7">Class 7</option>
+                <option value="8">Class 8</option>
+                <option value="9">Class 9</option>
+                <option value="10">Class 10</option>
+              </select>
 
-          </form>
-        </div>
-    
+              <Input type="file" name="photo" onChange={onChange} />
+            </>
+          ) : (
+            <>
+              <Input name="name" placeholder="Full Name" onChange={onChange} required />
+              <Input type="email" name="email" placeholder="Email" onChange={onChange} required />
+              <Input type="password" name="password" placeholder="Password" onChange={onChange} required />
+              <Input name="phone" placeholder="Phone" onChange={onChange} />
+            </>
+          )}
+
+          <Button
+            type="submit"
+            className="w-full bg-[#178F9E] hover:bg-[#0F6F7C] text-white font-medium py-3"
+            disabled={submitting}
+          >
+            {submitting ? "Creating..." : "Create"}
+          </Button>
+
+        </form>
+        <AlertDialog open={showSuccessDialog}>
+          <AlertDialogContent>
+
+            <AlertDialogHeader>
+              <AlertDialogTitle>
+                Success
+              </AlertDialogTitle>
+
+              <AlertDialogDescription>
+                {success || "User created successfully"}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+
+            <AlertDialogFooter>
+              <AlertDialogAction
+                className="bg-[#178F9E] hover:bg-[#0F6F7C]"
+                onClick={() => {
+                  setShowSuccessDialog(false);
+                  router.push("/admin/dashboard/users");
+                }}
+              >
+                OK
+              </AlertDialogAction>
+            </AlertDialogFooter>
+
+          </AlertDialogContent>
+        </AlertDialog>
+      </div>
+
     </div>
   );
 };

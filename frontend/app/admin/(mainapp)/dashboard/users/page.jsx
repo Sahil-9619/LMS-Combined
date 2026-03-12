@@ -29,6 +29,17 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  AlertDialog,
+  AlertDialogTrigger,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from "@/components/ui/alert-dialog";
 import { getMediaUrl } from "@/app/utils/getAssetsUrl";
 import { adminServices } from "@/services/admin/admin.service";
 
@@ -42,13 +53,13 @@ const AllUsers = () => {
 
   // 🔥 AUTO SEARCH WITH DEBOUNCE
   useEffect(() => {
-  const delay = setTimeout(() => {
-    dispatch(setUserFilters({ search: localSearch }));
-    dispatch(setUserPagination({ page: 1 }));
-  }, 10); // 10ms delay
+    const delay = setTimeout(() => {
+      dispatch(setUserFilters({ search: localSearch }));
+      dispatch(setUserPagination({ page: 1 }));
+    }, 10); // 10ms delay
 
-  return () => clearTimeout(delay);
-}, [localSearch, dispatch]);
+    return () => clearTimeout(delay);
+  }, [localSearch, dispatch]);
 
   // fetch whenever filters/pagination change
   useEffect(() => {
@@ -90,10 +101,7 @@ const AllUsers = () => {
   };
 
   const handleDelete = async (id) => {
-    const ok = window.confirm(
-      "Delete this user? This action cannot be undone."
-    );
-    if (!ok) return;
+
     try {
       await adminServices.deleteUser(id);
       // refetch same page with current filters
@@ -236,10 +244,10 @@ const AllUsers = () => {
                   )}
                 </TableCell>
                 <TableCell className="text-right space-x-2">
-                  <Button 
-                  onClick={() =>
-                    router.push(`/admin/dashboard/users/view/${u._id}`)}>
-                      View
+                  <Button
+                    onClick={() =>
+                      router.push(`/admin/dashboard/users/view/${u._id}`)}>
+                    View
                   </Button>
                   {/* <Button variant="secondary" asChild>
                     <Link
@@ -248,12 +256,46 @@ const AllUsers = () => {
                       Edit
                     </Link>
                   </Button> */}
-                  <Button
-                    variant="destructive"
-                    onClick={() => handleDelete(u._id)}
-                  >
-                    Delete
-                  </Button>
+                  <AlertDialog>
+
+                    <AlertDialogTrigger asChild>
+                      <Button variant="destructive">
+                        Delete
+                      </Button>
+                    </AlertDialogTrigger>
+
+                    <AlertDialogContent>
+
+                      <AlertDialogHeader>
+
+                        <AlertDialogTitle>
+                          Delete User
+                        </AlertDialogTitle>
+
+                        <AlertDialogDescription>
+                          Are you sure you want to delete this user? This action cannot be undone.
+                        </AlertDialogDescription>
+
+                      </AlertDialogHeader>
+
+                      <AlertDialogFooter>
+
+                        <AlertDialogCancel>
+                          Cancel
+                        </AlertDialogCancel>
+
+                        <AlertDialogAction
+                          className="bg-red-600 hover:bg-red-700"
+                          onClick={() => handleDelete(u._id)}
+                        >
+                          Delete
+                        </AlertDialogAction>
+
+                      </AlertDialogFooter>
+
+                    </AlertDialogContent>
+
+                  </AlertDialog>
                 </TableCell>
               </TableRow>
             ))}
