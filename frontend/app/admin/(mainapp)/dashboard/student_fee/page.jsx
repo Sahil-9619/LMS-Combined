@@ -38,7 +38,7 @@ export default function AdminFeeManagement() {
   examFee: data?.fee?.examFee,
   hostelFee: data?.fee?.hostelFee,
   transportFee: data?.fee?.transportFee,
-  lateFeePerDay: data?.fee?.feeStructureId?.lateFeePerDay
+  lateFeePerDay: data?.fee?.lateFeePerDay
 });
 
       /* Summary */
