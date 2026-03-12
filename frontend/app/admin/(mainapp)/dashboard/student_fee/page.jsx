@@ -4,381 +4,404 @@ import { useState } from "react";
 import { adminServices } from "@/services/admin/admin.service";
 
 const months = [
-  "January","February","March","April","May","June",
-  "July","August","September","October","November","December"
+  "April", "May", "June",
+  "July", "August", "September", "October", "November", "December", "January", "February", "March"
 ];
 
-export default function AdminFeeManagement(){
+export default function AdminFeeManagement() {
 
-const [admissionNo,setAdmissionNo] = useState("");
-const [student,setStudent] = useState(null);
-const [feeStructure,setFeeStructure] = useState({});
-const [summary,setSummary] = useState({});
-const [monthlyFees,setMonthlyFees] = useState({});
-const [payAmount,setPayAmount] = useState("");
+  const [admissionNo, setAdmissionNo] = useState("");
+  const [student, setStudent] = useState(null);
+  const [feeStructure, setFeeStructure] = useState({});
+  const [summary, setSummary] = useState({});
+  const [monthlyFees, setMonthlyFees] = useState({});
+  const [payAmount, setPayAmount] = useState("");
 
-/* ---------------- SEARCH STUDENT ---------------- */
+  /* ---------------- SEARCH STUDENT ---------------- */
 
-const handleSearch = async ()=>{
+  const handleSearch = async () => {
 
-try{
+    try {
 
-const res = await adminServices.getStudentFeeByAdmission(admissionNo);
+      const res = await adminServices.getStudentFeeByAdmission(admissionNo);
 
-const data = res?.data || res;
+      const data = res?.data || res;
 
-/* Student */
-setStudent(data?.student || {});
+      /* Student */
+      setStudent(data?.student || {});
 
-/* Fee Structure */
-setFeeStructure(data?.fee?.feeStructureId || {});
+      /* Fee Structure */
+      setFeeStructure(data?.fee?.feeStructureId || {});
 
-/* Summary */
-setSummary({
-totalAssignedFee:data?.fee?.totalAssignedFee || 0,
-totalPaid:data?.fee?.totalPaid || 0,
-remainingAmount:data?.fee?.remainingAmount || 0,
-status:data?.fee?.status || "due"
-});
+      /* Summary */
+      setSummary({
+        totalAssignedFee: data?.fee?.totalAssignedFee || 0,
+        totalPaid: data?.fee?.totalPaid || 0,
+        remainingAmount: data?.fee?.remainingAmount || 0,
+        status: data?.fee?.status || "due"
+      });
 
-/* Monthly Fees */
-setMonthlyFees(data?.monthlyFees || {});
+      /* Monthly Fees */
+      setMonthlyFees(data?.monthlyFees || {});
 
-}catch(err){
-console.log(err);
-}
+    } catch (err) {
+      console.log(err);
+    }
 
-};
+  };
 
-/* ---------------- UPDATE FEE STRUCTURE ---------------- */
+  /* ---------------- UPDATE FEE STRUCTURE ---------------- */
 
-const handleChange = (field,value)=>{
+  const handleChange = (field, value) => {
 
-setFeeStructure({
-...feeStructure,
-[field]:value
-});
+    setFeeStructure({
+      ...feeStructure,
+      [field]: value
+    });
 
-};
+  };
 
-/* ---------------- HANDLE PAYMENT ---------------- */
+  /* ---------------- HANDLE PAYMENT ---------------- */
 
-const handlePayment = async ()=>{
+  const handlePayment = async () => {
 
-try{
+    try {
 
-const payload = {
-admissionNumber:admissionNo,
-payAmount:Number(payAmount)
-};
+      const payload = {
+        admissionNumber: admissionNo,
+        payAmount: Number(payAmount)
+      };
 
-await adminServices.updateStudentFee(payload);
+      await adminServices.updateStudentFee(payload);
 
-handleSearch();
+      handleSearch();
 
-setPayAmount("");
+      setPayAmount("");
 
-}catch(err){
-console.log(err);
-}
+    } catch (err) {
+      console.log(err);
+    }
 
-};
+  };
+  const monthlyFee = summary.totalAssignedFee
+    ? summary.totalAssignedFee / 12
+    : 0;
 
-return(
+  const getMonthStatus = (index) => {
 
-<div className="p-10 bg-[#F4FDFE] min-h-screen space-y-12">
+    const paidAmount = summary.totalPaid || 0;
 
-{/* ---------------- Search ---------------- */}
+    const fullyPaidMonths = Math.floor(paidAmount / monthlyFee);
 
-<section>
+    const partialAmount = paidAmount % monthlyFee;
 
-<h2 className="text-xl font-bold text-[#0F6F7C] mb-4">
-Search Student
-</h2>
+    if (index < fullyPaidMonths) return "full";
 
-<div className="flex gap-4">
+    if (index === fullyPaidMonths && partialAmount > 0) return "partial";
 
-<input
-type="text"
-placeholder="Enter Admission Number"
-value={admissionNo}
-onChange={(e)=>setAdmissionNo(e.target.value)}
-className="border rounded-lg p-3 w-72"
-/>
+    return "none";
 
-<button
-onClick={handleSearch}
-className="bg-[#178F9E] text-white px-6 rounded-lg"
->
-Search
-</button>
+  };
 
-</div>
+  return (
 
-</section>
+    <div className="p-10 bg-[#F4FDFE] min-h-screen space-y-12">
 
-{/* Show sections only if student loaded */}
+      {/* ---------------- Search ---------------- */}
 
-{student && (
+      <section>
 
-<>
+        <h2 className="text-xl font-bold text-[#0F6F7C] mb-4">
+          Search Student
+        </h2>
 
-{/* ---------------- Student Details ---------------- */}
+        <div className="flex gap-4">
 
-<section>
+          <input
+            type="text"
+            placeholder="Enter Admission Number"
+            value={admissionNo}
+            onChange={(e) => setAdmissionNo(e.target.value)}
+            className="border rounded-lg p-3 w-72"
+          />
 
-<h2 className="text-xl font-bold text-[#0F6F7C] mb-6">
-Student Information
-</h2>
+          <button
+            onClick={handleSearch}
+            className="bg-[#178F9E] text-white px-6 rounded-lg"
+          >
+            Search
+          </button>
 
-<div className="grid grid-cols-4 gap-6">
+        </div>
 
-<Input label="Student Name" value={student.fullName}/>
-<Input label="Admission No" value={student.admissionNumber}/>
-<Input label="Class" value={student.classId?.className}/>
-<Input label="Section" value={student.classId?.section}/>
+      </section>
 
-</div>
+      {/* Show sections only if student loaded */}
 
-</section>
+      {student && (
 
+        <>
 
-{/* ---------------- Fee Structure ---------------- */}
+          {/* ---------------- Student Details ---------------- */}
 
-<section>
+          <section>
 
-<h2 className="text-xl font-bold text-[#0F6F7C] mb-6">
-Fee Structure
-</h2>
+            <h2 className="text-xl font-bold text-[#0F6F7C] mb-6">
+              Student Information
+            </h2>
 
-<div className="grid grid-cols-3 gap-6">
+            <div className="grid grid-cols-4 gap-6">
 
-<EditableInput label="Tuition Fee"
-value={feeStructure.tuitionFee || 0}
-onChange={(v)=>handleChange("tuitionFee",v)}
-/>
+              <Input label="Student Name" value={student.fullName} />
+              <Input label="Admission No" value={student.admissionNumber} />
+              <Input label="Class" value={student.classId?.className} />
+              <Input label="Section" value={student.classId?.section} />
 
-<EditableInput label="Admission Fee"
-value={feeStructure.admissionFee || 0}
-onChange={(v)=>handleChange("admissionFee",v)}
-/>
+            </div>
 
-<EditableInput label="Exam Fee"
-value={feeStructure.examFee || 0}
-onChange={(v)=>handleChange("examFee",v)}
-/>
+          </section>
 
-<EditableInput label="Hostel Fee"
-value={feeStructure.hostelFee || 0}
-onChange={(v)=>handleChange("hostelFee",v)}
-/>
 
-<EditableInput label="Transport Fee"
-value={feeStructure.transportFee || 0}
-onChange={(v)=>handleChange("transportFee",v)}
-/>
+          {/* ---------------- Fee Structure ---------------- */}
 
-<EditableInput label="Late Fee / Day"
-value={feeStructure.lateFeePerDay || 0}
-onChange={(v)=>handleChange("lateFeePerDay",v)}
-/>
+          <section>
 
-</div>
+            <h2 className="text-xl font-bold text-[#0F6F7C] mb-6">
+              Fee Structure
+            </h2>
 
-</section>
+            <div className="grid grid-cols-3 gap-6">
 
+              <EditableInput label="Tuition Fee"
+                value={feeStructure.tuitionFee || 0}
+                onChange={(v) => handleChange("tuitionFee", v)}
+              />
 
-{/* ---------------- Fee Summary ---------------- */}
+              <EditableInput label="Admission Fee"
+                value={feeStructure.admissionFee || 0}
+                onChange={(v) => handleChange("admissionFee", v)}
+              />
 
-<section>
+              <EditableInput label="Exam Fee"
+                value={feeStructure.examFee || 0}
+                onChange={(v) => handleChange("examFee", v)}
+              />
 
-<h2 className="text-xl font-bold text-[#0F6F7C] mb-6">
-Fee Summary
-</h2>
+              <EditableInput label="Hostel Fee"
+                value={feeStructure.hostelFee || 0}
+                onChange={(v) => handleChange("hostelFee", v)}
+              />
 
-<div className="grid grid-cols-4 gap-6">
+              <EditableInput label="Transport Fee"
+                value={feeStructure.transportFee || 0}
+                onChange={(v) => handleChange("transportFee", v)}
+              />
 
-<Summary label="Total Assigned Fee"
-value={summary.totalAssignedFee}
-color="text-[#0F6F7C]"
-/>
+              <EditableInput label="Late Fee / Day"
+                value={feeStructure.lateFeePerDay || 0}
+                onChange={(v) => handleChange("lateFeePerDay", v)}
+              />
 
-<Summary label="Total Paid"
-value={summary.totalPaid}
-color="text-green-600"
-/>
+            </div>
 
-<Summary label="Remaining"
-value={summary.remainingAmount}
-color="text-red-600"
-/>
+          </section>
 
-<div>
 
-<label className="text-sm text-gray-500">
-Status
-</label>
+          {/* ---------------- Fee Summary ---------------- */}
 
-<p className={`font-bold capitalize
-${summary.status==="paid"
-? "text-green-600"
-: summary.status==="partial"
-? "text-yellow-600"
-: "text-red-600"}
+          <section>
+
+            <h2 className="text-xl font-bold text-[#0F6F7C] mb-6">
+              Fee Summary
+            </h2>
+
+            <div className="grid grid-cols-4 gap-6">
+
+              <Summary label="Total Assigned Fee"
+                value={summary.totalAssignedFee}
+                color="text-[#0F6F7C]"
+              />
+
+              <Summary label="Total Paid"
+                value={summary.totalPaid}
+                color="text-green-600"
+              />
+
+              <Summary label="Remaining"
+                value={summary.remainingAmount}
+                color="text-red-600"
+              />
+
+              <div>
+
+                <label className="text-sm text-gray-500">
+                  Status
+                </label>
+
+                <p className={`font-bold capitalize
+${summary.status === "paid"
+                    ? "text-green-600"
+                    : summary.status === "partial"
+                      ? "text-yellow-600"
+                      : "text-red-600"}
 `}>
-{summary.status}
-</p>
+                  {summary.status}
+                </p>
 
-</div>
+              </div>
 
-</div>
+            </div>
 
-</section>
-
-
-{/* ---------------- Payment Section ---------------- */}
-
-<section>
-
-<h2 className="text-xl font-bold text-[#0F6F7C] mb-6">
-Update Payment
-</h2>
-
-<div className="flex gap-4">
-
-<input
-type="number"
-placeholder="Enter Payment Amount"
-value={payAmount}
-onChange={(e)=>setPayAmount(e.target.value)}
-className="border rounded-lg p-3 w-72"
-/>
-
-<button
-onClick={handlePayment}
-className="bg-[#178F9E] text-white px-6 rounded-lg"
->
-Update Payment
-</button>
-
-</div>
-
-</section>
+          </section>
 
 
-{/* ---------------- Monthly Fee Status ---------------- */}
+          {/* ---------------- Payment Section ---------------- */}
 
-<section>
+          <section>
 
-<h2 className="text-xl font-bold text-[#0F6F7C] mb-6">
-Monthly Fee Status
-</h2>
+            <h2 className="text-xl font-bold  mb-6">
+              Update Payment
+            </h2>
 
-<div className="grid grid-cols-6 gap-4">
+            <div className="flex gap-4">
 
-{months.map(month=>{
+              <input
+                type="number"
+                placeholder="Enter Payment Amount"
+                value={payAmount}
+                onChange={(e) => setPayAmount(e.target.value)}
+                className="border rounded-lg p-3 w-72 appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+              />
 
-const status = monthlyFees[month]?.status;
+              <button
+                onClick={handlePayment}
+                className="bg-[#178F9E] text-white px-6 rounded-lg"
+              >
+                Update Payment
+              </button>
 
-return(
+            </div>
 
-<div
-key={month}
-className={`p-4 text-center rounded-lg border font-semibold
-${status==="paid"
-? "bg-green-100 text-green-700 border-green-300"
-: status==="partial"
-? "bg-yellow-100 text-yellow-700 border-yellow-300"
-: "bg-red-100 text-red-700 border-red-300"}
-`}
->
+          </section>
 
-<p className="text-sm">{month}</p>
-<p className="text-xs capitalize">{status || "due"}</p>
 
-</div>
+          {/* ---------------- Monthly Fee Status ---------------- */}
 
-)
+          <section>
 
-})}
+            <h2 className="text-xl font-bold text-[#0F6F7C] mb-6">
+              Monthly Fee Status (Session: April - March)
+            </h2>
 
-</div>
+            <div className="grid grid-cols-4 gap-6 max-w-4xl">
 
-</section>
+              {months.map((month, index) => {
 
-</>
+                const status = getMonthStatus(index);
 
-)}
+                return (
 
-</div>
+                  <div
+                    key={month}
+                    className={`h-24 rounded-xl border flex flex-col items-center justify-center text-center font-semibold shadow-sm transition hover:scale-105
+          
+          ${status === "full"
+                        ? "bg-green-400 text-white"
+                        : status === "partial"
+                          ? "bg-yellow-400 text-black"
+                          : "bg-red-400 text-white"
+                      }
+          `}
+                  >
 
-)
+                    <p className="text-lg">{month.slice(0, 3)}</p>
+
+                    <p className="text-xs opacity-90">
+                      ₹{Math.round(monthlyFee)}
+                    </p>
+
+                  </div>
+
+                );
+
+              })}
+
+            </div>
+
+          </section>
+        </>
+
+      )}
+
+    </div>
+
+  )
 
 }
 
 /* ---------------- Components ---------------- */
 
-function Input({label,value}){
+function Input({ label, value }) {
 
-return(
+  return (
 
-<div>
+    <div>
 
-<label className="text-sm text-gray-500">
-{label}
-</label>
+      <label className="text-sm text-gray-500">
+        {label}
+      </label>
 
-<input
-value={value || ""}
-readOnly
-className="border rounded-lg p-3 w-full"
-/>
+      <input
+        value={value || ""}
+        readOnly
+        className="border rounded-lg p-3 w-full"
+      />
 
-</div>
+    </div>
 
-)
-
-}
-
-function EditableInput({label,value,onChange}){
-
-return(
-
-<div>
-
-<label className="text-sm text-gray-500">
-{label}
-</label>
-
-<input
-type="number"
-value={value}
-onChange={(e)=>onChange(Number(e.target.value))}
-className="border rounded-lg p-3 w-full"
-/>
-
-</div>
-
-)
+  )
 
 }
 
-function Summary({label,value,color}){
+function EditableInput({ label, value, onChange }) {
 
-return(
+  return (
 
-<div>
+    <div>
 
-<label className="text-sm text-gray-500">
-{label}
-</label>
+      <label className="text-sm text-gray-500">
+        {label}
+      </label>
 
-<p className={`font-bold ${color}`}>
-₹{value || 0}
-</p>
+      <input
+        type="number"
+        value={value}
+        onChange={(e) => onChange(Number(e.target.value))}
+        className="w-full border border-gray-300 focus:border-[#178F9E] focus:ring-1 focus:ring-[#178F9E] p-3 rounded-md appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+      />
 
-</div>
+    </div>
 
-)
+  )
+
+}
+
+function Summary({ label, value, color }) {
+
+  return (
+
+    <div>
+
+      <label className="text-sm text-gray-500">
+        {label}
+      </label>
+
+      <p className={`font-bold ${color}`}>
+        ₹{value || 0}
+      </p>
+
+    </div>
+
+  )
 
 }
