@@ -219,7 +219,6 @@ exports.getFeesByStudent = async (req, res) => {
 // ADMIN UPDATE STUDENT FEE
 // ================================
 exports.updateStudentSpecificFee = async (req, res) => {
-
   try {
 
     const { admissionNumber } = req.params;
@@ -243,21 +242,42 @@ exports.updateStudentSpecificFee = async (req, res) => {
 
     const studentFee = await StudentFee.findOne({ studentId: student._id });
 
+    if (!studentFee) {
+      return res.status(404).json({
+        success: false,
+        message: "Student fee record not found"
+      });
+    }
+
+    // update individual fields
     studentFee.tuitionFee = tuitionFee;
     studentFee.admissionFee = admissionFee;
     studentFee.examFee = examFee;
     studentFee.hostelFee = hostelFee;
     studentFee.transportFee = transportFee;
 
+    // calculate new total
     const newTotal =
-      tuitionFee +
-      admissionFee +
-      examFee +
-      hostelFee +
-      transportFee;
+      Number(tuitionFee) +
+      Number(admissionFee) +
+      Number(examFee) +
+      Number(hostelFee) +
+      Number(transportFee);
 
     studentFee.totalAssignedFee = newTotal;
+
+    // recalc remaining
     studentFee.remainingAmount = newTotal - studentFee.totalPaid;
+
+    // update status
+    if (studentFee.remainingAmount <= 0) {
+      studentFee.status = "paid";
+      studentFee.remainingAmount = 0;
+    } else if (studentFee.totalPaid > 0) {
+      studentFee.status = "partial";
+    } else {
+      studentFee.status = "due";
+    }
 
     await studentFee.save();
 
@@ -275,5 +295,4 @@ exports.updateStudentSpecificFee = async (req, res) => {
     });
 
   }
-
 };

@@ -73,23 +73,26 @@ export default function AdminFeeManagement() {
 
   const handlePayment = async () => {
 
-    try {
+  try {
 
-      await adminServices.updateStudentFeeStructure(
-  admissionNo,
-  feeStructure
-);
+    const payload = {
+      admissionNumber: admissionNo,
+      payAmount: Number(payAmount)
+    };
 
-      handleSearch();
+    await adminServices.updateStudentFee(payload);
 
-      setPayAmount("");
+    handleSearch();
 
-    } catch (err) {
-      console.log(err);
-    }
+    setPayAmount("");
 
-  };
+  } catch (err) {
 
+    console.log(err);
+
+  }
+
+};
   const handleFeeStructureUpdate = async () => {
 
   try {

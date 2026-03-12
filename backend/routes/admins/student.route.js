@@ -10,5 +10,6 @@ const upload = multer({
 router.post("/",   upload.single("photo"), controller.createStudent);
 router.get("/class/:classId", controller.getStudentsByClass);
 router.get("/:id", controller.getStudentById);
+router.delete("/delete/:id", studentController.deleteStudent);
 
 module.exports = router;

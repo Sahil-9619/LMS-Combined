@@ -180,3 +180,49 @@ exports.getStudentById = async (req, res) => {
     });
   }
 };
+
+// =====================================
+// DELETE STUDENT
+// =====================================
+exports.deleteStudent = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // check valid object id
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Student ID",
+      });
+    }
+
+    // find student
+    const student = await Student.findById(id);
+
+    if (!student) {
+      return res.status(404).json({
+        success: false,
+        message: "Student not found",
+      });
+    }
+
+    // delete student fee record
+    await StudentFee.deleteMany({ studentId: id });
+
+    // delete student
+    await Student.findByIdAndDelete(id);
+
+    res.status(200).json({
+      success: true,
+      message: "Student deleted successfully",
+    });
+
+  } catch (error) {
+    console.error("Delete Student Error:", error);
+
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
