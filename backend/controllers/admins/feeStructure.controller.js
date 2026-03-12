@@ -80,8 +80,6 @@ exports.createFeeStructure = async (req, res) => {
   }
 };
 
-
-
 // ================================
 // GET ALL FEE STRUCTURES
 // ================================
@@ -113,8 +111,6 @@ exports.getAllFeeStructures = async (req, res) => {
 
   }
 };
-
-
 
 // ================================
 // GET SINGLE FEE STRUCTURE

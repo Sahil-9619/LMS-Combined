@@ -53,7 +53,8 @@ const studentSchema = new mongoose.Schema(
 
     address: String,
 
-    parentName: String,
+    fatherName: String,
+    motherName: String,
     parentPhone: String,
 
     profileImage: String,

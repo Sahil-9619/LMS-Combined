@@ -32,7 +32,14 @@ export default function AdminFeeManagement() {
       setStudent(data?.student || {});
 
       /* Fee Structure */
-      setFeeStructure(data?.fee?.feeStructureId || {});
+      setFeeStructure({
+  tuitionFee: data?.fee?.tuitionFee,
+  admissionFee: data?.fee?.admissionFee,
+  examFee: data?.fee?.examFee,
+  hostelFee: data?.fee?.hostelFee,
+  transportFee: data?.fee?.transportFee,
+  lateFeePerDay: data?.fee?.feeStructureId?.lateFeePerDay
+});
 
       /* Summary */
       setSummary({
@@ -68,12 +75,10 @@ export default function AdminFeeManagement() {
 
     try {
 
-      const payload = {
-        admissionNumber: admissionNo,
-        payAmount: Number(payAmount)
-      };
-
-      await adminServices.updateStudentFee(payload);
+      await adminServices.updateStudentFeeStructure(
+  admissionNo,
+  feeStructure
+);
 
       handleSearch();
 
@@ -87,23 +92,22 @@ export default function AdminFeeManagement() {
 
   const handleFeeStructureUpdate = async () => {
 
-    try {
+  try {
 
-      const payload = {
-        admissionNumber: admissionNo,
-        feeStructure: feeStructure
-      };
+    await adminServices.updateStudentFeeStructure(
+      admissionNo,
+      feeStructure
+    );
 
-      await adminServices.updateStudentFeeStructure(payload);
+    handleSearch();
 
-      // reload student fee data
-      handleSearch();
+  } catch (err) {
 
-    } catch (err) {
-      console.log(err);
-    }
+    console.log(err);
 
-  };
+  }
+
+};
 
   const monthlyFee = summary.totalAssignedFee
     ? summary.totalAssignedFee / 12

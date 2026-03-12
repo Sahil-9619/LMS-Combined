@@ -107,8 +107,8 @@ export const adminServices = {
   },
 
   //update particular fee component for student
-  updateStudentFeeStructure: async (data) => {
-    const response = await axiosInstance.put(`/studentfee/payment`, data);
+  updateStudentFeeStructure: async (admissionNumber, data) => {
+    const response = await axiosInstance.put(`/studentfee/${admissionNumber}`, data);
     return response.data;
   },
 

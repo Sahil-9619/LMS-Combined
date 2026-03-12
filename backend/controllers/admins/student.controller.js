@@ -33,7 +33,8 @@ exports.createStudent = async (req, res) => {
       lastName,
       gender,
       course, // 👈 frontend se aayega (e.g. "10")
-      parentName,
+      fatherName,
+      motherName,
       parentPhone,
       phone,
       email,
@@ -78,7 +79,8 @@ exports.createStudent = async (req, res) => {
       lastName: lastName?.trim(),
       gender,
       classId: classData._id, // 👈 automatically set
-      parentName,
+      fatherName,
+      motherName,
       parentPhone,
       phone,
       email,
