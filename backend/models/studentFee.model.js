@@ -16,27 +16,27 @@ const studentFeeSchema = new mongoose.Schema(
 
   tuitionFee: {
     type: Number,
-    default: 0
+    
   },
 
   admissionFee: {
     type: Number,
-    default: 0
+    
   },
 
   examFee: {
     type: Number,
-    default: 0
+    
   },
 
   hostelFee: {
     type: Number,
-    default: 0
+    
   },
 
   transportFee: {
     type: Number,
-    default: 0
+    
   },
 
   lateFeePerDay: { type: Number, default: 0 },
