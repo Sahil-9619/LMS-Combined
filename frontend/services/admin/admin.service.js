@@ -50,7 +50,7 @@ export const adminServices = {
   getClassById: async (id) => {
     const response = await axiosInstance.get(`/class/${id}`);
     return response.data;
-  },  
+  },
   updateClass: async (id, data) => {
     const response = await axiosInstance.put(`/class/${id}`, data);
     return response.data;
@@ -58,7 +58,7 @@ export const adminServices = {
   deleteClass: async (id) => {
     const response = await axiosInstance.delete(`/class/${id}`);
     return response.data;
-  },  
+  },
 
   getstudentsByClass: async (classId) => {
     const response = await axiosInstance.get(`/students/class/${classId}`);
@@ -69,13 +69,13 @@ export const adminServices = {
     const response = await axiosInstance.get(`/students/${id}`);
     return response.data;
   },
-   
+
   getUserWithStudentCheck: async (id) => {
     const response = await axiosInstance.get(`/admin/user-with-student/${id}`);
     return response.data;
   },
 
-    // ================= FEE MODULE =================
+  // ================= FEE MODULE =================
 
   // Get class fee by class name
   getClassFeeByClass: async (classId) => {
@@ -90,10 +90,10 @@ export const adminServices = {
   },
 
   createFeeStructure: async (data) => {
-  const response = await axiosInstance.post(`/feestructure`, data);
-  return response.data;
-},
-//---------------------------//
+    const response = await axiosInstance.post(`/feestructure`, data);
+    return response.data;
+  },
+  //---------------------------//
   // Get student fee by admission number
   getStudentFeeByAdmission: async (admissionNumber) => {
     const response = await axiosInstance.get(`/studentfee/admission/${admissionNumber}`);
@@ -106,11 +106,17 @@ export const adminServices = {
     return response.data;
   },
 
+  //update particular fee component for student
+  updateStudentFeeStructure: async (data) => {
+    const response = await axiosInstance.put(`/studentfee/payment`, data);
+    return response.data;
+  },
+
   // Assign fee to student
-assignStudentFee: async (data) => {
-  const response = await axiosInstance.post(`/studentfee/assign`, data);
-  return response.data;
-}
+  assignStudentFee: async (data) => {
+    const response = await axiosInstance.post(`/studentfee/assign`, data);
+    return response.data;
+  }
 };
 
 

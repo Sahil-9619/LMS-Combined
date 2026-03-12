@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { adminServices } from "@/services/admin/admin.service";
+import { Pencil } from "lucide-react";
 
 const months = [
   "April", "May", "June",
@@ -83,6 +84,27 @@ export default function AdminFeeManagement() {
     }
 
   };
+
+  const handleFeeStructureUpdate = async () => {
+
+    try {
+
+      const payload = {
+        admissionNumber: admissionNo,
+        feeStructure: feeStructure
+      };
+
+      await adminServices.updateStudentFeeStructure(payload);
+
+      // reload student fee data
+      handleSearch();
+
+    } catch (err) {
+      console.log(err);
+    }
+
+  };
+
   const monthlyFee = summary.totalAssignedFee
     ? summary.totalAssignedFee / 12
     : 0;
@@ -170,6 +192,7 @@ export default function AdminFeeManagement() {
               Fee Structure
             </h2>
 
+
             <div className="grid grid-cols-3 gap-6">
 
               <EditableInput label="Tuition Fee"
@@ -203,7 +226,12 @@ export default function AdminFeeManagement() {
               />
 
             </div>
-
+            <button
+              onClick={handleFeeStructureUpdate}
+              className="bg-[#178F9E] text-white px-4 py-2 rounded-lg mt-6"
+            >
+              Save Changes
+            </button>
           </section>
 
 
@@ -369,9 +397,11 @@ function EditableInput({ label, value, onChange }) {
 
     <div>
 
-      <label className="text-sm text-gray-500">
+      <label className="text-sm text-gray-500 flex gap-1">
+        <Pencil size={15} />
         {label}
       </label>
+
 
       <input
         type="number"
