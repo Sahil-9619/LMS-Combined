@@ -90,6 +90,7 @@ exports.assignFeeToStudent = async (req, res) => {
 // GET FEES BY ADMISSION NUMBER
 // ================================
 exports.getFeeByAdmissionNumber = async (req, res) => {
+
   try {
 
     const { admissionNumber } = req.params;
@@ -99,40 +100,47 @@ exports.getFeeByAdmissionNumber = async (req, res) => {
 
     if (!student) {
       return res.status(404).json({
-        success: false,
-        message: "Student not found",
+        success:false,
+        message:"Student not found"
       });
     }
 
     const fee = await StudentFee.findOne({ studentId: student._id })
       .populate("studentId")
-      .populate("feeStructureId");
+      .populate("feeStructureId")
+      .lean();
 
     if (!fee) {
       return res.status(404).json({
-        success: false,
-        message: "Fee not assigned to this student",
+        success:false,
+        message:"Fee not assigned"
       });
     }
 
-    res.status(200).json({
-      success: true,
+    // fallback from FeeStructure
+    fee.tuitionFee = fee.tuitionFee ?? fee.feeStructureId?.tuitionFee ?? 0;
+    fee.admissionFee = fee.admissionFee ?? fee.feeStructureId?.admissionFee ?? 0;
+    fee.examFee = fee.examFee ?? fee.feeStructureId?.examFee ?? 0;
+    fee.hostelFee = fee.hostelFee ?? fee.feeStructureId?.hostelFee ?? 0;
+    fee.transportFee = fee.transportFee ?? fee.feeStructureId?.transportFee ?? 0;
+    fee.lateFeePerDay = fee.lateFeePerDay ?? fee.feeStructureId?.lateFeePerDay ?? 0;
+
+    res.json({
+      success:true,
       student,
       fee
     });
 
-  } catch (error) {
+  } catch(error){
 
     res.status(500).json({
-      success: false,
-      message: error.message
+      success:false,
+      message:error.message
     });
 
   }
+
 };
-
-
-
 // ================================
 // UPDATE PAYMENT
 // ================================
@@ -228,7 +236,8 @@ exports.updateStudentSpecificFee = async (req, res) => {
       admissionFee = 0,
       examFee = 0,
       hostelFee = 0,
-      transportFee = 0
+      transportFee = 0,
+      lateFeePerDay = 0
     } = req.body;
 
     const student = await Student.findOne({ admissionNumber });
@@ -255,6 +264,7 @@ exports.updateStudentSpecificFee = async (req, res) => {
     studentFee.examFee = examFee;
     studentFee.hostelFee = hostelFee;
     studentFee.transportFee = transportFee;
+    studentFee.lateFeePerDay = lateFeePerDay;
 
     // calculate new total
     const newTotal =
@@ -262,7 +272,8 @@ exports.updateStudentSpecificFee = async (req, res) => {
       Number(admissionFee) +
       Number(examFee) +
       Number(hostelFee) +
-      Number(transportFee);
+      Number(transportFee) +
+      Number(lateFeePerDay);
 
     studentFee.totalAssignedFee = newTotal;
 

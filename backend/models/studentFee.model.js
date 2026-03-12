@@ -39,6 +39,8 @@ const studentFeeSchema = new mongoose.Schema(
     default: 0
   },
 
+  lateFeePerDay: { type: Number, default: 0 },
+
   totalAssignedFee: {
     type: Number,
     required: true,
