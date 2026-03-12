@@ -22,7 +22,8 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { toast } from "sonner";
-
+import { ArrowBigRight, LucideDelete, SquareArrowOutUpRight, Trash } from "lucide-react";
+import Link from "next/link";
 export default function ClassWiseStudents() {
 
   const [classes, setClasses] = useState([]);
@@ -270,13 +271,16 @@ export default function ClassWiseStudents() {
                   <td className="p-3 border border-[#D9F1F4]">
                     {student.phone || "N/A"}
                   </td>
-                  <td className="p-3 border">
+                  <td className="p-3 border border-[#D9F1F4] flex items-center cursor-pointer">
+                    <Link href={`/admin/dashboard/student_fee?admission=${student.admissionNumber}`}>
+  <SquareArrowOutUpRight size={25} />
+</Link>
                     <AlertDialog>
 
                       <AlertDialogTrigger asChild>
 
-                        <button className="bg-red-500 text-white px-3 py-1 rounded text-xs hover:bg-red-600">
-                          Delete
+                        <button className=" text-red-500 px-1 ml-2 py-1 rounded text-xs hover:bg-red-600 hover:text-white transition">
+                          <Trash size={25} />
                         </button>
 
                       </AlertDialogTrigger>
@@ -360,7 +364,8 @@ export default function ClassWiseStudents() {
             <PaginationItem>
 
               <PaginationPrevious
-                className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+                className={`cursor-pointer select-none ${currentPage === 1 ? "pointer-events-none opacity-50" : ""
+                  }`}
                 onClick={() =>
                   setCurrentPage((prev) => Math.max(prev - 1, 1))
                 }
@@ -374,6 +379,8 @@ export default function ClassWiseStudents() {
               <PaginationItem key={page}>
 
                 <PaginationLink
+                  className="cursor-pointer select-none"
+
                   isActive={currentPage === page}
                   onClick={() => setCurrentPage(page)}
                 >
@@ -393,6 +400,8 @@ export default function ClassWiseStudents() {
             {totalPages > 6 && !visiblePages.includes(totalPages) && (
               <PaginationItem>
                 <PaginationLink
+                  className="cursor-pointer select-none"
+
                   isActive={currentPage === totalPages}
                   onClick={() => setCurrentPage(totalPages)}
                 >
@@ -405,7 +414,8 @@ export default function ClassWiseStudents() {
             <PaginationItem>
 
               <PaginationNext
-                className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
+                className={`cursor-pointer select-none ${currentPage === totalPages ? "pointer-events-none opacity-50" : ""
+                  }`}
                 onClick={() =>
                   setCurrentPage((prev) =>
                     Math.min(prev + 1, totalPages)

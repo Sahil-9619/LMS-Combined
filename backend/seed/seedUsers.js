@@ -19,7 +19,7 @@ const seedUsers = async () => {
 
       students.push({
 
-        admissionNumber: `ADM${1000 + i}`,
+        admissionNumber: `ADM${5000 + i}`,
 
         firstName: faker.person.firstName(),
         lastName: faker.person.lastName(),

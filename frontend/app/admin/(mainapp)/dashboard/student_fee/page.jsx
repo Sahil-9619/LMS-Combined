@@ -1,15 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { adminServices } from "@/services/admin/admin.service";
 import { Pencil } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+
 
 const months = [
   "April", "May", "June",
   "July", "August", "September", "October", "November", "December", "January", "February", "March"
 ];
 
+
 export default function AdminFeeManagement() {
+
+
 
   const [admissionNo, setAdmissionNo] = useState("");
   const [student, setStudent] = useState(null);
@@ -17,14 +22,28 @@ export default function AdminFeeManagement() {
   const [summary, setSummary] = useState({});
   const [monthlyFees, setMonthlyFees] = useState({});
   const [payAmount, setPayAmount] = useState("");
+  const searchParams = useSearchParams();
+const admissionParam = searchParams.get("admission");
 
+
+useEffect(() => {
+
+  if (admissionParam) {
+
+    setAdmissionNo(admissionParam);
+
+    handleSearch(admissionParam);
+
+  }
+
+}, [admissionParam]);
   /* ---------------- SEARCH STUDENT ---------------- */
 
-  const handleSearch = async () => {
+  const handleSearch = async (admission) => {
 
     try {
 
-      const res = await adminServices.getStudentFeeByAdmission(admissionNo);
+      const res = await adminServices.getStudentFeeByAdmission(admission || admissionNo);
 
       const data = res?.data || res;
 
