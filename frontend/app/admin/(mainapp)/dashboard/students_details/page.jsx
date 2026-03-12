@@ -13,6 +13,15 @@ import {
   AlertDialogCancel,
   AlertDialogAction,
 } from "@/components/ui/alert-dialog";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import { toast } from "sonner";
 
 export default function ClassWiseStudents() {
 
@@ -20,6 +29,8 @@ export default function ClassWiseStudents() {
   const [selectedClass, setSelectedClass] = useState("");
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
 
   /* -------- FETCH CLASSES -------- */
 
@@ -52,6 +63,8 @@ export default function ClassWiseStudents() {
     const classId = e.target.value;
 
     setSelectedClass(classId);
+    setCurrentPage(1);   // ✅ add this
+
 
     if (!classId) {
       setStudents([]);
@@ -79,21 +92,76 @@ export default function ClassWiseStudents() {
 
   const handleDeleteStudent = async (id) => {
 
-
-
-
     try {
 
       await adminServices.deleteStudent(id);
 
 
-      setStudents((prev) => prev.filter((student) => student._id !== id));
+      setStudents((prev) => {
+        const updated = prev.filter((student) => student._id !== id);
+
+        if ((currentPage - 1) * rowsPerPage >= updated.length) {
+          setCurrentPage((p) => Math.max(p - 1, 1));
+        }
+
+        return updated;
+      });
+
+      toast.success("Student deleted", {
+        position: "bottom-center",
+        style: {
+          background: "#178F9E",
+          color: "#fff",
+        },
+      });
 
     } catch (err) {
       console.log(err);
+      toast.error("Failed to delete student.", {
+        position: "top-center",
+      });
     }
 
   };
+
+
+
+  const totalPages = Math.ceil(students.length / rowsPerPage);
+
+  const startIndex = (currentPage - 1) * rowsPerPage;
+  const endIndex = startIndex + rowsPerPage;
+
+  const currentStudents = students.slice(startIndex, endIndex);
+
+  const getVisiblePages = () => {
+    const maxVisible = 6;
+
+    if (totalPages <= maxVisible) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
+
+    if (currentPage <= 3) {
+      return [1, 2, 3, 4, 5, 6];
+    }
+
+    if (currentPage >= totalPages - 2) {
+      return Array.from(
+        { length: 6 },
+        (_, i) => totalPages - 5 + i
+      );
+    }
+
+    return [
+      currentPage - 2,
+      currentPage - 1,
+      currentPage,
+      currentPage + 1,
+      currentPage + 2,
+      currentPage + 3,
+    ];
+  };
+
+  const visiblePages = getVisiblePages();
 
   return (
 
@@ -177,8 +245,7 @@ export default function ClassWiseStudents() {
 
             ) : (
 
-              students.map((student, index) => (
-
+              currentStudents.map((student, index) => (
                 <tr
                   key={student._id}
                   className={`${index % 2 === 0 ? "bg-white" : "bg-[#F4FDFE]"} hover:bg-[#ECFAFC] transition`}
@@ -259,8 +326,103 @@ export default function ClassWiseStudents() {
         </table>
 
       </div>
+      <div className="flex justify-between items-center mt-6">
 
+        {/* Rows per page */}
+        <div className="flex items-center gap-2 text-sm">
+
+          <span>Rows per page:</span>
+
+          <select
+            value={rowsPerPage}
+            onChange={(e) => {
+              setRowsPerPage(Number(e.target.value));
+              setCurrentPage(1);
+            }}
+            className="border rounded px-2 py-1"
+          >
+
+            <option value={10}>10</option>
+            <option value={25}>25</option>
+            <option value={50}>50</option>
+            <option value={100}>100</option>
+
+          </select>
+
+        </div>
+
+        {/* Pagination */}
+        <Pagination>
+
+          <PaginationContent>
+
+            {/* Previous */}
+            <PaginationItem>
+
+              <PaginationPrevious
+                className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+                onClick={() =>
+                  setCurrentPage((prev) => Math.max(prev - 1, 1))
+                }
+              />
+
+            </PaginationItem>
+
+            {/* Page Numbers */}
+            {visiblePages.map((page) => (
+
+              <PaginationItem key={page}>
+
+                <PaginationLink
+                  isActive={currentPage === page}
+                  onClick={() => setCurrentPage(page)}
+                >
+
+                  {page}
+
+                </PaginationLink>
+
+              </PaginationItem>
+
+            ))}
+            {totalPages > 6 && currentPage < totalPages - 3 && (
+              <PaginationItem>
+                <span className="px-3 text-gray-500">...</span>
+              </PaginationItem>
+            )}
+            {totalPages > 6 && !visiblePages.includes(totalPages) && (
+              <PaginationItem>
+                <PaginationLink
+                  isActive={currentPage === totalPages}
+                  onClick={() => setCurrentPage(totalPages)}
+                >
+                  {totalPages}
+                </PaginationLink>
+              </PaginationItem>
+            )}
+
+            {/* Next */}
+            <PaginationItem>
+
+              <PaginationNext
+                className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
+                onClick={() =>
+                  setCurrentPage((prev) =>
+                    Math.min(prev + 1, totalPages)
+                  )
+                }
+              />
+
+            </PaginationItem>
+
+          </PaginationContent>
+
+        </Pagination>
+
+      </div>
     </div>
+
+
 
   );
 

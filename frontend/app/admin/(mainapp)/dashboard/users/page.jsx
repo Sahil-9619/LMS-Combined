@@ -42,6 +42,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { getMediaUrl } from "@/app/utils/getAssetsUrl";
 import { adminServices } from "@/services/admin/admin.service";
+import { toast } from "sonner";
+
 
 const AllUsers = () => {
   const dispatch = useDispatch();
@@ -101,10 +103,11 @@ const AllUsers = () => {
   };
 
   const handleDelete = async (id) => {
-
     try {
+
       await adminServices.deleteUser(id);
-      // refetch same page with current filters
+
+      // refetch current page
       dispatch(
         fetchAllUsers({
           page: pagination.page,
@@ -113,8 +116,24 @@ const AllUsers = () => {
           role: filters.role,
         })
       );
+
+      toast.success("User deleted", {
+        position: "bottom-center",
+        style: {
+          background: "#178F9E",
+          color: "#fff",
+        },
+      });
+
     } catch (e) {
-      alert(e?.response?.data?.message || "Failed to delete user");
+
+      toast.error(
+        e?.response?.data?.message || "Failed to delete user",
+        {
+          position: "top-center",
+        }
+      );
+
     }
   };
 

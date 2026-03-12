@@ -2,6 +2,7 @@
 
 import { adminServices } from "@/services/admin/admin.service";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 export default function ClassFeeManagement() {
   
@@ -108,11 +109,22 @@ const updateFee = async () => {
       }
 
     }
-    setMsg("Fee saved successfully!");
+    toast.success("Fee saved successfully!", {
+  position: "bottom-center",
+  style: {
+    background: "#178F9E",
+    color: "#fff",
+  },
+});
     setEditing(false);
 
   } catch (err) {
-    console.log(err);
+   toast.error(
+  err?.response?.data?.message || "Something went wrong",
+  {
+    position: "top-center",
+  }
+);
   }
 };
 
@@ -225,11 +237,6 @@ const submitChange= (e) =>{
           )}
         
         </div>
-        {msg && (
-          <p id="msg" className="text-green-600 text-center mt-4 font-semibold">
-            {msg}
-          </p>
-        )}
       </div>
 
     </div>

@@ -32,6 +32,7 @@ export default function RootLayout({ children }) {
             <AuthProvider><TranslationProvider>{children}</TranslationProvider></AuthProvider>
           </AppInitializer>
           <Toaster />
+          <Toaster richColors />
         </StoreProvider>
       </body>
     </html>
