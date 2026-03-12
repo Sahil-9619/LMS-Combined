@@ -11,5 +11,6 @@ router.post("/",   upload.single("photo"), controller.createStudent);
 router.get("/class/:classId", controller.getStudentsByClass);
 router.get("/:id", controller.getStudentById);
 router.delete("/delete/:id", controller.deleteStudent);
+router.put("/update/:id", controller.updateStudent);
 
 module.exports = router;

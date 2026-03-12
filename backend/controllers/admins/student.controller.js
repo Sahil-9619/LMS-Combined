@@ -226,3 +226,36 @@ exports.deleteStudent = async (req, res) => {
     });
   }
 };
+
+//student details update
+exports.updateStudent = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const updatedStudent = await Student.findByIdAndUpdate(
+      id,
+      req.body,
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedStudent) {
+      return res.status(404).json({
+        success: false,
+        message: "Student not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Student updated successfully",
+      data: updatedStudent,
+    });
+
+  } catch (error) {
+    console.error("Update Student Error:", error);
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
