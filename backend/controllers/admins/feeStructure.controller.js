@@ -27,16 +27,18 @@ exports.createFeeStructure = async (req, res) => {
       });
     }
 
-    const classExists = await Class.findById(classId);
+    const classData = await Class.findById(classId);
 
-    if (!classExists) {
+    if (!classData) {
       return res.status(404).json({
         success: false,
         message: "Class not found",
       });
     }
 
-    const existing = await FeeStructure.findOne({ classId });
+    const existing = await FeeStructure.findOne({
+      className: classData.className
+    });
 
     if (existing) {
       return res.status(400).json({
@@ -46,14 +48,15 @@ exports.createFeeStructure = async (req, res) => {
     }
 
     const totalFee =
-      Number(tuitionFee ?? 0) +
-      Number(admissionFee ?? 0) +
-      Number(examFee ?? 0) +
-      Number(hostelFee ?? 0) +
-      Number(transportFee ?? 0);
+      Number(tuitionFee) +
+      Number(admissionFee) +
+      Number(examFee) +
+      Number(hostelFee) +
+      Number(transportFee);
 
     const fee = await FeeStructure.create({
       classId,
+      className: classData.className,
       tuitionFee,
       admissionFee,
       examFee,
@@ -63,6 +66,42 @@ exports.createFeeStructure = async (req, res) => {
       lateFeePerDay,
       totalFee
     });
+    // ================================
+// AUTO ASSIGN FEE TO ALL STUDENTS
+// ================================
+const students = await require("../../models/student.model").find({
+  classId
+});
+
+for (const student of students) {
+
+  const exists = await StudentFee.findOne({
+    studentId: student._id
+  });
+
+  if (!exists) {
+
+    await StudentFee.create({
+
+      studentId: student._id,
+      feeStructureId: fee._id,
+
+      tuitionFee: fee.tuitionFee,
+      admissionFee: fee.admissionFee,
+      examFee: fee.examFee,
+      hostelFee: fee.hostelFee,
+      transportFee: fee.transportFee,
+
+      totalAssignedFee: fee.totalFee,
+      remainingAmount: fee.totalFee,
+      totalPaid: 0,
+      status: "due"
+
+    });
+
+  }
+
+}
 
     res.status(201).json({
       success: true,
@@ -80,19 +119,14 @@ exports.createFeeStructure = async (req, res) => {
   }
 };
 
+
 // ================================
 // GET ALL FEE STRUCTURES
 // ================================
 exports.getAllFeeStructures = async (req, res) => {
   try {
 
-    const { classId } = req.query;
-
-    let filter = {};
-
-    if (classId) filter.classId = classId;
-
-    const fees = await FeeStructure.find(filter)
+    const fees = await FeeStructure.find()
       .populate("classId")
       .sort({ createdAt: -1 });
 
@@ -112,6 +146,7 @@ exports.getAllFeeStructures = async (req, res) => {
   }
 };
 
+
 // ================================
 // GET SINGLE FEE STRUCTURE
 // ================================
@@ -120,8 +155,18 @@ exports.getSingleFeeStructure = async (req, res) => {
 
     const { id } = req.params;
 
-    const fee = await FeeStructure.findOne({ classId: id })
-      .populate("classId");
+    const classData = await Class.findById(id);
+
+    if (!classData) {
+      return res.status(404).json({
+        success:false,
+        message:"Class not found"
+      });
+    }
+
+    const fee = await FeeStructure.findOne({
+      className: classData.className
+    }).populate("classId");
 
     if (!fee) {
       return res.status(404).json({
@@ -146,7 +191,6 @@ exports.getSingleFeeStructure = async (req, res) => {
 };
 
 
-
 // ================================
 // UPDATE FEE STRUCTURE
 // ================================
@@ -154,6 +198,15 @@ exports.updateFeeStructure = async (req, res) => {
   try {
 
     const { id } = req.params;
+
+    const classData = await Class.findById(id);
+
+    if (!classData) {
+      return res.status(404).json({
+        success:false,
+        message:"Class not found"
+      });
+    }
 
     const {
       tuitionFee = 0,
@@ -166,14 +219,14 @@ exports.updateFeeStructure = async (req, res) => {
     } = req.body;
 
     const totalFee =
-      Number(tuitionFee ?? 0) +
-      Number(admissionFee ?? 0) +
-      Number(examFee ?? 0) +
-      Number(hostelFee ?? 0) +
-      Number(transportFee ?? 0);
+      Number(tuitionFee) +
+      Number(admissionFee) +
+      Number(examFee) +
+      Number(hostelFee) +
+      Number(transportFee);
 
     const updated = await FeeStructure.findOneAndUpdate(
-      { classId: id },
+      { className: classData.className },
       {
         tuitionFee,
         admissionFee,
@@ -194,7 +247,7 @@ exports.updateFeeStructure = async (req, res) => {
       });
     }
 
-    // 🔥 Sync all student fees of this class
+    // sync student fees
     await StudentFee.updateMany(
       { feeStructureId: updated._id },
       [
@@ -224,7 +277,6 @@ exports.updateFeeStructure = async (req, res) => {
 
   }
 };
-
 
 
 // ================================

@@ -32,7 +32,8 @@ exports.createStudent = async (req, res) => {
       firstName,
       lastName,
       gender,
-      course, // 👈 frontend se aayega (e.g. "10")
+      course,
+      section,
       fatherName,
       motherName,
       parentPhone,
@@ -40,9 +41,6 @@ exports.createStudent = async (req, res) => {
       email,
     } = req.body;
 
-    // ========================
-    // Required Fields Check
-    // ========================
     if (!firstName || !course) {
       return res.status(400).json({
         success: false,
@@ -50,11 +48,9 @@ exports.createStudent = async (req, res) => {
       });
     }
 
-    // ========================
-    // AUTO FETCH CLASS
-    // ========================
     const classData = await Class.findOne({
       className: course,
+      section: section,
       status: "active",
     });
 
@@ -65,20 +61,15 @@ exports.createStudent = async (req, res) => {
       });
     }
 
-    // ========================
-    // Generate Admission Number
-    // ========================
     const admissionNumber = await generateAdmissionNumber();
 
-    // ========================
-    // Create Student
-    // ========================
     const student = await Student.create({
       admissionNumber,
       firstName: firstName.trim(),
       lastName: lastName?.trim(),
       gender,
-      classId: classData._id, // 👈 automatically set
+      classId: classData._id,
+      section: section,
       fatherName,
       motherName,
       parentPhone,
@@ -86,22 +77,38 @@ exports.createStudent = async (req, res) => {
       email,
       profileImage: req.file?.filename,
     });
-    // ========================
-// AUTO ASSIGN FEE
-// ========================
-const feeStructure = await FeeStructure.findOne({
-  classId: classData._id,
-  status: "active",
-});
 
-if (feeStructure) {
-  await StudentFee.create({
-    studentId: student._id,
-    feeStructureId: feeStructure._id,
-    totalAssignedFee: feeStructure.totalFee,
-    remainingAmount: feeStructure.totalFee,
-  });
-}
+    // ========================
+    // AUTO ASSIGN FEE
+    // ========================
+    const feeStructure = await FeeStructure.findOne({
+      className: course,
+      status: "active",
+    });
+
+    if (feeStructure) {
+      const existingFee = await StudentFee.findOne({
+        studentId: student._id,
+      });
+
+      if (!existingFee) {
+        await StudentFee.create({
+          studentId: student._id,
+          feeStructureId: feeStructure._id,
+
+          tuitionFee: feeStructure.tuitionFee,
+          admissionFee: feeStructure.admissionFee,
+          examFee: feeStructure.examFee,
+          hostelFee: feeStructure.hostelFee,
+          transportFee: feeStructure.transportFee,
+
+          totalAssignedFee: feeStructure.totalFee,
+          remainingAmount: feeStructure.totalFee,
+          totalPaid: 0,
+          status: "due",
+        });
+      }
+    }
 
     res.status(201).json({
       success: true,
@@ -188,7 +195,6 @@ exports.deleteStudent = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // check valid object id
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({
         success: false,
@@ -196,7 +202,6 @@ exports.deleteStudent = async (req, res) => {
       });
     }
 
-    // find student
     const student = await Student.findById(id);
 
     if (!student) {
@@ -206,10 +211,8 @@ exports.deleteStudent = async (req, res) => {
       });
     }
 
-    // delete student fee record
     await StudentFee.deleteMany({ studentId: id });
 
-    // delete student
     await Student.findByIdAndDelete(id);
 
     res.status(200).json({
@@ -227,7 +230,9 @@ exports.deleteStudent = async (req, res) => {
   }
 };
 
-//student details update
+// =====================================
+// UPDATE STUDENT
+// =====================================
 exports.updateStudent = async (req, res) => {
   try {
     const { id } = req.params;

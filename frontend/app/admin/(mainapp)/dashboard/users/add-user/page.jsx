@@ -47,6 +47,7 @@ const AddUsers = () => {
     address: "",
     category: "",
     course: "",
+    section: "",
     photo: null,
   });
 
@@ -201,6 +202,17 @@ const AddUsers = () => {
                 <option value="9">Class 9</option>
                 <option value="10">Class 10</option>
               </select>
+              <select
+  name="section"
+  value={form.section}
+  onChange={onChange}
+  className="input"
+>
+  <option value="">Select Section</option>
+  <option value="A">Section A</option>
+  <option value="B">Section B</option>
+  <option value="C">Section C</option>
+</select>
 
               <Input type="file" name="photo" onChange={onChange} />
             </>

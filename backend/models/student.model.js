@@ -13,6 +13,11 @@ const studentSchema = new mongoose.Schema(
       ref: "Class",
       required: true,
     },
+      className: String,
+    section: {
+      type: String, // A, B, C
+      required: true,
+    },
 
    
 

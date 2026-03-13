@@ -14,7 +14,10 @@ const feeStructureSchema = new mongoose.Schema(
       ref: "Class",
       required: true,
     },
-
+    className: {
+  type: String,
+  required: true
+},
    
 
     tuitionFee: { type: Number, default: 0 },
@@ -50,9 +53,9 @@ feeStructureSchema.pre("save", function (next) {
   next();
 });
 
-// Prevent duplicate per class + year
+// Prevent duplicate per className (all sections of a class share same fee structure)
 feeStructureSchema.index(
-  { classId: 1, academicYear: 1 },
+  { className: 1 },
   { unique: true }
 );
 
