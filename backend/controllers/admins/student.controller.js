@@ -9,7 +9,7 @@ const FeeStructure = require("../../models/feeStructure.model");
 // =====================================
 const generateAdmissionNumber = async () => {
   const lastStudent = await Student.findOne()
-    .sort({ createdAt: -1 })
+    .sort({ admissionNumber: -1 })
     .select("admissionNumber");
 
   if (!lastStudent) {

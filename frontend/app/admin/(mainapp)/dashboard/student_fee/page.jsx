@@ -173,12 +173,12 @@ useEffect(() => {
             className="border rounded-lg p-3 w-72"
           />
 
-          <button
-            onClick={handleSearch}
-            className="bg-[#178F9E] text-white px-6 rounded-lg"
-          >
-            Search
-          </button>
+         <button
+  onClick={() => handleSearch()}
+  className="bg-[#178F9E] text-white px-6 rounded-lg"
+>
+  Search
+</button>
 
         </div>
 

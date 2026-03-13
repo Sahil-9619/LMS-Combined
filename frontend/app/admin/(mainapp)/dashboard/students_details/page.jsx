@@ -32,6 +32,10 @@ export default function ClassWiseStudents() {
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [highlightId, setHighlightId] = useState(null);
+  const [filteredStudents, setFilteredStudents] = useState([]);
+const [isSearching, setIsSearching] = useState(false);
 
   /* -------- FETCH CLASSES -------- */
 
@@ -164,6 +168,43 @@ export default function ClassWiseStudents() {
 
   const visiblePages = getVisiblePages();
 
+
+  //for search bar
+const handleSearch = () => {
+
+  const term = searchTerm.trim().toLowerCase();
+
+  if (!term) {
+    toast.error("Enter admission number, name or email");
+    return;
+  }
+
+  const results = students.filter((s) => {
+
+    const admission = (s.admissionNumber || "").toLowerCase();
+    const first = (s.firstName || "").toLowerCase();
+    const last = (s.lastName || "").toLowerCase();
+    const email = (s.email || "").toLowerCase();
+
+    return (
+      admission.includes(term) ||
+      first.includes(term) ||
+      last.includes(term) ||
+      `${first} ${last}`.includes(term) ||
+      email.includes(term)
+    );
+  });
+
+  if (results.length === 0) {
+    toast.error("Student not found");
+    return;
+  }
+
+  setFilteredStudents(results);
+  setIsSearching(true);
+
+};
+
   return (
 
     <div className="p-10  min-h-screen">
@@ -204,6 +245,42 @@ export default function ClassWiseStudents() {
 
       </div>
 
+<div className="flex gap-3 mb-4">
+
+  <input
+    type="text"
+    placeholder="Search by Admission No, Name, Email"
+    value={searchTerm}
+    onChange={(e) => setSearchTerm(e.target.value)}
+    className="border px-4 py-2 rounded-md w-72"
+  />
+
+  <button
+    onClick={handleSearch}
+    className="bg-[#178F9E] text-white px-5 py-2 rounded-md"
+  >
+    Search
+  </button>
+
+  {isSearching && (
+    <button
+      onClick={() => {
+        setIsSearching(false);
+        setFilteredStudents([]);
+        setSearchTerm("");
+      }}
+      className="bg-gray-500 text-white px-5 py-2 rounded-md"
+    >
+      Clear
+    </button>
+  )}
+
+</div>
+{isSearching && (
+  <p className="mb-3 text-sm text-gray-600">
+    {filteredStudents.length} record(s) found
+  </p>
+)}
 
       {/* TABLE */}
 
@@ -246,11 +323,18 @@ export default function ClassWiseStudents() {
 
             ) : (
 
-              currentStudents.map((student, index) => (
+              (isSearching ? filteredStudents : currentStudents).map((student, index) => (
                 <tr
                   key={student._id}
-                  className={`${index % 2 === 0 ? "bg-white" : "bg-[#F4FDFE]"} hover:bg-[#ECFAFC] transition`}
-                >
+                  className={`
+${highlightId === student._id
+                      ? "bg-yellow-200"
+                      : index % 2 === 0
+                        ? "bg-white"
+                        : "bg-[#F4FDFE]"
+                    }
+hover:bg-[#ECFAFC] transition
+`}>
 
                   <td className="p-3 border border-[#D9F1F4]">
                     {student.admissionNumber}
@@ -273,8 +357,8 @@ export default function ClassWiseStudents() {
                   </td>
                   <td className="p-3 border border-[#D9F1F4] flex items-center cursor-pointer">
                     <Link href={`/admin/dashboard/student_fee?admission=${student.admissionNumber}`}>
-  <SquareArrowOutUpRight size={25} />
-</Link>
+                      <SquareArrowOutUpRight size={25} />
+                    </Link>
                     <AlertDialog>
 
                       <AlertDialogTrigger asChild>
@@ -330,6 +414,7 @@ export default function ClassWiseStudents() {
         </table>
 
       </div>
+      {!isSearching && (
       <div className="flex justify-between items-center mt-6">
 
         {/* Rows per page */}
@@ -430,6 +515,7 @@ export default function ClassWiseStudents() {
         </Pagination>
 
       </div>
+      )}
     </div>
 
 
