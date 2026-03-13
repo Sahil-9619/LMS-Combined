@@ -149,7 +149,7 @@ exports.updateStudentFee = async (req, res) => {
   try {
 
     const { admissionNumber, payAmount } = req.body;
-
+    const payment = Number(payAmount);
     const student = await Student.findOne({ admissionNumber });
 
     if (!student) {
@@ -160,8 +160,14 @@ exports.updateStudentFee = async (req, res) => {
     }
 
     const studentFee = await StudentFee.findOne({ studentId: student._id });
+ if (studentFee.totalPaid + payment > studentFee.totalAssignedFee) {
+      return res.status(400).json({
+        success: false,
+        message: "Payment exceeds total assigned fee",
+      });
+    }
 
-    const payment = Number(payAmount);
+    
 
     studentFee.totalPaid += payment;
 
