@@ -4,17 +4,29 @@ import { useEffect, useState } from "react";
 import { adminServices } from "@/services/admin/admin.service";
 import { Pencil } from "lucide-react";
 import { useSearchParams } from "next/navigation";
+import { SquareArrowOutUpRight } from "lucide-react";
+import Link from "next/link";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import { toast, Toaster } from "sonner";
+import { useRouter } from "next/navigation";
 
 
-const months = [
+const months = [ "January", "February", "March", 
   "April", "May", "June",
-  "July", "August", "September", "October", "November", "December", "January", "February", "March"
+  "July", "August", "September", "October", "November", "December",
 ];
 
 
 export default function AdminFeeManagement() {
 
-
+  const router = useRouter();
 
   const [admissionNo, setAdmissionNo] = useState("");
   const [student, setStudent] = useState(null);
@@ -23,59 +35,130 @@ export default function AdminFeeManagement() {
   const [monthlyFees, setMonthlyFees] = useState({});
   const [payAmount, setPayAmount] = useState("");
   const searchParams = useSearchParams();
-const admissionParam = searchParams.get("admission");
+  const admissionParam = searchParams.get("admission");
+  const [selectedClass, setSelectedClass] = useState("");
+  const [selectedMonth, setSelectedMonth] = useState("");
+  const [classStudents, setClassStudents] = useState([]);
+  const [classes, setClasses] = useState([]);
+  const [currentPage,setCurrentPage] = useState(1)
+const [rowsPerPage,setRowsPerPage] = useState(10)
+
+  useEffect(() => {
+    if (!admissionNo) {
+      setStudent(null);
+      setFeeStructure({});
+      setSummary({});
+      setMonthlyFees({});
+    }
+  }, [admissionNo]);
 
 
-useEffect(() => {
+  useEffect(() => {
 
-  if (admissionParam) {
+    if (admissionParam) {
 
-    setAdmissionNo(admissionParam);
+      setAdmissionNo(admissionParam);
 
-    handleSearch(admissionParam);
+      handleSearch(admissionParam);
 
-  }
+    }
+  }, [admissionParam]);
 
-}, [admissionParam]);
+
+  useEffect(() => {
+    const fetchClasses = async () => {
+      try {
+
+        const res = await adminServices.getAllClasses();
+
+        const classData = res?.data || [];
+
+        const sortedClasses = classData.sort(
+          (a, b) => Number(a.className) - Number(b.className)
+        );
+
+        setClasses(sortedClasses);
+
+      } catch (err) {
+        console.log(err);
+      }
+    };
+    fetchClasses();
+  }, []);
   /* ---------------- SEARCH STUDENT ---------------- */
 
   const handleSearch = async (admission) => {
-
+setStudent(null);
+setFeeStructure({});
+setSummary({});
+setMonthlyFees({});
     try {
-
-      const res = await adminServices.getStudentFeeByAdmission(admission || admissionNo);
-
-      const data = res?.data || res;
-
-      /* Student */
-      setStudent(data?.student || {});
-
-      /* Fee Structure */
-      setFeeStructure({
-  tuitionFee: data?.fee?.tuitionFee,
-  admissionFee: data?.fee?.admissionFee,
-  examFee: data?.fee?.examFee,
-  hostelFee: data?.fee?.hostelFee,
-  transportFee: data?.fee?.transportFee,
-  lateFeePerDay: data?.fee?.lateFeePerDay
+if (!admission && !admissionNo) {
+toast.error("Enter admission number",{
+position:"top-center"
 });
+return;
+}
+      // Case 1 → admission search (existing logic)
+      if (admission || admissionNo?.trim()) {
 
-      /* Summary */
-      setSummary({
-        totalAssignedFee: data?.fee?.totalAssignedFee || 0,
-        totalPaid: data?.fee?.totalPaid || 0,
-        remainingAmount: data?.fee?.remainingAmount || 0,
-        status: data?.fee?.status || "due"
-      });
+        const res = await adminServices.getStudentFeeByAdmission(admission || admissionNo);
 
-      /* Monthly Fees */
-      setMonthlyFees(data?.monthlyFees || {});
+    const data = res?.data || res;
+
+if (!data || !data.student) {
+
+toast.error("Student not found")
+
+  setStudent(null);
+  setFeeStructure({});
+  setSummary({});
+  setMonthlyFees({});
+  setAdmissionNo("");
+router.replace("/admin/dashboard/student_fee");
+  return;
+}
+
+setStudent(data.student);
+setFeeStructure(data.fee || {});
+setSummary(data.fee || {});
+setMonthlyFees(data.monthlyFees || {});
+
+        return;
+      }
+
+      // Case 2 → class search
+      if (selectedClass) {
+
+        const res = await adminServices.getstudentsByClass(selectedClass);
+
+        const studentsData = res?.data || [];
+
+        const sortedStudents = studentsData.sort(
+          (a, b) =>
+            Number(a.admissionNumber.replace("ADM", "")) -
+            Number(b.admissionNumber.replace("ADM", ""))
+        );
+
+        setClassStudents(sortedStudents);
+
+        return;
+      }
 
     } catch (err) {
-      console.log(err);
-    }
 
-  };
+  toast.error("Student not found", {
+    position: "top-center",
+  });
+
+  setStudent(null);
+  setFeeStructure({});
+  setSummary({});
+  setMonthlyFees({});
+  setAdmissionNo("");
+  router.replace("/admin/dashboard/student_fee");
+
+}}
 
   /* ---------------- UPDATE FEE STRUCTURE ---------------- */
 
@@ -92,44 +175,44 @@ useEffect(() => {
 
   const handlePayment = async () => {
 
-  try {
+    try {
 
-    const payload = {
-      admissionNumber: admissionNo,
-      payAmount: Number(payAmount)
-    };
+      const payload = {
+        admissionNumber: admissionNo,
+        payAmount: Number(payAmount)
+      };
 
-    await adminServices.updateStudentFee(payload);
+      await adminServices.updateStudentFee(payload);
 
-    handleSearch();
+      handleSearch();
 
-    setPayAmount("");
+      setPayAmount("");
 
-  } catch (err) {
+    } catch (err) {
 
-    console.log(err);
+      console.log(err);
 
-  }
+    }
 
-};
+  };
   const handleFeeStructureUpdate = async () => {
 
-  try {
+    try {
 
-    await adminServices.updateStudentFeeStructure(
-      admissionNo,
-      feeStructure
-    );
+      await adminServices.updateStudentFeeStructure(
+        admissionNo,
+        feeStructure
+      );
 
-    handleSearch();
+      handleSearch();
 
-  } catch (err) {
+    } catch (err) {
 
-    console.log(err);
+      console.log(err);
 
-  }
+    }
 
-};
+  };
 
   const monthlyFee = summary.totalAssignedFee
     ? summary.totalAssignedFee / 12
@@ -151,38 +234,337 @@ useEffect(() => {
 
   };
 
+  const totalPages = Math.ceil(classStudents.length / rowsPerPage)
+
+const startIndex = (currentPage - 1) * rowsPerPage
+const endIndex = startIndex + rowsPerPage
+
+const currentStudents = classStudents.slice(startIndex,endIndex)
+
+const getVisiblePages = () => {
+
+const maxVisible = 6
+
+if(totalPages <= maxVisible){
+return Array.from({length: totalPages},(_,i)=> i+1)
+}
+
+if(currentPage <=3){
+return [1,2,3,4,5,6]
+}
+
+if(currentPage >= totalPages-2){
+return Array.from({length:6},(_,i)=> totalPages-5+i)
+}
+
+return [
+currentPage-2,
+currentPage-1,
+currentPage,
+currentPage+1,
+currentPage+2,
+currentPage+3
+]
+
+}
+
+const visiblePages = getVisiblePages()
+
   return (
 
     <div className="p-10 bg-[#F4FDFE] min-h-screen space-y-12">
 
       {/* ---------------- Search ---------------- */}
 
-      <section>
+<section>
 
-        <h2 className="text-xl font-bold text-[#0F6F7C] mb-4">
-          Search Student
-        </h2>
+<h2 className="text-2xl font-semibold text-gray-800 mb-6">
+Fee Management Search
+</h2>
 
-        <div className="flex gap-4">
+<div className="flex flex-wrap gap-4 items-end">
 
-          <input
-            type="text"
-            placeholder="Enter Admission Number"
-            value={admissionNo}
-            onChange={(e) => setAdmissionNo(e.target.value)}
-            className="border rounded-lg p-3 w-72"
-          />
+<select
+value={selectedClass}
+onChange={async (e)=>{
+  const classId = e.target.value
+  setSelectedClass(classId)
+  setCurrentPage(1)
 
-         <button
-  onClick={() => handleSearch()}
-  className="bg-[#178F9E] text-white px-6 rounded-lg"
+  if(!classId){
+    setClassStudents([])
+    return
+  }
+
+  try{
+
+    const res = await adminServices.getstudentsByClass(classId)
+
+    const studentsData = res?.data || []
+
+    const sortedStudents = studentsData.sort(
+      (a,b)=>
+        Number(a.admissionNumber.replace("ADM","")) -
+        Number(b.admissionNumber.replace("ADM",""))
+    )
+
+    setClassStudents(sortedStudents)
+
+  }catch(err){
+    console.log(err)
+  }
+
+}}
+className="border border-gray-300 px-4 py-2 rounded-md text-sm focus:ring-2 focus:ring-[#178F9E]"
 >
-  Search
+<option value="">Select Class</option>
+
+{classes.map((cls)=>(
+<option key={cls._id} value={cls._id}>
+Class {cls.className}
+</option>
+))}
+
+</select>
+
+
+<select
+value={selectedMonth}
+onChange={(e)=>setSelectedMonth(e.target.value)}
+className="border border-gray-300 px-4 py-2 rounded-md text-sm focus:ring-2 focus:ring-[#178F9E]"
+>
+<option value="">Select Month</option>
+
+{months.map((m)=>(
+<option key={m} value={m}>{m}</option>
+))}
+
+</select>
+
+
+<input
+type="text"
+placeholder="Admission No (ADM1001)"
+value={admissionNo}
+onChange={(e)=>{
+  const value = e.target.value;
+  setAdmissionNo(value);
+
+  if(!value){
+    router.replace("/admin/dashboard/student_fee");
+  }
+}}
+className="border border-gray-300 px-4 py-2 rounded-md text-sm w-72"
+/>
+
+
+<button
+onClick={() => handleSearch()}
+className="bg-[#178F9E] text-white px-6 py-2 rounded-md hover:bg-[#0F6F7C]"
+>
+Search
 </button>
 
-        </div>
+</div>
 
-      </section>
+</section>
+      {selectedClass && classStudents.length > 0 && !admissionNo && (
+
+        <section>
+
+          <h2 className="text-xl font-semibold text-gray-800 mb-6">
+           Student Fee Status - Class {classes.find(c=>c._id === selectedClass)?.className}
+           </h2>
+          
+
+          <div className="overflow-x-auto">
+
+            <table className="w-full border border-[#D9F1F4] text-sm">
+
+<thead className="bg-[#E8F9FB] text-[#0F6F7C]">
+
+                <tr>
+                  <th className="p-3 border text-left">Admission No</th>
+                  <th className="p-3 border text-left">Student Name</th>
+                  <th className="p-3 border text-left">Father Name</th>
+                  <th className="p-3 border text-left">Email</th>
+                  <th className="p-3 border text-left">Phone</th>
+                  <th className="p-3 border text-left">Total Fee</th>
+                  <th className="p-3 border text-left">
+                    {selectedMonth ? `${selectedMonth} Status` : "Status"}
+                  </th>
+                </tr>
+
+              </thead>
+
+              <tbody>
+
+              {currentStudents.map((s,index)=>{
+
+const remaining=(s.totalAssignedFee||0)-(s.totalPaid||0)
+
+return(
+                  <tr
+key={s._id}
+className={`
+
+${index%2===0 ? "bg-white":"bg-[#F4FDFE]"}
+hover:bg-[#ECFAFC] transition
+
+`}
+>
+
+
+                    <td className="p-3 border border-[#D9F1F4]">
+{s.admissionNumber}
+</td>
+
+
+<td className="p-3 border border-[#D9F1F4]">
+{s.firstName} {s.lastName}
+</td>
+<td className="p-3 border border-[#D9F1F4]">
+{s.fatherName || "N/A"}
+</td>
+
+
+
+<td className="p-3 border border-[#D9F1F4]">
+{s.email || "N/A"}
+</td>
+
+
+<td className="p-3 border border-[#D9F1F4]">
+{s.phone || "N/A"}
+</td>
+
+
+<td className="p-3 border border-[#D9F1F4] font-semibold">
+₹{s.totalAssignedFee || 0}
+</td>
+
+<td className="p-3 border border-[#D9F1F4]">
+
+{remaining === 0 ? (
+
+<span className="text-green-600 font-semibold flex items-center gap-1">
+✓ Paid
+</span>
+
+) : (
+
+<div className="flex flex-col">
+
+<span className="text-black font-semibold">
+₹{s.totalAssignedFee}
+</span>
+
+<span className="text-red-600 font-semibold text-xs">
+₹{remaining} Remaining
+</span>
+
+</div>
+
+)}
+
+</td>
+
+
+<td className="p-3 border border-[#D9F1F4]">
+
+<Link href={`/admin/dashboard/student_fee?admission=${s.admissionNumber}`}>
+
+<SquareArrowOutUpRight
+size={22}
+className="cursor-pointer text-[#178F9E]"
+/>
+
+</Link>
+
+</td>
+
+</tr>
+
+)
+
+})}
+
+</tbody>
+
+</table>
+<div className="flex justify-between items-center mt-6">
+
+<div className="flex items-center gap-2 text-sm">
+
+<span>Rows per page:</span>
+
+<select
+value={rowsPerPage}
+onChange={(e)=>{
+setRowsPerPage(Number(e.target.value))
+setCurrentPage(1)
+}}
+className="border rounded px-2 py-1"
+>
+
+<option value={10}>10</option>
+<option value={25}>25</option>
+<option value={50}>50</option>
+<option value={100}>100</option>
+
+</select>
+
+</div>
+
+<Pagination>
+
+<PaginationContent>
+
+<PaginationItem>
+
+<PaginationPrevious
+className={`cursor-pointer select-none ${currentPage===1?"pointer-events-none opacity-50":""}`}
+onClick={()=>setCurrentPage(prev=>Math.max(prev-1,1))}
+/>
+
+</PaginationItem>
+
+{visiblePages.map((page)=>(
+<PaginationItem key={page}>
+
+<PaginationLink
+className="cursor-pointer select-none"
+isActive={currentPage===page}
+onClick={()=>setCurrentPage(page)}
+>
+
+{page}
+
+</PaginationLink>
+
+</PaginationItem>
+))}
+
+<PaginationItem>
+
+<PaginationNext
+className={`cursor-pointer select-none ${currentPage===totalPages?"pointer-events-none opacity-50":""}`}
+onClick={()=>setCurrentPage(prev=>Math.min(prev+1,totalPages))}
+/>
+
+</PaginationItem>
+
+</PaginationContent>
+
+</Pagination>
+
+</div>
+
+</div>
+
+</section>
+
+)}
 
       {/* Show sections only if student loaded */}
 
@@ -387,6 +769,7 @@ ${summary.status === "paid"
 
       )}
 
+
     </div>
 
   )
@@ -456,7 +839,9 @@ function Summary({ label, value, color }) {
         ₹{value || 0}
       </p>
 
+
     </div>
+    
 
   )
 
