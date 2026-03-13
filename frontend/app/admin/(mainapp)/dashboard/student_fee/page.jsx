@@ -18,7 +18,7 @@ import { toast, Toaster } from "sonner";
 import { useRouter } from "next/navigation";
 
 
-const months = [ "January", "February", "March", 
+const months = ["January", "February", "March",
   "April", "May", "June",
   "July", "August", "September", "October", "November", "December",
 ];
@@ -40,8 +40,8 @@ export default function AdminFeeManagement() {
   const [selectedMonth, setSelectedMonth] = useState("");
   const [classStudents, setClassStudents] = useState([]);
   const [classes, setClasses] = useState([]);
-  const [currentPage,setCurrentPage] = useState(1)
-const [rowsPerPage,setRowsPerPage] = useState(10)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [rowsPerPage, setRowsPerPage] = useState(10)
 
   useEffect(() => {
     if (!admissionNo) {
@@ -88,41 +88,41 @@ const [rowsPerPage,setRowsPerPage] = useState(10)
   /* ---------------- SEARCH STUDENT ---------------- */
 
   const handleSearch = async (admission) => {
-setStudent(null);
-setFeeStructure({});
-setSummary({});
-setMonthlyFees({});
+    setStudent(null);
+    setFeeStructure({});
+    setSummary({});
+    setMonthlyFees({});
     try {
-if (!admission && !admissionNo) {
-toast.error("Enter admission number",{
-position:"top-center"
-});
-return;
-}
+      if (!admission && !admissionNo) {
+        toast.error("Enter admission number", {
+          position: "top-center"
+        });
+        return;
+      }
       // Case 1 → admission search (existing logic)
       if (admission || admissionNo?.trim()) {
 
         const res = await adminServices.getStudentFeeByAdmission(admission || admissionNo);
 
-    const data = res?.data || res;
+        const data = res?.data || res;
 
-if (!data || !data.student) {
+        if (!data || !data.student) {
 
-toast.error("Student not found")
+          toast.error("Student not found")
 
-  setStudent(null);
-  setFeeStructure({});
-  setSummary({});
-  setMonthlyFees({});
-  setAdmissionNo("");
-router.replace("/admin/dashboard/student_fee");
-  return;
-}
+          setStudent(null);
+          setFeeStructure({});
+          setSummary({});
+          setMonthlyFees({});
+          setAdmissionNo("");
+          router.replace("/admin/dashboard/student_fee");
+          return;
+        }
 
-setStudent(data.student);
-setFeeStructure(data.fee || {});
-setSummary(data.fee || {});
-setMonthlyFees(data.monthlyFees || {});
+        setStudent(data.student);
+        setFeeStructure(data.fee || {});
+        setSummary(data.fee || {});
+        setMonthlyFees(data.monthlyFees || {});
 
         return;
       }
@@ -147,18 +147,19 @@ setMonthlyFees(data.monthlyFees || {});
 
     } catch (err) {
 
-  toast.error("Student not found", {
-    position: "top-center",
-  });
+      toast.error("Student not found", {
+        position: "top-center",
+      });
 
-  setStudent(null);
-  setFeeStructure({});
-  setSummary({});
-  setMonthlyFees({});
-  setAdmissionNo("");
-  router.replace("/admin/dashboard/student_fee");
+      setStudent(null);
+      setFeeStructure({});
+      setSummary({});
+      setMonthlyFees({});
+      setAdmissionNo("");
+      router.replace("/admin/dashboard/student_fee");
 
-}}
+    }
+  }
 
   /* ---------------- UPDATE FEE STRUCTURE ---------------- */
 
@@ -236,39 +237,39 @@ setMonthlyFees(data.monthlyFees || {});
 
   const totalPages = Math.ceil(classStudents.length / rowsPerPage)
 
-const startIndex = (currentPage - 1) * rowsPerPage
-const endIndex = startIndex + rowsPerPage
+  const startIndex = (currentPage - 1) * rowsPerPage
+  const endIndex = startIndex + rowsPerPage
 
-const currentStudents = classStudents.slice(startIndex,endIndex)
+  const currentStudents = classStudents.slice(startIndex, endIndex)
 
-const getVisiblePages = () => {
+  const getVisiblePages = () => {
 
-const maxVisible = 6
+    const maxVisible = 6
 
-if(totalPages <= maxVisible){
-return Array.from({length: totalPages},(_,i)=> i+1)
-}
+    if (totalPages <= maxVisible) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1)
+    }
 
-if(currentPage <=3){
-return [1,2,3,4,5,6]
-}
+    if (currentPage <= 3) {
+      return [1, 2, 3, 4, 5, 6]
+    }
 
-if(currentPage >= totalPages-2){
-return Array.from({length:6},(_,i)=> totalPages-5+i)
-}
+    if (currentPage >= totalPages - 2) {
+      return Array.from({ length: 6 }, (_, i) => totalPages - 5 + i)
+    }
 
-return [
-currentPage-2,
-currentPage-1,
-currentPage,
-currentPage+1,
-currentPage+2,
-currentPage+3
-]
+    return [
+      currentPage - 2,
+      currentPage - 1,
+      currentPage,
+      currentPage + 1,
+      currentPage + 2,
+      currentPage + 3
+    ]
 
-}
+  }
 
-const visiblePages = getVisiblePages()
+  const visiblePages = getVisiblePages()
 
   return (
 
@@ -276,112 +277,127 @@ const visiblePages = getVisiblePages()
 
       {/* ---------------- Search ---------------- */}
 
-<section>
+      <section>
 
-<h2 className="text-2xl font-semibold text-gray-800 mb-6">
-Fee Management Search
-</h2>
+        <h2 className="text-2xl font-semibold text-gray-800 mb-6">
+          Fee Management Search
+        </h2>
 
-<div className="flex flex-wrap gap-4 items-end">
+        <div className="flex flex-wrap gap-4 items-end">
 
-<select
-value={selectedClass}
-onChange={async (e)=>{
-  const classId = e.target.value
-  setSelectedClass(classId)
-  setCurrentPage(1)
+          <select
+            value={selectedClass}
+            onChange={async (e) => {
+              const classId = e.target.value
+              setSelectedClass(classId)
+              setCurrentPage(1)
 
-  if(!classId){
-    setClassStudents([])
-    return
-  }
+              setAdmissionNo("")
+              router.replace("/admin/dashboard/student_fee")
 
-  try{
+              if (!classId) {
+                setClassStudents([])
+                return
+              }
 
-    const res = await adminServices.getstudentsByClass(classId)
+              try {
 
-    const studentsData = res?.data || []
+                const res = await adminServices.getstudentsByClass(classId)
 
-    const sortedStudents = studentsData.sort(
-      (a,b)=>
-        Number(a.admissionNumber.replace("ADM","")) -
-        Number(b.admissionNumber.replace("ADM",""))
-    )
+                const studentsData = res?.data || []
 
-    setClassStudents(sortedStudents)
+                const sortedStudents = studentsData.sort(
+                  (a, b) =>
+                    Number(a.admissionNumber.replace("ADM", "")) -
+                    Number(b.admissionNumber.replace("ADM", ""))
+                )
 
-  }catch(err){
-    console.log(err)
-  }
+                setClassStudents(sortedStudents)
 
-}}
-className="border border-gray-300 px-4 py-2 rounded-md text-sm focus:ring-2 focus:ring-[#178F9E]"
->
-<option value="">Select Class</option>
+              } catch (err) {
+                console.log(err)
+              }
 
-{classes.map((cls)=>(
-<option key={cls._id} value={cls._id}>
-Class {cls.className}
-</option>
-))}
+            }}
+            className="border border-gray-300 px-4 py-2 rounded-md text-sm focus:ring-2 focus:ring-[#178F9E]"
+          >
+            <option value="">Select Class</option>
 
-</select>
+            {classes.map((cls) => (
+              <option key={cls._id} value={cls._id}>
+                Class {cls.className}
+              </option>
+            ))}
 
-
-<select
-value={selectedMonth}
-onChange={(e)=>setSelectedMonth(e.target.value)}
-className="border border-gray-300 px-4 py-2 rounded-md text-sm focus:ring-2 focus:ring-[#178F9E]"
->
-<option value="">Select Month</option>
-
-{months.map((m)=>(
-<option key={m} value={m}>{m}</option>
-))}
-
-</select>
+          </select>
 
 
-<input
-type="text"
-placeholder="Admission No (ADM1001)"
-value={admissionNo}
-onChange={(e)=>{
-  const value = e.target.value;
-  setAdmissionNo(value);
+          <select
+            value={selectedMonth}
+            onChange={(e) => {
+              setSelectedMonth(e.target.value)
+              setAdmissionNo("")
+              router.replace("/admin/dashboard/student_fee")
+            }} className="border border-gray-300 px-4 py-2 rounded-md text-sm focus:ring-2 focus:ring-[#178F9E]"
+          >
+            <option value="">Select Month</option>
 
-  if(!value){
-    router.replace("/admin/dashboard/student_fee");
-  }
-}}
-className="border border-gray-300 px-4 py-2 rounded-md text-sm w-72"
-/>
+            {months.map((m) => (
+              <option key={m} value={m}>{m}</option>
+            ))}
+
+          </select>
 
 
-<button
-onClick={() => handleSearch()}
-className="bg-[#178F9E] text-white px-6 py-2 rounded-md hover:bg-[#0F6F7C]"
->
-Search
-</button>
+          <input
+            type="text"
+            placeholder="Admission No (ADM1001)"
+            value={admissionNo}
+            onChange={(e) => {
+              const value = e.target.value;
+              setAdmissionNo(value);
 
-</div>
+              if (!value) {
+                router.replace("/admin/dashboard/student_fee");
+              }
+            }}
+            className="border border-gray-300 px-4 py-2 rounded-md text-sm w-72"
+          />
 
-</section>
+
+          <button
+            onClick={() => {
+
+              if (admissionNo) {
+                setSelectedClass("")
+                setSelectedMonth("")
+                setClassStudents([])
+              }
+
+              handleSearch()
+
+            }}
+            className="bg-[#178F9E] text-white px-6 py-2 rounded-md hover:bg-[#0F6F7C]"
+          >
+            Search
+          </button>
+        </div>
+
+      </section>
       {selectedClass && classStudents.length > 0 && !admissionNo && (
 
         <section>
 
           <h2 className="text-xl font-semibold text-gray-800 mb-6">
-           Student Fee Status - Class {classes.find(c=>c._id === selectedClass)?.className}
-           </h2>
-          
+            Student Fee Status - Class {classes.find(c => c._id === selectedClass)?.className}
+          </h2>
+
 
           <div className="overflow-x-auto">
 
             <table className="w-full border border-[#D9F1F4] text-sm">
 
-<thead className="bg-[#E8F9FB] text-[#0F6F7C]">
+              <thead className="bg-[#E8F9FB] text-[#0F6F7C]">
 
                 <tr>
                   <th className="p-3 border text-left">Admission No</th>
@@ -399,172 +415,172 @@ Search
 
               <tbody>
 
-              {currentStudents.map((s,index)=>{
+                {currentStudents.map((s, index) => {
 
-const remaining=(s.totalAssignedFee||0)-(s.totalPaid||0)
+                  const remaining = (s.totalAssignedFee || 0) - (s.totalPaid || 0)
 
-return(
-                  <tr
-key={s._id}
-className={`
+                  return (
+                    <tr
+                      key={s._id}
+                      className={`
 
-${index%2===0 ? "bg-white":"bg-[#F4FDFE]"}
+${index % 2 === 0 ? "bg-white" : "bg-[#F4FDFE]"}
 hover:bg-[#ECFAFC] transition
 
 `}
->
+                    >
 
 
-                    <td className="p-3 border border-[#D9F1F4]">
-{s.admissionNumber}
-</td>
+                      <td className="p-3 border border-[#D9F1F4]">
+                        {s.admissionNumber}
+                      </td>
 
 
-<td className="p-3 border border-[#D9F1F4]">
-{s.firstName} {s.lastName}
-</td>
-<td className="p-3 border border-[#D9F1F4]">
-{s.fatherName || "N/A"}
-</td>
+                      <td className="p-3 border border-[#D9F1F4]">
+                        {s.firstName} {s.lastName}
+                      </td>
+                      <td className="p-3 border border-[#D9F1F4]">
+                        {s.fatherName || "N/A"}
+                      </td>
 
 
 
-<td className="p-3 border border-[#D9F1F4]">
-{s.email || "N/A"}
-</td>
+                      <td className="p-3 border border-[#D9F1F4]">
+                        {s.email || "N/A"}
+                      </td>
 
 
-<td className="p-3 border border-[#D9F1F4]">
-{s.phone || "N/A"}
-</td>
+                      <td className="p-3 border border-[#D9F1F4]">
+                        {s.phone || "N/A"}
+                      </td>
 
 
-<td className="p-3 border border-[#D9F1F4] font-semibold">
-₹{s.totalAssignedFee || 0}
-</td>
+                      <td className="p-3 border border-[#D9F1F4] font-semibold">
+                        ₹{s.totalAssignedFee || 0}
+                      </td>
 
-<td className="p-3 border border-[#D9F1F4]">
+                      <td className="p-3 border border-[#D9F1F4]">
 
-{remaining === 0 ? (
+                        {remaining === 0 ? (
 
-<span className="text-green-600 font-semibold flex items-center gap-1">
-✓ Paid
-</span>
+                          <span className="text-green-600 font-semibold flex items-center gap-1">
+                            ✓ Paid
+                          </span>
 
-) : (
+                        ) : (
 
-<div className="flex flex-col">
+                          <div className="flex flex-col">
 
-<span className="text-black font-semibold">
-₹{s.totalAssignedFee}
-</span>
+                            <span className="text-black font-semibold">
+                              ₹{s.totalAssignedFee}
+                            </span>
 
-<span className="text-red-600 font-semibold text-xs">
-₹{remaining} Remaining
-</span>
+                            <span className="text-red-600 font-semibold text-xs">
+                              ₹{remaining} Remaining
+                            </span>
 
-</div>
+                          </div>
 
-)}
+                        )}
 
-</td>
+                      </td>
 
 
-<td className="p-3 border border-[#D9F1F4]">
+                      <td className="p-3 border border-[#D9F1F4]">
 
-<Link href={`/admin/dashboard/student_fee?admission=${s.admissionNumber}`}>
+                        <Link href={`/admin/dashboard/student_fee?admission=${s.admissionNumber}`}>
 
-<SquareArrowOutUpRight
-size={22}
-className="cursor-pointer text-[#178F9E]"
-/>
+                          <SquareArrowOutUpRight
+                            size={22}
+                            className="cursor-pointer text-[#178F9E]"
+                          />
 
-</Link>
+                        </Link>
 
-</td>
+                      </td>
 
-</tr>
+                    </tr>
 
-)
+                  )
 
-})}
+                })}
 
-</tbody>
+              </tbody>
 
-</table>
-<div className="flex justify-between items-center mt-6">
+            </table>
+            <div className="flex justify-between items-center mt-6">
 
-<div className="flex items-center gap-2 text-sm">
+              <div className="flex items-center gap-2 text-sm">
 
-<span>Rows per page:</span>
+                <span>Rows per page:</span>
 
-<select
-value={rowsPerPage}
-onChange={(e)=>{
-setRowsPerPage(Number(e.target.value))
-setCurrentPage(1)
-}}
-className="border rounded px-2 py-1"
->
+                <select
+                  value={rowsPerPage}
+                  onChange={(e) => {
+                    setRowsPerPage(Number(e.target.value))
+                    setCurrentPage(1)
+                  }}
+                  className="border rounded px-2 py-1"
+                >
 
-<option value={10}>10</option>
-<option value={25}>25</option>
-<option value={50}>50</option>
-<option value={100}>100</option>
+                  <option value={10}>10</option>
+                  <option value={25}>25</option>
+                  <option value={50}>50</option>
+                  <option value={100}>100</option>
 
-</select>
+                </select>
 
-</div>
+              </div>
 
-<Pagination>
+              <Pagination>
 
-<PaginationContent>
+                <PaginationContent>
 
-<PaginationItem>
+                  <PaginationItem>
 
-<PaginationPrevious
-className={`cursor-pointer select-none ${currentPage===1?"pointer-events-none opacity-50":""}`}
-onClick={()=>setCurrentPage(prev=>Math.max(prev-1,1))}
-/>
+                    <PaginationPrevious
+                      className={`cursor-pointer select-none ${currentPage === 1 ? "pointer-events-none opacity-50" : ""}`}
+                      onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                    />
 
-</PaginationItem>
+                  </PaginationItem>
 
-{visiblePages.map((page)=>(
-<PaginationItem key={page}>
+                  {visiblePages.map((page) => (
+                    <PaginationItem key={page}>
 
-<PaginationLink
-className="cursor-pointer select-none"
-isActive={currentPage===page}
-onClick={()=>setCurrentPage(page)}
->
+                      <PaginationLink
+                        className="cursor-pointer select-none"
+                        isActive={currentPage === page}
+                        onClick={() => setCurrentPage(page)}
+                      >
 
-{page}
+                        {page}
 
-</PaginationLink>
+                      </PaginationLink>
 
-</PaginationItem>
-))}
+                    </PaginationItem>
+                  ))}
 
-<PaginationItem>
+                  <PaginationItem>
 
-<PaginationNext
-className={`cursor-pointer select-none ${currentPage===totalPages?"pointer-events-none opacity-50":""}`}
-onClick={()=>setCurrentPage(prev=>Math.min(prev+1,totalPages))}
-/>
+                    <PaginationNext
+                      className={`cursor-pointer select-none ${currentPage === totalPages ? "pointer-events-none opacity-50" : ""}`}
+                      onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                    />
 
-</PaginationItem>
+                  </PaginationItem>
 
-</PaginationContent>
+                </PaginationContent>
 
-</Pagination>
+              </Pagination>
 
-</div>
+            </div>
 
-</div>
+          </div>
 
-</section>
+        </section>
 
-)}
+      )}
 
       {/* Show sections only if student loaded */}
 
@@ -841,7 +857,7 @@ function Summary({ label, value, color }) {
 
 
     </div>
-    
+
 
   )
 
