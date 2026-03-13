@@ -22,7 +22,7 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { toast } from "sonner";
-import { ArrowBigRight, LucideDelete, SquareArrowOutUpRight, Trash } from "lucide-react";
+import { ArrowBigRight, LucideDelete, Pencil, SquareArrowOutUpRight, Trash } from "lucide-react";
 import Link from "next/link";
 export default function ClassWiseStudents() {
 
@@ -35,8 +35,9 @@ export default function ClassWiseStudents() {
   const [searchTerm, setSearchTerm] = useState("");
   const [highlightId, setHighlightId] = useState(null);
   const [filteredStudents, setFilteredStudents] = useState([]);
-const [isSearching, setIsSearching] = useState(false);
-
+  const [isSearching, setIsSearching] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [editEmail, setEditEmail] = useState("");
   /* -------- FETCH CLASSES -------- */
 
   useEffect(() => {
@@ -170,40 +171,62 @@ const [isSearching, setIsSearching] = useState(false);
 
 
   //for search bar
-const handleSearch = () => {
+  const handleSearch = () => {
 
-  const term = searchTerm.trim().toLowerCase();
+    const term = searchTerm.trim().toLowerCase();
 
-  if (!term) {
-    toast.error("Enter admission number, name or email");
-    return;
-  }
+    if (!term) {
+      toast.error("Enter admission number, name or email");
+      return;
+    }
 
-  const results = students.filter((s) => {
+    const results = students.filter((s) => {
 
-    const admission = (s.admissionNumber || "").toLowerCase();
-    const first = (s.firstName || "").toLowerCase();
-    const last = (s.lastName || "").toLowerCase();
-    const email = (s.email || "").toLowerCase();
+      const admission = (s.admissionNumber || "").toLowerCase();
+      const first = (s.firstName || "").toLowerCase();
+      const last = (s.lastName || "").toLowerCase();
+      const email = (s.email || "").toLowerCase();
 
-    return (
-      admission.includes(term) ||
-      first.includes(term) ||
-      last.includes(term) ||
-      `${first} ${last}`.includes(term) ||
-      email.includes(term)
-    );
-  });
+      return (
+        admission.includes(term) ||
+        first.includes(term) ||
+        last.includes(term) ||
+        `${first} ${last}`.includes(term) ||
+        email.includes(term)
+      );
+    });
 
-  if (results.length === 0) {
-    toast.error("Student not found");
-    return;
-  }
+    if (results.length === 0) {
+      toast.error("Student not found");
+      return;
+    }
 
-  setFilteredStudents(results);
-  setIsSearching(true);
+    setFilteredStudents(results);
+    setIsSearching(true);
 
-};
+  };
+
+  //update Email Id
+  const handleEmailUpdate = async (id) => {
+    try {
+      await adminServices.updateStudent(id, { email: editEmail });
+
+      setStudents((prev) =>
+        prev.map((s) =>
+          s._id === id ? { ...s, email: editEmail } : s
+        )
+      );
+
+      setEditingId(null);
+      setEditEmail("");
+
+      toast.success("Email updated successfully");
+
+    } catch (err) {
+      console.log(err);
+      toast.error("Failed to update email");
+    }
+  };
 
   return (
 
@@ -245,42 +268,42 @@ const handleSearch = () => {
 
       </div>
 
-<div className="flex gap-3 mb-4">
+      <div className="flex gap-3 mb-4">
 
-  <input
-    type="text"
-    placeholder="Search by Admission No, Name, Email"
-    value={searchTerm}
-    onChange={(e) => setSearchTerm(e.target.value)}
-    className="border px-4 py-2 rounded-md w-72"
-  />
+        <input
+          type="text"
+          placeholder="Search by Admission No, Name, Email"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="border px-4 py-2 rounded-md w-72"
+        />
 
-  <button
-    onClick={handleSearch}
-    className="bg-[#178F9E] text-white px-5 py-2 rounded-md"
-  >
-    Search
-  </button>
+        <button
+          onClick={handleSearch}
+          className="bg-[#178F9E] text-white px-5 py-2 rounded-md"
+        >
+          Search
+        </button>
 
-  {isSearching && (
-    <button
-      onClick={() => {
-        setIsSearching(false);
-        setFilteredStudents([]);
-        setSearchTerm("");
-      }}
-      className="bg-gray-500 text-white px-5 py-2 rounded-md"
-    >
-      Clear
-    </button>
-  )}
+        {isSearching && (
+          <button
+            onClick={() => {
+              setIsSearching(false);
+              setFilteredStudents([]);
+              setSearchTerm("");
+            }}
+            className="bg-gray-500 text-white px-5 py-2 rounded-md"
+          >
+            Clear
+          </button>
+        )}
 
-</div>
-{isSearching && (
-  <p className="mb-3 text-sm text-gray-600">
-    {filteredStudents.length} record(s) found
-  </p>
-)}
+      </div>
+      {isSearching && (
+        <p className="mb-3 text-sm text-gray-600">
+          {filteredStudents.length} record(s) found
+        </p>
+      )}
 
       {/* TABLE */}
 
@@ -349,7 +372,56 @@ hover:bg-[#ECFAFC] transition
                   </td>
 
                   <td className="p-3 border border-[#D9F1F4]">
-                    {student.email || "N/A"}
+
+                    {editingId === student._id ? (
+
+                      <div className="flex gap-2">
+
+                        <input
+                          value={editEmail}
+                          onChange={(e) => setEditEmail(e.target.value)}
+                          className="border px-2 py-1 rounded w-48"
+                        />
+
+                        <button
+                          onClick={() => handleEmailUpdate(student._id)}
+                          className="bg-green-500 text-white px-2 rounded"
+                        >
+                          Save
+                        </button>
+
+                        <button
+                          onClick={() => {
+                            setEditingId(null);
+                            setEditEmail("");
+                          }}
+                          className="bg-gray-400 text-white px-2 rounded"
+                        >
+                          Cancel
+                        </button>
+
+                      </div>
+
+                    ) : (
+
+                      <div className="flex items-center gap-2">
+
+                        <span>{student.email || "N/A"}</span>
+
+                        <button
+                          onClick={() => {
+                            setEditingId(student._id);
+                            setEditEmail(student.email || "");
+                          }}
+                          className="text-blue-600 text-xs underline"
+                        >
+                          <Pencil size={16} className="cursor-pointer text-blue-600" />
+                        </button>
+
+                      </div>
+
+                    )}
+
                   </td>
 
                   <td className="p-3 border border-[#D9F1F4]">
@@ -415,106 +487,106 @@ hover:bg-[#ECFAFC] transition
 
       </div>
       {!isSearching && (
-      <div className="flex justify-between items-center mt-6">
+        <div className="flex justify-between items-center mt-6">
 
-        {/* Rows per page */}
-        <div className="flex items-center gap-2 text-sm">
+          {/* Rows per page */}
+          <div className="flex items-center gap-2 text-sm">
 
-          <span>Rows per page:</span>
+            <span>Rows per page:</span>
 
-          <select
-            value={rowsPerPage}
-            onChange={(e) => {
-              setRowsPerPage(Number(e.target.value));
-              setCurrentPage(1);
-            }}
-            className="border rounded px-2 py-1"
-          >
+            <select
+              value={rowsPerPage}
+              onChange={(e) => {
+                setRowsPerPage(Number(e.target.value));
+                setCurrentPage(1);
+              }}
+              className="border rounded px-2 py-1"
+            >
 
-            <option value={10}>10</option>
-            <option value={25}>25</option>
-            <option value={50}>50</option>
-            <option value={100}>100</option>
+              <option value={10}>10</option>
+              <option value={25}>25</option>
+              <option value={50}>50</option>
+              <option value={100}>100</option>
 
-          </select>
+            </select>
+
+          </div>
+
+          {/* Pagination */}
+          <Pagination>
+
+            <PaginationContent>
+
+              {/* Previous */}
+              <PaginationItem>
+
+                <PaginationPrevious
+                  className={`cursor-pointer select-none ${currentPage === 1 ? "pointer-events-none opacity-50" : ""
+                    }`}
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.max(prev - 1, 1))
+                  }
+                />
+
+              </PaginationItem>
+
+              {/* Page Numbers */}
+              {visiblePages.map((page) => (
+
+                <PaginationItem key={page}>
+
+                  <PaginationLink
+                    className="cursor-pointer select-none"
+
+                    isActive={currentPage === page}
+                    onClick={() => setCurrentPage(page)}
+                  >
+
+                    {page}
+
+                  </PaginationLink>
+
+                </PaginationItem>
+
+              ))}
+              {totalPages > 6 && currentPage < totalPages - 3 && (
+                <PaginationItem>
+                  <span className="px-3 text-gray-500">...</span>
+                </PaginationItem>
+              )}
+              {totalPages > 6 && !visiblePages.includes(totalPages) && (
+                <PaginationItem>
+                  <PaginationLink
+                    className="cursor-pointer select-none"
+
+                    isActive={currentPage === totalPages}
+                    onClick={() => setCurrentPage(totalPages)}
+                  >
+                    {totalPages}
+                  </PaginationLink>
+                </PaginationItem>
+              )}
+
+              {/* Next */}
+              <PaginationItem>
+
+                <PaginationNext
+                  className={`cursor-pointer select-none ${currentPage === totalPages ? "pointer-events-none opacity-50" : ""
+                    }`}
+                  onClick={() =>
+                    setCurrentPage((prev) =>
+                      Math.min(prev + 1, totalPages)
+                    )
+                  }
+                />
+
+              </PaginationItem>
+
+            </PaginationContent>
+
+          </Pagination>
 
         </div>
-
-        {/* Pagination */}
-        <Pagination>
-
-          <PaginationContent>
-
-            {/* Previous */}
-            <PaginationItem>
-
-              <PaginationPrevious
-                className={`cursor-pointer select-none ${currentPage === 1 ? "pointer-events-none opacity-50" : ""
-                  }`}
-                onClick={() =>
-                  setCurrentPage((prev) => Math.max(prev - 1, 1))
-                }
-              />
-
-            </PaginationItem>
-
-            {/* Page Numbers */}
-            {visiblePages.map((page) => (
-
-              <PaginationItem key={page}>
-
-                <PaginationLink
-                  className="cursor-pointer select-none"
-
-                  isActive={currentPage === page}
-                  onClick={() => setCurrentPage(page)}
-                >
-
-                  {page}
-
-                </PaginationLink>
-
-              </PaginationItem>
-
-            ))}
-            {totalPages > 6 && currentPage < totalPages - 3 && (
-              <PaginationItem>
-                <span className="px-3 text-gray-500">...</span>
-              </PaginationItem>
-            )}
-            {totalPages > 6 && !visiblePages.includes(totalPages) && (
-              <PaginationItem>
-                <PaginationLink
-                  className="cursor-pointer select-none"
-
-                  isActive={currentPage === totalPages}
-                  onClick={() => setCurrentPage(totalPages)}
-                >
-                  {totalPages}
-                </PaginationLink>
-              </PaginationItem>
-            )}
-
-            {/* Next */}
-            <PaginationItem>
-
-              <PaginationNext
-                className={`cursor-pointer select-none ${currentPage === totalPages ? "pointer-events-none opacity-50" : ""
-                  }`}
-                onClick={() =>
-                  setCurrentPage((prev) =>
-                    Math.min(prev + 1, totalPages)
-                  )
-                }
-              />
-
-            </PaginationItem>
-
-          </PaginationContent>
-
-        </Pagination>
-
-      </div>
       )}
     </div>
 
