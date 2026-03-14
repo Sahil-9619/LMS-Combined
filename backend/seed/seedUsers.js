@@ -1,58 +1,72 @@
 import mongoose from "mongoose";
 import { faker } from "@faker-js/faker";
+
 import Student from "../models/student.model.js";
 import Class from "../models/class.model.js";
 import FeeStructure from "../models/feeStructure.model.js";
 import StudentFee from "../models/studentFee.model.js";
 
+const DB_URI = "mongodb://localhost:27017/backend";
+const BATCH_SIZE = 1000;
+
 const seedUsers = async () => {
 
   try {
 
-    await mongoose.connect("mongodb://localhost:27017/backend");
+    console.log("🔌 Connecting to MongoDB...");
+    await mongoose.connect(DB_URI);
+    console.log("✅ MongoDB Connected");
 
-    // Get starting admission number from command line argument
     const startNumber = parseInt(process.argv[2]) || 5000;
-    const endNumber = startNumber + 1000;
+    const endNumber = startNumber + BATCH_SIZE;
 
-    console.log(`🎯 Seeding students from ADM${startNumber} to ADM${endNumber - 1}`);
+    console.log(`🎯 Seeding students from ADM${startNumber} → ADM${endNumber - 1}`);
 
-    const classes = await Class.find();
+    // ============================
+    // FETCH CLASSES
+    // ============================
+
+    const classes = await Class.find().lean();
 
     console.log(`📚 Found ${classes.length} classes`);
 
-    if (classes.length === 0) {
-      console.error("❌ No classes found. Create classes first!");
-      mongoose.disconnect();
-      return;
+    if (!classes.length) {
+      throw new Error("No classes found. Seed classes first.");
     }
 
-    // Delete students in this batch range only
-    const deleted = await Student.deleteMany({ 
-      admissionNumber: { 
+    // ============================
+    // DELETE OLD STUDENTS
+    // ============================
+
+    const deleteResult = await Student.deleteMany({
+      admissionNumber: {
         $gte: `ADM${startNumber}`,
         $lt: `ADM${endNumber}`
       }
     });
-    console.log(`🗑️  Deleted ${deleted.deletedCount} old students in range ADM${startNumber}-ADM${endNumber - 1}`);
+
+    console.log(`🗑 Deleted ${deleteResult.deletedCount} old students`);
+
+    // ============================
+    // PREPARE STUDENT DATA
+    // ============================
 
     const students = [];
 
-    for (let i = 0; i < 1000; i++) {
+    for (let i = 0; i < BATCH_SIZE; i++) {
 
-      const randomClass = classes[Math.floor(Math.random() * classes.length)];
+      const randomClass =
+        classes[Math.floor(Math.random() * classes.length)];
 
-      if (!randomClass || !randomClass._id || !randomClass.section) {
-        console.error(`⚠️  Invalid class at index ${i}:`, randomClass);
-        continue;
-      }
+      if (!randomClass?._id) continue;
 
       students.push({
 
         admissionNumber: `ADM${startNumber + i}`,
+
         classId: randomClass._id,
-        section: randomClass.section,
         className: randomClass.className,
+        section: randomClass.section,
 
         firstName: faker.person.firstName(),
         lastName: faker.person.lastName(),
@@ -60,7 +74,7 @@ const seedUsers = async () => {
         fatherName: faker.person.fullName(),
         motherName: faker.person.fullName(),
 
-        email: faker.internet.email().toLowerCase() + i,
+        email: `${faker.internet.email().toLowerCase()}${i}`,
 
         phone: faker.phone.number("9#########"),
         parentPhone: faker.phone.number("9#########"),
@@ -69,7 +83,7 @@ const seedUsers = async () => {
 
         category: "general",
 
-        gender: faker.helpers.arrayElement(["male","female"]),
+        gender: faker.helpers.arrayElement(["male", "female"]),
 
         dateOfBirth: faker.date.birthdate()
 
@@ -77,97 +91,159 @@ const seedUsers = async () => {
 
     }
 
-    console.log(`📝 Prepared ${students.length} student records`);
+    console.log(`📝 Prepared ${students.length} students`);
+
+    // ============================
+    // INSERT STUDENTS
+    // ============================
 
     let insertedStudents = [];
+
     try {
-      insertedStudents = await Student.insertMany(students, { ordered: false });
-      console.log(`✅ ${insertedStudents.length} students inserted successfully`);
-    } catch (insertError) {
-      console.error("⚠️  Insert error:", insertError.message);
-      console.log("Trying with partial insert...");
-      // If there's a duplicate error, try to get inserted ones
-      if (insertError.insertedDocs && insertError.insertedDocs.length > 0) {
-        insertedStudents = insertError.insertedDocs;
-        console.log(`✅ ${insertedStudents.length} students inserted despite errors`);
-      } else {
-        throw insertError;
+
+      insertedStudents = await Student.insertMany(students, {
+        ordered: false
+      });
+
+    } catch (err) {
+
+      console.warn("⚠ Partial insert occurred");
+
+      if (err.insertedDocs?.length) {
+        insertedStudents = err.insertedDocs;
       }
+
     }
 
-    if (insertedStudents.length === 0) {
-      console.error("❌ No students were inserted. Check your data.");
-      console.error("Aborting StudentFee creation since no students exist!");
-      mongoose.disconnect();
-      return;
+    console.log(`✅ ${insertedStudents.length} students inserted`);
+
+    if (!insertedStudents.length) {
+      throw new Error("No students inserted. Aborting fee creation.");
     }
 
-    console.log(`📊 Will now create fees for ${insertedStudents.length} students...`);
+    // ============================
+    // FETCH FEE STRUCTURES
+    // ============================
 
-    // ========================
-    // CREATE FEES FOR EACH STUDENT
-    // ========================
-    const feeStructures = await FeeStructure.find({ status: "active" });
+    const feeStructures = await FeeStructure
+      .find({ status: "active" })
+      .lean();
 
     console.log(`💰 Found ${feeStructures.length} fee structures`);
 
-    if (feeStructures.length === 0) {
-      console.error("❌ No active fee structures found. Create fee structures first!");
-      mongoose.disconnect();
-      return;
+    if (!feeStructures.length) {
+      throw new Error("No active fee structures found.");
     }
 
-    const classNameToFeeStructure = {};
-    
-    // Map className to FeeStructure
-    for (const fees of feeStructures) {
-      classNameToFeeStructure[fees.className] = fees;
+    // ============================
+    // MAP CLASS → FEE STRUCTURE
+    // ============================
+
+    const classIdToFeeStructure = {};
+
+    for (const fee of feeStructures) {
+
+      if (fee.classId) {
+        classIdToFeeStructure[fee.classId.toString()] = fee;
+      }
+
     }
 
-    let feesCreated = 0;
-    let feesFailed = 0;
+    // ============================
+    // PREPARE STUDENT FEES
+    // ============================
+
+    const studentFees = [];
+
+    let missingStructures = 0;
 
     for (const student of insertedStudents) {
-      try {
-        const classData = await Class.findById(student.classId);
-        const feeStructure = classNameToFeeStructure[classData.className];
 
-        if (feeStructure) {
-          await StudentFee.create({
-            studentId: student._id,
-            feeStructureId: feeStructure._id,
-            tuitionFee: feeStructure.tuitionFee,
-            admissionFee: feeStructure.admissionFee,
-            examFee: feeStructure.examFee,
-            hostelFee: feeStructure.hostelFee,
-            transportFee: feeStructure.transportFee,
-            totalAssignedFee: feeStructure.totalFee,
-            remainingAmount: feeStructure.totalFee,
-            totalPaid: 0,
-            status: "due"
-          });
-          feesCreated++;
-        } else {
-          console.warn(`⚠️  No fee structure for class: ${classData.className}`);
-          feesFailed++;
-        }
-      } catch (error) {
-        console.error(`Failed to create fee for student ${student._id}:`, error.message);
-        feesFailed++;
+      const feeStructure =
+        classIdToFeeStructure[student.classId?.toString()];
+
+      if (!feeStructure) {
+
+        missingStructures++;
+        console.warn(
+          `⚠ No fee structure for classId ${student.classId}`
+        );
+
+        continue;
+
       }
+
+      studentFees.push({
+
+        studentId: student._id,
+
+        feeStructureId: feeStructure._id,
+
+        tuitionFee: feeStructure.tuitionFee || 0,
+        admissionFee: feeStructure.admissionFee || 0,
+        examFee: feeStructure.examFee || 0,
+        hostelFee: feeStructure.hostelFee || 0,
+        transportFee: feeStructure.transportFee || 0,
+
+        totalAssignedFee: feeStructure.totalFee || 0,
+
+        remainingAmount: feeStructure.totalFee || 0,
+
+        totalPaid: 0,
+
+        status: "due"
+
+      });
+
     }
 
-    console.log(`✅ ${feesCreated} student fees created`);
-    if (feesFailed > 0) {
-      console.log(`⚠️  ${feesFailed} fees failed to create`);
+    // ============================
+    // INSERT STUDENT FEES
+    // ============================
+
+    let insertedFees = [];
+
+    if (studentFees.length) {
+
+      try {
+
+        insertedFees = await StudentFee.insertMany(studentFees, {
+          ordered: false
+        });
+
+      } catch (err) {
+
+        console.warn("⚠ Partial fee insert");
+
+        if (err.insertedDocs?.length) {
+          insertedFees = err.insertedDocs;
+        }
+
+      }
+
     }
 
-    mongoose.disconnect();
+    // ============================
+    // RESULTS
+    // ============================
+
+    console.log(`\n📊 SEEDING SUMMARY`);
+    console.log(`-----------------------`);
+
+    console.log(`Students Created : ${insertedStudents.length}`);
+    console.log(`Fees Created     : ${insertedFees.length}`);
+    console.log(`Missing Fees     : ${missingStructures}`);
+
+    console.log("\n🎉 Seeding completed successfully!");
 
   } catch (error) {
 
-    console.error("❌ Error seeding data:", error.message);
-    mongoose.disconnect();
+    console.error("❌ Seed Error:", error.message);
+
+  } finally {
+
+    await mongoose.disconnect();
+    console.log("🔌 MongoDB disconnected");
 
   }
 

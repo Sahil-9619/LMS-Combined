@@ -72,8 +72,7 @@ exports.getAllClasses = async (req, res) => {
 exports.updateClass = async (req, res) => {
   try {
     const classId = req.params.id;
-    const updatedClass = await Class.find
-ByIdAndUpdate(classId, req.body, { new: true });
+    const updatedClass = await Class.findByIdAndUpdate(classId, req.body, { new: true });
     if (!updatedClass) {
       return res.status(404).json({
         success: false, 

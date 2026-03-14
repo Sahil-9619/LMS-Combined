@@ -1,6 +1,5 @@
-import { create } from "domain";
+
 import axiosInstance from "../../app/utils/axiosinterceptor";
-import { get } from "http";
 
 export const adminServices = {
   // Get all courses
@@ -124,7 +123,9 @@ export const adminServices = {
   assignStudentFee: async (data) => {
     const response = await axiosInstance.post(`/studentfee/assign`, data);
     return response.data;
-  }
+  },
+
 };
 
+ 
 

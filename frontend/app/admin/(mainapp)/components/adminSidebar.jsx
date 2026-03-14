@@ -2,30 +2,17 @@
 import React, { useState } from "react";
 import {
   Home,
-  ShoppingBag,
   Package,
-  Users,
-  Banknote,
-  Section,
-  SeparatorVertical,
   Menu,
   X,
   LogOut,
-  PackagePlusIcon,
-  Video,
-  PaintBucket,
-  Pen,
-  Camera,
-  Star,
-  ChartNoAxesGanttIcon,
   ChevronDown,
   Coins,
-  PersonStanding,
- HeartHandshake,
+  HeartHandshake,
   User,
   Settings,
   Wallet,
-  Wallet2,
+  Layout,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -62,6 +49,7 @@ const menuItems = [
   },
 
   { name: "Student Details", icon: User, href: "/admin/dashboard/students_details" },
+   { name: "Class & Section Management",icon: Layout, href: "/admin/dashboard/class_section_management" },
   {
     name: "Fee Management",
     icon: Wallet,
