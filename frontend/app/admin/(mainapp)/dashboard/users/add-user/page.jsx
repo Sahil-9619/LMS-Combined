@@ -1,6 +1,5 @@
 "use client";
-
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { adminServices } from "@/services/admin/admin.service";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -55,18 +54,60 @@ const AddUsers = () => {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [allClasses, setAllClasses] = useState([]);
+  const [sections, setSections] = useState([]);
+
+  useEffect(() => {
+
+    const fetchClasses = async () => {
+
+      try {
+
+        const res = await adminServices.getAllClasses();
+        const data = res?.data || [];
+
+        setAllClasses(data);
+
+      } catch (err) {
+        console.log(err);
+      }
+
+    };
+
+    fetchClasses();
+
+  }, []);
 
   /* HANDLE CHANGE */
   const onChange = (e) => {
+
     const { name, value, files } = e.target;
 
     if (name === "photo") {
-      setForm((prev) => ({ ...prev, photo: files[0] }));
-    } else {
-      setForm((prev) => ({ ...prev, [name]: value }));
+      setForm(prev => ({ ...prev, photo: files[0] }));
+      return;
     }
-  };
 
+    setForm(prev => ({ ...prev, [name]: value }));
+
+    /* when class changes load sections */
+
+    if (name === "course") {
+
+     const filtered = allClasses.filter(
+  c => c.className === value
+);
+
+// remove duplicates + sort sections
+const uniqueSections = [
+  ...new Map(filtered.map(sec => [sec.section, sec])).values()
+].sort((a, b) => a.section.localeCompare(b.section));
+
+setSections(uniqueSections);
+
+    }
+
+  };
   /* HANDLE SUBMIT */
   const onSubmit = async (e) => {
     e.preventDefault();
@@ -196,23 +237,35 @@ const AddUsers = () => {
                 className="input"
               >
                 <option value="">Select Class</option>
-                <option value="6">Class 6</option>
-                <option value="7">Class 7</option>
-                <option value="8">Class 8</option>
-                <option value="9">Class 9</option>
-                <option value="10">Class 10</option>
+
+                {[...new Map(allClasses.map(c => [c.className, c])).values()]
+                  .sort((a, b) => Number(a.className) - Number(b.className))
+                  .map(cls => (
+                    <option key={cls.className} value={cls.className}>
+                      Class {cls.className}
+                    </option>
+                  ))}
+
               </select>
+
               <select
-  name="section"
-  value={form.section}
-  onChange={onChange}
-  className="input"
->
-  <option value="">Select Section</option>
-  <option value="A">Section A</option>
-  <option value="B">Section B</option>
-  <option value="C">Section C</option>
-</select>
+                name="section"
+                value={form.section}
+                onChange={onChange}
+                className="input"
+              >
+
+                <option value="">
+                  Select Section
+                </option>
+
+                {sections.map(sec => (
+                  <option key={sec._id} value={sec.section}>
+                    Section {sec.section}
+                  </option>
+                ))}
+
+              </select>
 
               <Input type="file" name="photo" onChange={onChange} />
             </>

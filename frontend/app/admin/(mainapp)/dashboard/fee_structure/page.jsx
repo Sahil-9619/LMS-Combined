@@ -5,52 +5,60 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 export default function ClassFeeManagement() {
-  
-  const [msg,setMsg] = useState("");
-  const [error,setError] = useState("");
-  const [classes,setClasses] = useState([]);
-  const [classId,setClassId] = useState("");
 
-  const [feeId,setFeeId] = useState("");
-  const [tuitionFee,setTuitionFee] = useState(); 
-  const [admissionFee,setAdmissionFee] = useState();
-  const [examFee,setExamFee] = useState();
-  const [hostelFee,setHostelFee] = useState();
-  const [transportFee,setTransportFee] = useState();
-  const [lateFeePerDay,setLateFeePerDay] = useState();
+  const [msg, setMsg] = useState("");
+  const [error, setError] = useState("");
+  const [classes, setClasses] = useState([]);
+  const [classId, setClassId] = useState("");
 
-  const [loading,setLoading] = useState(false);
-  const [editing,setEditing] = useState(false);
+  const [feeId, setFeeId] = useState("");
+  const [tuitionFee, setTuitionFee] = useState();
+  const [admissionFee, setAdmissionFee] = useState();
+  const [examFee, setExamFee] = useState();
+  const [hostelFee, setHostelFee] = useState();
+  const [transportFee, setTransportFee] = useState();
+  const [lateFeePerDay, setLateFeePerDay] = useState();
 
-  useEffect(()=>{
+  const [loading, setLoading] = useState(false);
+  const [editing, setEditing] = useState(false);
+
+  useEffect(() => {
     fetchClasses();
     const clearMessage = () => setMsg("");
 
-  window.addEventListener("click", clearMessage);
+    window.addEventListener("click", clearMessage);
 
-  return () => window.removeEventListener("click", clearMessage);
-  },[])
+    return () => window.removeEventListener("click", clearMessage);
+  }, [])
 
-  const fetchClasses = async()=>{
-    try{
+  const fetchClasses = async () => {
+    try {
+
       const res = await adminServices.getAllClasses();
-      const classData = res?.data || res || [];
-      setClasses(classData);
-    }catch(err){
+      const data = res?.data || [];
+
+      // remove duplicate classes (A,B sections)
+      const uniqueClasses = [
+        ...new Map(data.map(item => [item.className, item])).values()
+      ];
+
+      setClasses(uniqueClasses);
+
+    } catch (err) {
       console.log(err);
     }
-  }
+  };
 
   /* FETCH CURRENT FEE */
 
-  const fetchCurrentFee = async ()=>{
-    if(!classId) {
-        setError("Please select a class");
-        return;
+  const fetchCurrentFee = async () => {
+    if (!classId) {
+      setError("Please select a class");
+      return;
     };
     setError("");
 
-    try{
+    try {
       setLoading(true);
 
       const res = await adminServices.getClassFeeByClass(classId);
@@ -67,80 +75,80 @@ export default function ClassFeeManagement() {
 
       setEditing(false);
 
-    }catch(err){
+    } catch (err) {
       console.log(err);
-    }finally{
+    } finally {
       setLoading(false);
     }
   }
 
   /* UPDATE FEE */
 
-const updateFee = async () => {
-    if(!classId) {
-        setError("Please select a class");
-        return;
+  const updateFee = async () => {
+    if (!classId) {
+      setError("Please select a class");
+      return;
     }
-  try {
-
-    const payload = {
-      classId,
-      tuitionFee,
-      admissionFee,
-      examFee,
-      hostelFee,
-      transportFee,
-      lateFeePerDay
-    };
-
     try {
-      // Try updating first
-      await adminServices.updateClassFee(classId, payload);
+
+      const payload = {
+        classId,
+        tuitionFee,
+        admissionFee,
+        examFee,
+        hostelFee,
+        transportFee,
+        lateFeePerDay
+      };
+
+      try {
+        // Try updating first
+        await adminServices.updateClassFee(classId, payload);
+
+      } catch (err) {
+
+        // If not found then create
+        if (err?.response?.data?.message === "Fee structure not found") {
+
+          await adminServices.createFeeStructure(payload);
+
+        } else {
+          throw err;
+        }
+
+      }
+      toast.success("Fee saved successfully!", {
+        position: "bottom-center",
+        style: {
+          background: "#178F9E",
+          color: "#fff",
+        },
+      });
+      setEditing(false);
 
     } catch (err) {
-
-      // If not found then create
-      if (err?.response?.data?.message === "Fee structure not found") {
-
-        await adminServices.createFeeStructure(payload);
-
-      } else {
-        throw err;
-      }
-
+      toast.error(
+        err?.response?.data?.message || "Something went wrong",
+        {
+          position: "top-center",
+        }
+      );
     }
-    toast.success("Fee saved successfully!", {
-  position: "bottom-center",
-  style: {
-    background: "#178F9E",
-    color: "#fff",
-  },
-});
-    setEditing(false);
+  };
 
-  } catch (err) {
-   toast.error(
-  err?.response?.data?.message || "Something went wrong",
-  {
-    position: "top-center",
-  }
-);
-  }
-};
-
-const submitChange= (e) =>{
+  const submitChange = (e) => {
     const id = e.target.value;
-  setClassId(id);
-  setError("");  
-  // reset fields when class changes
-  setTuitionFee("");
-  setAdmissionFee("");
-  setExamFee("");
-  setHostelFee("");
-  setTransportFee("");
-  setLateFeePerDay("");
-  setEditing(false);
-}
+    setClassId(id);
+    setError("");
+    // reset fields when class changes
+    setTuitionFee("");
+    setAdmissionFee("");
+    setExamFee("");
+    setHostelFee("");
+    setTransportFee("");
+    setLateFeePerDay("");
+    setEditing(false);
+  }
 
   return (
 
@@ -166,12 +174,12 @@ const submitChange= (e) =>{
           <option value="">Select Class</option>
 
           {classes
-          .sort((a,b)=>Number(a.className) - Number(b.className))       
-          .map((cls)=>(
-            <option key={cls._id} value={cls._id}>
-              Class {cls.className}
-            </option>
-          ))}
+            .sort((a, b) => Number(a.className) - Number(b.className))
+            .map((cls) => (
+              <option key={cls._id} value={cls._id}>
+                Class {cls.className}
+              </option>
+            ))}
 
         </select>
         {error && (
@@ -191,12 +199,12 @@ const submitChange= (e) =>{
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-          <Input label="Tuition Fee" value={tuitionFee} setValue={setTuitionFee} disabled={!editing}/>
-          <Input label="Admission Fee" value={admissionFee} setValue={setAdmissionFee} disabled={!editing}/>
-          <Input label="Exam Fee" value={examFee} setValue={setExamFee} disabled={!editing}/>
-          <Input label="Hostel Fee" value={hostelFee} setValue={setHostelFee} disabled={!editing}/>
-          <Input label="Transport Fee" value={transportFee} setValue={setTransportFee} disabled={!editing}/>
-          <Input label="Late Fee / Day" value={lateFeePerDay} setValue={setLateFeePerDay} disabled={!editing}/>
+          <Input label="Tuition Fee" value={tuitionFee} setValue={setTuitionFee} disabled={!editing} />
+          <Input label="Admission Fee" value={admissionFee} setValue={setAdmissionFee} disabled={!editing} />
+          <Input label="Exam Fee" value={examFee} setValue={setExamFee} disabled={!editing} />
+          <Input label="Hostel Fee" value={hostelFee} setValue={setHostelFee} disabled={!editing} />
+          <Input label="Transport Fee" value={transportFee} setValue={setTransportFee} disabled={!editing} />
+          <Input label="Late Fee / Day" value={lateFeePerDay} setValue={setLateFeePerDay} disabled={!editing} />
 
         </div>
 
@@ -209,7 +217,7 @@ const submitChange= (e) =>{
           </p>
 
           <p className="text-lg font-bold">
-            ₹{Number(tuitionFee)+Number(admissionFee)+Number(examFee)+Number(hostelFee)+Number(transportFee)}
+            ₹{Number(tuitionFee) + Number(admissionFee) + Number(examFee) + Number(hostelFee) + Number(transportFee)}
           </p>
 
         </div>
@@ -220,7 +228,7 @@ const submitChange= (e) =>{
 
           {!editing && (
             <button
-              onClick={()=>setEditing(true)}
+              onClick={() => setEditing(true)}
               className="flex-1 bg-yellow-500 text-white py-3 rounded-lg"
             >
               Edit
@@ -235,7 +243,7 @@ const submitChange= (e) =>{
               Update Fee
             </button>
           )}
-        
+
         </div>
       </div>
 
@@ -245,9 +253,9 @@ const submitChange= (e) =>{
 
 /* INPUT COMPONENT */
 
-function Input({label,value,setValue,disabled}){
+function Input({ label, value, setValue, disabled }) {
 
-  return(
+  return (
     <div>
       <label className="block text-sm font-semibold mb-1">
         {label}
@@ -258,9 +266,9 @@ function Input({label,value,setValue,disabled}){
         value={value}
         placeholder="Enter Amount"
         disabled={disabled}
-        onChange={(e)=>setValue(e.target.value)}
+        onChange={(e) => setValue(e.target.value)}
         className="w-full border border-gray-300 focus:border-[#178F9E] focus:ring-1 focus:ring-[#178F9E] p-3 rounded-md appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-            />
-          </div>
+      />
+    </div>
   )
 }
