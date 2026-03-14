@@ -3,19 +3,19 @@ const Class = require("../../models/class.model");
 // Create Class
 exports.createClass = async (req, res) => {
   try {
-    const { className, section, academicYear, classTeacher } = req.body;
+    const { className, section,  classTeacher } = req.body;
 
-    if (!className || !section || !academicYear) {
+    if (!className || !section  ) {
       return res.status(400).json({
         success: false,
-        message: "className, section and academicYear are required",
+        message: "className, section  are required",
       });
     }
 
     const newClass = await Class.create({
       className,
       section,
-      academicYear,
+      
       classTeacher,
     });
 

@@ -12,10 +12,6 @@ const classSchema = new mongoose.Schema(
       required: true,
     },
 
-    academicYear: {
-      type: String, // 2025-2026
-      required: true,
-    },
 
     classTeacher: {
       type: String,
@@ -37,7 +33,7 @@ const classSchema = new mongoose.Schema(
 
 // Prevent duplicate class in same year
 classSchema.index(
-  { className: 1, section: 1, academicYear: 1 },
+  { className: 1, section: 1 },
   { unique: true }
 );
 

@@ -10,6 +10,7 @@ router.put("/:admissionNumber",controller.updateStudentSpecificFee);
 router.post("/assign-fee-class", controller.assignFeeToClass);
 router.post("/create-missing", controller.createMissingFees);
 router.post("/cleanup-consolidate", controller.cleanupAndConsolidateFeeStructures);
+router.post("/fix-overpayments", controller.fixAllOverpayments);
 
 
 module.exports = router;

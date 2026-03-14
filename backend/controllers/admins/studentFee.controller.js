@@ -7,29 +7,41 @@ const Class = require("../../models/class.model");
 // HELPER: Get or Create Fee Structure by Class Name
 // ================================
 const getOrCreateFeeStructure = async (className) => {
-  // First, find any class with this className
   const anyClass = await Class.findOne({ className });
-  
+
   if (!anyClass) {
     return null;
   }
 
-  // Look for existing FeeStructure for this className
   let feeStructure = await FeeStructure.findOne({
     className: className,
     status: "active",
   });
 
-  // If doesn't exist, create it with a valid classId
   if (!feeStructure) {
+
+    const tuitionFee = 5000;
+    const admissionFee = 1000;
+    const examFee = 1000;
+    const hostelFee = 0;
+    const transportFee = 0;
+
+    const totalFee =
+      tuitionFee +
+      admissionFee +
+      examFee +
+      hostelFee +
+      transportFee;
+
     feeStructure = await FeeStructure.create({
       classId: anyClass._id,
       className: className,
-      tuitionFee: 5000,
-      admissionFee: 1000,
-      examFee: 1000,
-      hostelFee: 0,
-      transportFee: 0,
+      tuitionFee,
+      admissionFee,
+      examFee,
+      hostelFee,
+      transportFee,
+      totalFee,
       lateFeePerDay: 50,
       status: "active"
     });
@@ -214,10 +226,12 @@ exports.getFeeByAdmissionNumber = async (req, res) => {
 
 };
 // ================================
-// UPDATE PAYMENT
+// UPDATE PAYMENT (SAFE VERSION)
+// ================================
+// ================================
+// UPDATE PAYMENT (FIXED)
 // ================================
 exports.updateStudentFee = async (req, res) => {
-
   try {
 
     const { admissionNumber, payAmount } = req.body;
@@ -233,23 +247,60 @@ exports.updateStudentFee = async (req, res) => {
 
     const studentFee = await StudentFee.findOne({ studentId: student._id });
 
+    if (!studentFee) {
+      return res.status(404).json({
+        success: false,
+        message: "Fee record not found",
+      });
+    }
+
     const payment = Number(payAmount);
 
+    if (!payment || payment <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid payment amount",
+      });
+    }
+
+    // 🔧 Fix wrong DB values first
+    if (studentFee.totalPaid > studentFee.totalAssignedFee) {
+      studentFee.totalPaid = studentFee.totalAssignedFee;
+      studentFee.remainingAmount = 0;
+      studentFee.status = "paid";
+      await studentFee.save();
+
+      return res.status(400).json({
+        success: false,
+        message: "Fee already exceeded earlier. Record corrected.",
+      });
+    }
+
+    const remaining =
+      Number(studentFee.totalAssignedFee) - Number(studentFee.totalPaid);
+
+    if (remaining <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Fee already fully paid",
+      });
+    }
+
+    if (payment > remaining) {
+      return res.status(400).json({
+        success: false,
+        message: `Payment exceeds remaining fee (${remaining})`,
+      });
+    }
+
+    // ✅ Update payment
     studentFee.totalPaid += payment;
 
     studentFee.remainingAmount =
       studentFee.totalAssignedFee - studentFee.totalPaid;
 
-    if (studentFee.remainingAmount <= 0) {
-
-      studentFee.status = "paid";
-      studentFee.remainingAmount = 0;
-
-    } else {
-
-      studentFee.status = "partial";
-
-    }
+    studentFee.status =
+      studentFee.remainingAmount === 0 ? "paid" : "partial";
 
     await studentFee.save();
 
@@ -267,7 +318,6 @@ exports.updateStudentFee = async (req, res) => {
     });
 
   }
-
 };
 exports.getFeesByStudent = async (req, res) => {
   try {
@@ -375,6 +425,11 @@ exports.updateStudentSpecificFee = async (req, res) => {
       Number(lateFeePerDay);
 
     studentFee.totalAssignedFee = newTotal;
+
+    // 🔧 FIX: If totalPaid exceeds new total, cap it at totalAssignedFee
+    if (studentFee.totalPaid > newTotal) {
+      studentFee.totalPaid = newTotal;
+    }
 
     // recalc remaining
     studentFee.remainingAmount = newTotal - studentFee.totalPaid;
@@ -623,6 +678,58 @@ exports.cleanupAndConsolidateFeeStructures = async (req, res) => {
       data: {
         deleted: toDelete.length,
         consolidated: Object.keys(consolidationMap).length
+      }
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+
+// ================================
+// FIX ALL OVERPAYMENT RECORDS
+// ================================
+exports.fixAllOverpayments = async (req, res) => {
+  try {
+    // Find all StudentFee records where totalPaid > totalAssignedFee
+    const overpaidRecords = await StudentFee.find({
+      $expr: { $gt: ["$totalPaid", "$totalAssignedFee"] }
+    }).populate("studentId");
+
+    if (overpaidRecords.length === 0) {
+      return res.json({
+        success: true,
+        message: "No overpayment records found",
+        data: { fixed: 0, total: 0 }
+      });
+    }
+
+    let fixed = 0;
+
+    // Fix each overpayment record
+    for (const record of overpaidRecords) {
+      record.totalPaid = record.totalAssignedFee;
+      record.remainingAmount = 0;
+      record.status = "paid";
+      await record.save();
+      fixed++;
+    }
+
+    res.json({
+      success: true,
+      message: `Fixed ${fixed} overpayment records. totalPaid capped at totalAssignedFee.`,
+      data: {
+        fixed,
+        total: overpaidRecords.length,
+        records: overpaidRecords.map(r => ({
+          admissionNumber: r.studentId?.admissionNumber,
+          totalAssignedFee: r.totalAssignedFee,
+          totalPaid: r.totalPaid,
+          status: r.status
+        }))
       }
     });
 
