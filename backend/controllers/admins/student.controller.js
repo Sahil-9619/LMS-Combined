@@ -48,9 +48,12 @@ exports.createStudent = async (req, res) => {
       });
     }
 
+    // default section A if not provided
+    const selectedSection = section || "A";
+
     const classData = await Class.findOne({
       className: course,
-      section: section,
+      section: selectedSection,
       status: "active",
     });
 
@@ -69,7 +72,7 @@ exports.createStudent = async (req, res) => {
       lastName: lastName?.trim(),
       gender,
       classId: classData._id,
-      section: section,
+      section: selectedSection,
       fatherName,
       motherName,
       parentPhone,
