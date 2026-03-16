@@ -1,4 +1,5 @@
 const Class = require("../../models/class.model");
+const FeeStructure = require("../../models/feeStructure.model")
 
 // Create Class
 exports.createClass = async (req, res) => {
@@ -92,28 +93,62 @@ exports.updateClass = async (req, res) => {
   } 
 };
 
+// ==========================================
+// CLEAN UNUSED FEE STRUCTURE
+// ==========================================
+async function cleanFeeStructureInternal() {
+  try {
+
+    const fees = await FeeStructure.find();
+
+    for (let fee of fees) {
+
+      const classExist = await Class.findOne({ className: fee.className });
+
+      // delete fee if class not exist
+      if (!classExist) {
+        await FeeStructure.findByIdAndDelete(fee._id);
+      }
+
+    }
+
+  } catch (error) {
+    console.error("Fee cleanup error:", error);
+  }
+}
+
+
+// ==========================================
+// DELETE CLASS
+// ==========================================
 exports.deleteClass = async (req, res) => {
   try {
+
     const classId = req.params.id;
-    const deletedClass = await Class.findByIdAndDelete(classId);  
+
+    const deletedClass = await Class.findByIdAndDelete(classId);
+
     if (!deletedClass) {
       return res.status(404).json({
         success: false,
         message: "Class not found",
       });
     }
+
+    // cleanup unused fee structures
+    await cleanFeeStructureInternal();
+
     res.status(200).json({
       success: true,
-      message: "Class deleted successfully",
+      message: "Class deleted and FeeStructure cleaned successfully",
     });
-  }
-    catch (error) {
+
+  } catch (error) {
+
     res.status(500).json({
       success: false,
       message: error.message,
     });
-  } 
+
+  }
 };
-
-
-
