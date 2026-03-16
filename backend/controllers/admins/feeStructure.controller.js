@@ -285,7 +285,7 @@ exports.updateFeeStructure = async (req, res) => {
 exports.deleteFeeStructure = async (req, res) => {
   try {
 
-    const { id } = req.params;
+    const { id } = req.params;  
 
     const deleted = await FeeStructure.findByIdAndDelete(id);
 
