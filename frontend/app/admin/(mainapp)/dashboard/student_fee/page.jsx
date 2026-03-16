@@ -42,6 +42,8 @@ export default function AdminFeeManagement() {
   const [classes, setClasses] = useState([]);
   const [currentPage, setCurrentPage] = useState(1)
   const [rowsPerPage, setRowsPerPage] = useState(10)
+  const [selectedSection, setSelectedSection] = useState("");
+  const [sections, setSections] = useState([]);
 
   useEffect(() => {
     if (!admissionNo) {
@@ -66,24 +68,35 @@ export default function AdminFeeManagement() {
 
 
   useEffect(() => {
+
     const fetchClasses = async () => {
+
       try {
 
         const res = await adminServices.getAllClasses();
 
-        const classData = res?.data || [];
+        const data = res?.data || [];
 
-        const sortedClasses = classData.sort(
-          (a, b) => Number(a.className) - Number(b.className)
-        );
+        /* get unique class names */
+        const uniqueClassNames = [...new Set(data.map(c => c.className))];
 
-        setClasses(sortedClasses);
+        /* convert to object format */
+        const formatted = uniqueClassNames
+          .sort((a, b) => Number(a) - Number(b))
+          .map(name => ({ className: name }));
+
+        setClasses(formatted);
 
       } catch (err) {
+
         console.log(err);
+
       }
+
     };
+
     fetchClasses();
+
   }, []);
   /* ---------------- SEARCH STUDENT ---------------- */
 
@@ -290,6 +303,7 @@ export default function AdminFeeManagement() {
             onChange={async (e) => {
               const classId = e.target.value
               setSelectedClass(classId)
+              setSelectedSection("")
               setCurrentPage(1)
 
               setAdmissionNo("")
@@ -297,6 +311,7 @@ export default function AdminFeeManagement() {
 
               if (!classId) {
                 setClassStudents([])
+                setSections([])
                 return
               }
 
@@ -313,6 +328,12 @@ export default function AdminFeeManagement() {
                 )
 
                 setClassStudents(sortedStudents)
+                // 🔥 extract unique sections
+                const uniqueSections = [...new Set(studentsData.map(s => s.classId?.section))]
+                  .filter(Boolean)
+                  .sort()
+
+                setSections(uniqueSections)
 
               } catch (err) {
                 console.log(err)
@@ -330,6 +351,45 @@ export default function AdminFeeManagement() {
             ))}
 
           </select>
+{/*section dropdown */}
+          <select
+  value={selectedSection}
+  onChange={(e) => {
+
+    const section = e.target.value
+    setSelectedSection(section)
+
+    if (!section) return
+
+    if (section === "ALL") {
+
+      // show all students of class
+      handleSearch()
+
+    } else {
+
+      const filtered = classStudents.filter(
+        (s) => s.classId?.section === section
+      )
+
+      setClassStudents(filtered)
+      setCurrentPage(1)
+    }
+
+  }}
+  className="border border-gray-300 px-4 py-2 rounded-md text-sm focus:ring-2 focus:ring-[#178F9E]"
+>
+
+  <option value="">Select Section</option>
+  <option value="ALL">All</option>
+
+  {sections.map((sec) => (
+    <option key={sec} value={sec}>
+      Section {sec}
+    </option>
+  ))}
+
+</select>
 
 
           <select
