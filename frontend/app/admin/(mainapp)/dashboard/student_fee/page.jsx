@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { adminServices } from "@/services/admin/admin.service";
-import { Pencil } from "lucide-react";
+import { Pencil, ChevronRight, ChevronDown } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { SquareArrowOutUpRight } from "lucide-react";
 import Link from "next/link";
@@ -27,6 +27,7 @@ const months = ["January", "February", "March",
 export default function AdminFeeManagement() {
 
   const router = useRouter();
+  const dropdownRef = useRef(null)
 
   const [admissionNo, setAdmissionNo] = useState("");
   const [student, setStudent] = useState(null);
@@ -42,8 +43,9 @@ export default function AdminFeeManagement() {
   const [classes, setClasses] = useState([]);
   const [currentPage, setCurrentPage] = useState(1)
   const [rowsPerPage, setRowsPerPage] = useState(10)
-  const [selectedSection, setSelectedSection] = useState("");
-  const [sections, setSections] = useState([]);
+  const [openClassMenu, setOpenClassMenu] = useState(false)
+  const [hoverClass, setHoverClass] = useState(null)
+  const [selectedSection, setSelectedSection] = useState("")
 
   useEffect(() => {
     if (!admissionNo) {
@@ -67,37 +69,87 @@ export default function AdminFeeManagement() {
   }, [admissionParam]);
 
 
-  useEffect(() => {
+useEffect(() => {
 
-    const fetchClasses = async () => {
+const fetchClasses = async () => {
 
-      try {
+try {
 
-        const res = await adminServices.getAllClasses();
+const res = await adminServices.getAllClasses()
 
-        const data = res?.data || [];
+const data = res?.data || []
 
-        /* get unique class names */
-        const uniqueClassNames = [...new Set(data.map(c => c.className))];
+/*
+Expected DB structure example
+[
+ { _id, className:"7", section:"A" },
+ { _id, className:"7", section:"B" },
+ { _id, className:"8", section:"A" }
+]
+*/
 
-        /* convert to object format */
-        const formatted = uniqueClassNames
-          .sort((a, b) => Number(a) - Number(b))
-          .map(name => ({ className: name }));
+const classMap = {}
 
-        setClasses(formatted);
+data.forEach((item) => {
 
-      } catch (err) {
+if (!classMap[item.className]) {
 
-        console.log(err);
+classMap[item.className] = {
+className: item.className,
+classId: item._id,
+sections: []
+}
 
-      }
+}
 
-    };
+if (item.section && !classMap[item.className].sections.includes(item.section)) {
 
-    fetchClasses();
+classMap[item.className].sections.push(item.section)
 
-  }, []);
+}
+
+})
+
+const formatted = Object.values(classMap).sort(
+(a,b)=>Number(a.className)-Number(b.className)
+)
+
+setClasses(formatted)
+
+} catch (err) {
+
+console.log(err)
+
+}
+
+}
+
+fetchClasses()
+
+}, [])
+useEffect(() => {
+
+const handleClickOutside = (event) => {
+
+if (
+dropdownRef.current &&
+!dropdownRef.current.contains(event.target)
+) {
+
+setOpenClassMenu(false)
+setHoverClass(null)
+
+}
+
+}
+
+document.addEventListener("mousedown", handleClickOutside)
+
+return () => {
+document.removeEventListener("mousedown", handleClickOutside)
+}
+
+}, [])
   /* ---------------- SEARCH STUDENT ---------------- */
 
   const handleSearch = async (admission) => {
@@ -227,7 +279,6 @@ export default function AdminFeeManagement() {
     }
 
   };
-
   const monthlyFee = summary.totalAssignedFee
     ? summary.totalAssignedFee / 12
     : 0;
@@ -283,6 +334,37 @@ export default function AdminFeeManagement() {
   }
 
   const visiblePages = getVisiblePages()
+const loadStudents = async (className, section = null) => {
+
+try {
+
+const res = await adminServices.getstudentsByClass(className)
+
+let students = res?.data || []
+
+if (section && section !== "ALL") {
+
+students = students.filter(
+(s) => s?.classId?.section === section
+)
+}
+
+const sortedStudents = students.sort(
+(a,b)=>
+Number(a.admissionNumber.replace("ADM","")) -
+Number(b.admissionNumber.replace("ADM",""))
+)
+
+setClassStudents(sortedStudents)
+setCurrentPage(1)
+
+} catch(err) {
+
+console.log(err)
+
+}
+
+}
 
   return (
 
@@ -297,99 +379,94 @@ export default function AdminFeeManagement() {
         </h2>
 
         <div className="flex flex-wrap gap-4 items-end">
+<div ref={dropdownRef} className="relative">
 
-          <select
-            value={selectedClass}
-            onChange={async (e) => {
-              const classId = e.target.value
-              setSelectedClass(classId)
-              setSelectedSection("")
-              setCurrentPage(1)
+<button
+  onClick={() => setOpenClassMenu(!openClassMenu)}
+  className="border border-gray-300 px-4 py-2 rounded-md text-sm w-40 bg-white flex items-center justify-between"
+>
+  <span>
+    {selectedClass
+      ? `Class ${classes.find(c => c.classId === selectedClass)?.className}`
+      : "Select Class"}
+  </span>
 
-              setAdmissionNo("")
-              router.replace("/admin/dashboard/student_fee")
+  <ChevronDown
+    size={16}
+    className={`text-gray-500 transition-transform ${
+      openClassMenu ? "rotate-180" : ""
+    }`}
+  />
+</button>
 
-              if (!classId) {
-                setClassStudents([])
-                setSections([])
-                return
-              }
+{openClassMenu && (
 
-              try {
+<div className="absolute top-10 left-0 bg-white border rounded-md shadow-md w-40 z-50">
 
-                const res = await adminServices.getstudentsByClass(classId)
+{classes.map((cls) => (
 
-                const studentsData = res?.data || []
-
-                const sortedStudents = studentsData.sort(
-                  (a, b) =>
-                    Number(a.admissionNumber.replace("ADM", "")) -
-                    Number(b.admissionNumber.replace("ADM", ""))
-                )
-
-                setClassStudents(sortedStudents)
-                // 🔥 extract unique sections
-                const uniqueSections = [...new Set(studentsData.map(s => s.classId?.section))]
-                  .filter(Boolean)
-                  .sort()
-
-                setSections(uniqueSections)
-
-              } catch (err) {
-                console.log(err)
-              }
-
-            }}
-            className="border border-gray-300 px-4 py-2 rounded-md text-sm focus:ring-2 focus:ring-[#178F9E]"
-          >
-            <option value="">Select Class</option>
-
-            {classes.map((cls) => (
-              <option key={cls._id} value={cls._id}>
-                Class {cls.className}
-              </option>
-            ))}
-
-          </select>
-{/*section dropdown */}
-          <select
-  value={selectedSection}
-  onChange={(e) => {
-
-    const section = e.target.value
-    setSelectedSection(section)
-
-    if (!section) return
-
-    if (section === "ALL") {
-
-      // show all students of class
-      handleSearch()
-
-    } else {
-
-      const filtered = classStudents.filter(
-        (s) => s.classId?.section === section
-      )
-
-      setClassStudents(filtered)
-      setCurrentPage(1)
-    }
-
-  }}
-  className="border border-gray-300 px-4 py-2 rounded-md text-sm focus:ring-2 focus:ring-[#178F9E]"
+<div
+key={cls.classId || cls.className}
+onClick={() =>
+  setHoverClass(hoverClass === cls.classId ? null : cls.classId)
+}
+className="relative px-4 py-2 hover:bg-gray-100 cursor-pointer flex justify-between"
 >
 
-  <option value="">Select Section</option>
-  <option value="ALL">All</option>
+<span>Class {cls.className}</span>
 
-  {sections.map((sec) => (
-    <option key={sec} value={sec}>
-      Section {sec}
-    </option>
-  ))}
+<ChevronRight size={16} className="text-gray-500" />
 
-</select>
+{/* SECTION MENU */}
+
+{hoverClass === cls.classId && (
+
+<div className="absolute left-full top-0 bg-white border rounded-md shadow-md w-32">
+
+<div
+className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
+onClick={() => {
+
+setSelectedClass(cls.classId)
+setSelectedSection("ALL")
+setOpenClassMenu(false)
+loadStudents(cls.className)
+}}
+>
+All
+</div>
+
+{cls.sections.map((sec) => (
+
+<div
+key={sec}
+className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
+onClick={() => {
+
+setSelectedClass(cls.classId)
+setSelectedSection(sec)
+setOpenClassMenu(false)
+loadStudents(cls.className, sec)
+}}
+>
+{sec}
+</div>
+
+))}
+
+</div>
+
+)}
+
+</div>
+
+))}
+
+</div>
+
+)}
+
+</div>
 
 
           <select
@@ -444,12 +521,12 @@ export default function AdminFeeManagement() {
         </div>
 
       </section>
-      {selectedClass && classStudents.length > 0 && !admissionNo && (
+    {selectedClass && !admissionNo && (
 
         <section>
 
           <h2 className="text-xl font-semibold text-gray-800 mb-6">
-            Student Fee Status - Class {classes.find(c => c._id === selectedClass)?.className}
+            Student Fee Status - Class {classes.find(c => c.classId === selectedClass)?.className}
           </h2>
 
 
@@ -473,9 +550,18 @@ export default function AdminFeeManagement() {
 
               </thead>
 
-              <tbody>
+              
+                <tbody>
 
-                {currentStudents.map((s, index) => {
+{currentStudents.length === 0 && (
+<tr>
+<td colSpan="8" className="text-center py-6 text-gray-500">
+No students found
+</td>
+</tr>
+)}
+
+{currentStudents.map((s, index) => {
 
                   const remaining = (s.totalAssignedFee || 0) - (s.totalPaid || 0)
 
