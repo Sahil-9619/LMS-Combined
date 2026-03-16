@@ -79,6 +79,8 @@ const res = await adminServices.getAllClasses()
 
 const data = res?.data || []
 
+console.log("Classes fetched from API:", data);
+
 /*
 Expected DB structure example
 [
@@ -92,20 +94,36 @@ const classMap = {}
 
 data.forEach((item) => {
 
+if (!item._id || !item.className) {
+console.warn("Incomplete class data - missing ID or className:", item);
+return;
+}
+
 if (!classMap[item.className]) {
 
 classMap[item.className] = {
 className: item.className,
-classId: item._id,
 sections: []
 }
 
 }
 
-if (item.section && !classMap[item.className].sections.includes(item.section)) {
-
-classMap[item.className].sections.push(item.section)
-
+// Only add section if it exists and is not empty
+if (item.section && item.section.trim()) {
+if (!classMap[item.className].sections.find(s => s.name === item.section)) {
+classMap[item.className].sections.push({
+name: item.section,
+classId: item._id
+})
+}
+} else {
+// If no section, add this class's _id as a fallback section
+if (!classMap[item.className].sections.find(s => s.classId === item._id)) {
+classMap[item.className].sections.push({
+name: "Default",
+classId: item._id
+})
+} 
 }
 
 })
@@ -114,11 +132,28 @@ const formatted = Object.values(classMap).sort(
 (a,b)=>Number(a.className)-Number(b.className)
 )
 
+console.log("Formatted classes structure:", formatted);
+
+// Validate all sections have classId
+formatted.forEach((cls, idx) => {
+try {
+cls.sections.forEach((sec, secIdx) => {
+if (!sec.classId) {
+console.error(`Class ${idx}, Section ${secIdx}: Missing classId!`, sec);
+} else {
+console.log(`✓ Class ${cls.className} Section ${sec.name}: classId = ${sec.classId}`);
+}
+});
+} catch (e) {
+console.error(`Error validating class ${idx}:`, e, cls);
+}
+});
+
 setClasses(formatted)
 
 } catch (err) {
 
-console.log(err)
+console.error("Error fetching classes:", err)
 
 }
 
@@ -188,24 +223,6 @@ document.removeEventListener("mousedown", handleClickOutside)
         setFeeStructure(data.fee || {});
         setSummary(data.fee || {});
         setMonthlyFees(data.monthlyFees || {});
-
-        return;
-      }
-
-      // Case 2 → class search
-      if (selectedClass) {
-
-        const res = await adminServices.getstudentsByClass(selectedClass);
-
-        const studentsData = res?.data || [];
-
-        const sortedStudents = studentsData.sort(
-          (a, b) =>
-            Number(a.admissionNumber.replace("ADM", "")) -
-            Number(b.admissionNumber.replace("ADM", ""))
-        );
-
-        setClassStudents(sortedStudents);
 
         return;
       }
@@ -334,20 +351,59 @@ document.removeEventListener("mousedown", handleClickOutside)
   }
 
   const visiblePages = getVisiblePages()
-const loadStudents = async (className, section = null) => {
+const loadStudents = async (classData) => {
 
 try {
 
-const res = await adminServices.getstudentsByClass(className)
+if (!classData || !classData.section) {
+console.error("Invalid classData:", classData);
+toast.error("Please select a valid class and section");
+return;
+}
+
+if (classData.section === "ALL") {
+// Load all sections for this class
+if (!classData.sections || classData.sections.length === 0) {
+console.error("No sections available");
+toast.error("No sections found for this class");
+return;
+}
+
+let allStudents = [];
+for (const sec of classData.sections) {
+if (!sec.classId) {
+console.warn("Missing classId for section:", sec);
+continue;
+}
+try {
+console.log(`Loading students for section ${sec.name} with classId:`, sec.classId);
+const res = await adminServices.getstudentsByClass(sec.classId);
+const students = res?.data || [];
+allStudents = [...allStudents, ...students];
+} catch (sectionErr) {
+console.error(`Error loading students for section ${sec.name}:`, sectionErr);
+}
+}
+
+const sortedStudents = allStudents.sort(
+(a,b)=>
+Number(a.admissionNumber.replace("ADM","")) -
+Number(b.admissionNumber.replace("ADM",""))
+);
+
+setClassStudents(sortedStudents);
+} else {
+// Load specific section
+if (!classData.classId) {
+console.error("Missing classId for section:", classData.section);
+toast.error("Invalid section selected");
+return;
+}
+
+console.log(`Loading students for section ${classData.section} with classId:`, classData.classId);
+const res = await adminServices.getstudentsByClass(classData.classId)
 
 let students = res?.data || []
-
-if (section && section !== "ALL") {
-
-students = students.filter(
-(s) => s?.classId?.section === section
-)
-}
 
 const sortedStudents = students.sort(
 (a,b)=>
@@ -355,12 +411,15 @@ Number(a.admissionNumber.replace("ADM","")) -
 Number(b.admissionNumber.replace("ADM",""))
 )
 
-setClassStudents(sortedStudents)
+setClassStudents(sortedStudents);
+}
+
 setCurrentPage(1)
 
 } catch(err) {
 
-console.log(err)
+console.error("Load students error:", err)
+toast.error("Failed to load students");
 
 }
 
@@ -387,7 +446,22 @@ console.log(err)
 >
   <span>
     {selectedClass
-      ? `Class ${classes.find(c => c.classId === selectedClass)?.className}`
+      ? (() => {
+          if (selectedSection === "ALL") {
+            for (const cls of classes) {
+              if (cls.sections.some(s => s.classId === selectedClass)) {
+                return `Class ${cls.className} - ALL`;
+              }
+            }
+          }
+          for (const cls of classes) {
+            const section = cls.sections.find(s => s.classId === selectedClass);
+            if (section) {
+              return `Class ${cls.className} - ${section.name}`;
+            }
+          }
+          return "Select Class";
+        })()
       : "Select Class"}
   </span>
 
@@ -406,9 +480,9 @@ console.log(err)
 {classes.map((cls) => (
 
 <div
-key={cls.classId || cls.className}
+key={cls.className}
 onClick={() =>
-  setHoverClass(hoverClass === cls.classId ? null : cls.classId)
+  setHoverClass(hoverClass === cls.className ? null : cls.className)
 }
 className="relative px-4 py-2 hover:bg-gray-100 cursor-pointer flex justify-between"
 >
@@ -419,18 +493,23 @@ className="relative px-4 py-2 hover:bg-gray-100 cursor-pointer flex justify-betw
 
 {/* SECTION MENU */}
 
-{hoverClass === cls.classId && (
+{hoverClass === cls.className && (
 
 <div className="absolute left-full top-0 bg-white border rounded-md shadow-md w-32">
 
 <div
 className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
 onClick={() => {
-
-setSelectedClass(cls.classId)
+if (!cls.sections || cls.sections.length === 0) {
+console.error("No sections available for this class");
+toast.error("No sections available");
+return;
+}
+setSelectedClass(cls.sections[0]?.classId)
 setSelectedSection("ALL")
 setOpenClassMenu(false)
-loadStudents(cls.className)
+console.log("Loading ALL sections for class:", cls.className, "with sections:", cls.sections);
+loadStudents({section: "ALL", sections: cls.sections})
 }}
 >
 All
@@ -439,17 +518,22 @@ All
 {cls.sections.map((sec) => (
 
 <div
-key={sec}
+key={sec.name}
 className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
 onClick={() => {
-
-setSelectedClass(cls.classId)
-setSelectedSection(sec)
+if (!sec || !sec.classId || !sec.name) {
+console.error("Invalid section data:", sec);
+toast.error("Invalid section data");
+return;
+}
+setSelectedClass(sec.classId)
+setSelectedSection(sec.name)
 setOpenClassMenu(false)
-loadStudents(cls.className, sec)
+console.log(`Loading section ${sec.name} for class with classId:`, sec.classId);
+loadStudents({section: sec.name, classId: sec.classId})
 }}
 >
-{sec}
+{sec.name}
 </div>
 
 ))}
@@ -526,7 +610,20 @@ loadStudents(cls.className, sec)
         <section>
 
           <h2 className="text-xl font-semibold text-gray-800 mb-6">
-            Student Fee Status - Class {classes.find(c => c.classId === selectedClass)?.className}
+            Student Fee Status - {selectedSection === "ALL" ? (() => {
+              for (const cls of classes) {
+                if (cls.sections.some(s => s.classId === selectedClass)) {
+                  return `Class ${cls.className}`;
+                }
+              }
+            })() : (() => {
+              for (const cls of classes) {
+                const section = cls.sections.find(s => s.classId === selectedClass);
+                if (section) {
+                  return `Class ${cls.className} - ${section.name}`;
+                }
+              }
+            })()}
           </h2>
 
 
