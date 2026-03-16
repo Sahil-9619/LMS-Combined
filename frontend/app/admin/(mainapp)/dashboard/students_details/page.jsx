@@ -24,6 +24,10 @@ import {
 import { toast } from "sonner";
 import { ArrowBigRight, LucideDelete, Pencil, SquareArrowOutUpRight, Trash } from "lucide-react";
 import Link from "next/link";
+import { ChevronRight, ChevronDown } from "lucide-react";
+import { useRef } from "react";
+
+
 export default function ClassWiseStudents() {
 
   const [classes, setClasses] = useState([]);
@@ -38,29 +42,75 @@ export default function ClassWiseStudents() {
   const [isSearching, setIsSearching] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [editEmail, setEditEmail] = useState("");
+  const dropdownRef = useRef(null)
+
+const [openClassMenu,setOpenClassMenu] = useState(false)
+const [hoverClass,setHoverClass] = useState(null)
+const [selectedSection,setSelectedSection] = useState("")
   /* -------- FETCH CLASSES -------- */
 
   useEffect(() => {
     fetchClasses();
   }, []);
+  useEffect(()=>{
 
-  const fetchClasses = async () => {
-    try {
+const handleClickOutside=(e)=>{
 
-      const res = await adminServices.getAllClasses();
+if(
+dropdownRef.current &&
+!dropdownRef.current.contains(e.target)
+){
+setOpenClassMenu(false)
+setHoverClass(null)
+}
 
-      const classData = res?.data || [];
+}
 
-      const sortedClasses = classData.sort(
-        (a, b) => Number(a.className) - Number(b.className)
-      );
+document.addEventListener("mousedown",handleClickOutside)
 
-      setClasses(sortedClasses);
+return ()=>document.removeEventListener("mousedown",handleClickOutside)
 
-    } catch (err) {
-      console.log(err);
-    }
-  };
+},[])
+
+const fetchClasses = async () => {
+
+  try {
+
+    const res = await adminServices.getAllClasses();
+
+    const data = res?.data || [];
+
+    const classMap = {}
+
+    data.forEach((item) => {
+
+      if (!classMap[item.className]) {
+
+        classMap[item.className] = {
+          className: item.className,
+          sections: []
+        }
+
+      }
+
+      classMap[item.className].sections.push({
+        name: item.section,
+        classId: item._id
+      })
+
+    })
+
+    const formatted = Object.values(classMap).sort(
+      (a, b) => Number(a.className) - Number(b.className)
+    )
+
+    setClasses(formatted)
+
+  } catch (err) {
+    console.log(err);
+  }
+
+};
 
   /* -------- FETCH STUDENTS -------- */
 
@@ -228,6 +278,48 @@ export default function ClassWiseStudents() {
     }
   };
 
+  const loadStudents = async (classData)=>{
+
+try{
+
+setLoading(true)
+
+if(classData.section==="ALL"){
+
+let allStudents=[]
+
+for(const sec of classData.sections){
+
+const res = await adminServices.getstudentsByClass(sec.classId)
+
+const data = res?.data || []
+
+allStudents=[...allStudents,...data]
+
+}
+
+setStudents(allStudents)
+
+}else{
+
+const res = await adminServices.getstudentsByClass(classData.classId)
+
+setStudents(res?.data || [])
+
+}
+
+}catch(err){
+
+console.log(err)
+
+}finally{
+
+setLoading(false)
+
+}
+
+}
+
   return (
 
     <div className="p-10  min-h-screen">
@@ -250,21 +342,108 @@ export default function ClassWiseStudents() {
 
         {/* CLASS FILTER */}
 
-        <select
-          value={selectedClass}
-          onChange={handleClassChange}
-          className="border border-gray-300 px-4 py-2 rounded-md text-sm focus:ring-2 focus:ring-[#178F9E]"
-        >
+       <div ref={dropdownRef} className="relative">
 
-          <option value="">Select Class</option>
+<button
+onClick={()=>setOpenClassMenu(!openClassMenu)}
+className="border border-gray-300 px-4 py-2 rounded-md text-sm w-40 bg-white flex items-center justify-between"
+>
 
-          {classes.map((cls) => (
-            <option key={cls._id} value={cls._id}>
-              Class {cls.className}
-            </option>
-          ))}
+<span>
 
-        </select>
+{selectedClass
+? `Class ${selectedClass} ${selectedSection}`
+: "Select Class"}
+
+</span>
+
+<ChevronDown size={16}/>
+
+</button>
+
+
+{openClassMenu && (
+
+<div className="absolute top-10 left-0 bg-white border rounded-md shadow-md w-40 z-50">
+
+{classes.map((cls)=> (
+
+<div
+key={cls.className}
+onClick={()=>setHoverClass(
+hoverClass===cls.className ? null : cls.className
+)}
+className="relative px-4 py-2 hover:bg-gray-100 cursor-pointer flex justify-between"
+>
+
+<span>
+Class {cls.className}
+</span>
+
+<ChevronRight size={16}/>
+
+
+{hoverClass===cls.className && (
+
+<div className="absolute left-full top-0 bg-white border rounded-md shadow-md w-32">
+
+<div
+className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
+onClick={()=>{
+
+setSelectedClass(cls.className)
+setSelectedSection("ALL")
+setOpenClassMenu(false)
+
+loadStudents({
+section:"ALL",
+sections:cls.sections
+})
+
+}}
+>
+All
+</div>
+
+
+{cls.sections.map((sec)=> (
+
+<div
+key={sec.classId}
+className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
+onClick={()=>{
+
+setSelectedClass(cls.className)
+setSelectedSection(sec.name)
+setOpenClassMenu(false)
+
+loadStudents({
+section:sec.name,
+classId:sec.classId
+})
+
+}}
+>
+
+{sec.name}
+
+</div>
+
+))}
+
+</div>
+
+)}
+
+</div>
+
+))}
+
+</div>
+
+)}
+
+</div>
 
       </div>
 
