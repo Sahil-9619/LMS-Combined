@@ -230,11 +230,13 @@ const getAdminDashboardData = async (req, res) => {
       { $group: { _id: "$role.name", count: { $sum: 1 } } },
     ]);
     let totalInstructors = 0;
-    let totalStudents = 0;
+    
     roleBreakdown.forEach((r) => {
       if (r._id === "instructor") totalInstructors = r.count;
-      if (r._id === "user") totalStudents = r.count;
+      
     });
+
+    const totalStudents = await Student.countDocuments();
 
     // Revenue stats (platform-wide)
     const monthlyGross = await Enrollment.aggregate([
