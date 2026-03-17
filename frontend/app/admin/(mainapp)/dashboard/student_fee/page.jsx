@@ -418,7 +418,7 @@ const feeData = feeRes?.data || feeRes;
 
 setSummary(prev => ({
   ...prev,
-  totalAssignedFee: feeData?.totalAssignedFee || 0
+  totalAssignedFee: feeData?.totalFee || 0
 }));
 } catch (err) {
 console.error("Error fetching class fee:", err);
@@ -681,10 +681,14 @@ No students found
 )}
 
 {currentStudents.map((s, index) => {
+const totalAssignedFee =
+  s?.fee?.totalAssignedFee || 0
 
-  const totalAssignedFee = summary.totalAssignedFee || 0
-  const totalPaid = s?.totalPaid || s?.fee?.totalPaid || 0
-  const remaining = totalAssignedFee - totalPaid
+const totalPaid =
+  s?.fee?.totalPaid || 0
+
+const remaining =
+  s?.fee?.remainingAmount || 0
 console.log("Student data:", s)
   return (
                     <tr
@@ -732,7 +736,7 @@ hover:bg-[#ECFAFC] transition
 
                       <td className="p-3 border border-[#D9F1F4]">
 
-                   {/**     {remaining === 0 ? (
+                       {remaining === 0 ? (
 
                           <span className="text-green-600 font-semibold flex items-center gap-1">
                             ✓ Paid
@@ -743,7 +747,7 @@ hover:bg-[#ECFAFC] transition
                           <div className="flex flex-col">
 
                             <span className="text-black font-semibold">
-                              ₹{s.totalAssignedFee}
+                              ₹{totalAssignedFee}
                             </span>
 
                             <span className="text-red-600 font-semibold text-xs">
@@ -752,7 +756,7 @@ hover:bg-[#ECFAFC] transition
 
                           </div>
 
-                        )} */}
+                        )} 
 
                       </td>
 

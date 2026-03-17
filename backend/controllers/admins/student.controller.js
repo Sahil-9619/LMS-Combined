@@ -145,12 +145,29 @@ exports.getStudentsByClass = async (req, res) => {
 
     const students = await Student.find({ classId })
       .populate("classId")
-      .sort({ createdAt: 1 });
+      .sort({ createdAt: 1 })
+      .lean();
+
+    const studentIds = students.map(s => s._id);
+
+    const fees = await StudentFee.find({
+      studentId: { $in: studentIds }
+    }).lean();
+
+    const feeMap = {};
+    fees.forEach(f => {
+      feeMap[f.studentId.toString()] = f;
+    });
+
+    const finalData = students.map(s => ({
+      ...s,
+      fee: feeMap[s._id.toString()] || null
+    }));
 
     res.status(200).json({
       success: true,
-      count: students.length,
-      data: students,
+      count: finalData.length,
+      data: finalData,
     });
 
   } catch (error) {
