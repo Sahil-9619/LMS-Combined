@@ -56,6 +56,7 @@ const AddUsers = () => {
   const [success, setSuccess] = useState("");
   const [allClasses, setAllClasses] = useState([]);
   const [sections, setSections] = useState([]);
+  const [photoPreview, setPhotoPreview] = useState(null);
 
   useEffect(() => {
 
@@ -84,9 +85,17 @@ const AddUsers = () => {
     const { name, value, files } = e.target;
 
     if (name === "photo") {
-      setForm(prev => ({ ...prev, photo: files[0] }));
-      return;
-    }
+  const file = files[0];
+
+  setForm(prev => ({ ...prev, photo: file }));
+
+  if (file) {
+    const previewUrl = URL.createObjectURL(file);
+    setPhotoPreview(previewUrl);
+  }
+
+  return;
+}
 
     setForm(prev => ({ ...prev, [name]: value }));
 
@@ -138,9 +147,9 @@ setSections(uniqueSections);
   };
 
 return (
-<div className="min-h-screen px-10 py-10">
+<div className=" overflow-x-hidden">
 
-<div className="max-w-4xl mx-auto space-y-8">
+<div className="max-w-4xl mx-auto space-y-4">
 
 {/* HEADER */}
 
@@ -154,7 +163,7 @@ Add students, instructors or administrators
 </div>
 
 
-<form onSubmit={onSubmit} className="space-y-8">
+<form onSubmit={onSubmit} className="space-y-4">
 
 {error && (
 <p className="text-sm text-red-600">{error}</p>
@@ -200,7 +209,7 @@ setForm(prev=>({...prev,roleName:value}))
 
 {form.roleName==="user" ? (
 
-<div className="space-y-8">
+<div className="space-y-4">
 
 
 {/* BASIC INFORMATION */}
@@ -260,7 +269,7 @@ className="border-0 border-b border-border rounded-none px-0"
 <h3 className="text-sm font-semibold text-[#178F9E]">
 Contact Details
 </h3>
-<div className="h-px bg-border flex-1 ml-4"></div>
+<div className="h-px bg-border flex-1 ml-4 bg-cyan-500"></div>
 </div>
 
 <div className="grid md:grid-cols-2 gap-6">
@@ -448,12 +457,64 @@ className="border-0 border-b border-border rounded-none px-0"
 
 {/* PHOTO */}
 
-<Input
+{/* PHOTO */}
+
+<div className="">
+
+<label className="text-sm font-medium text-gray-700">
+Student Photo
+</label>
+
+<div className="flex items-center gap-5">
+
+{/* IMAGE PREVIEW */}
+
+{photoPreview ? (
+<img
+src={photoPreview}
+alt="preview"
+className="w-20 h-20 rounded-full object-cover border-2 border-[#178F9E]"
+/>
+) : (
+<div className="w-20 h-20 rounded-full border-2 border-dashed border-gray-300 flex items-center justify-center text-gray-400 text-xs">
+No Photo
+</div>
+)}
+
+{/* UPLOAD BUTTON */}
+
+<label className="cursor-pointer border border-dashed border-[#178F9E] px-5 py-2 rounded-md text-sm text-[#178F9E] hover:bg-[#F4FDFE] transition">
+
+Choose Photo
+
+<input
 type="file"
 name="photo"
+accept="image/*"
 onChange={onChange}
-className="border-0 border-b border-border rounded-none px-0"
+className="hidden"
 />
+
+</label>
+
+{/* REMOVE BUTTON */}
+
+{photoPreview && (
+<button
+type="button"
+onClick={() => {
+setPhotoPreview(null)
+setForm(prev => ({ ...prev, photo: null }))
+}}
+className="text-sm text-red-500 hover:underline"
+>
+Remove
+</button>
+)}
+
+</div>
+
+</div>
 
 </div>
 
