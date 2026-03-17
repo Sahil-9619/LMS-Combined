@@ -38,6 +38,8 @@ const AdminDashboard = () => {
       try {
         const data = await adminServices.getDashborddata();
         setDashboardData(data);
+        console.log("Dashboard Data:", data);
+        console.log("Monthly Revenue:", data?.revenue?.monthlyFeeRevenue);
       } catch (error) {
         console.error("Error fetching dashboard data", error);
       }

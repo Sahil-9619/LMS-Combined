@@ -236,35 +236,74 @@ const getAdminDashboardData = async (req, res) => {
     // 📅 MONTHLY STUDENT FEE REVENUE (FIXED ✅)
     // ===============================
     const monthlyFeeData = await StudentFee.aggregate([
-      { $unwind: "$payments" },
-      {
-        $group: {
-          _id: {
-            year: { $year: "$payments.date" },
-            month: { $month: "$payments.date" }
-          },
-          collected: { $sum: "$payments.amount" }
+  { $unwind: "$payments" },
+  {
+    $project: {
+      year: {
+        $year: {
+          date: "$payments.date",
+          timezone: "Asia/Kolkata"
         }
       },
-      {
-        $sort: {
-          "_id.year": 1,
-          "_id.month": 1
+      month: {
+        $month: {
+          date: "$payments.date",
+          timezone: "Asia/Kolkata"
         }
-      }
-    ]);
+      },
 
-    const monthlyFeeRevenue = monthlyFeeData.map(item => {
-      const date = new Date(item._id.year, item._id.month - 1);
+      // monthly expected
+      expected: {
+        $divide: [
+          {
+            $add: [
+              "$tuitionFee",
+              "$hostelFee",
+              "$transportFee",
+              "$examFee"
+            ]
+          },
+          12
+        ]
+      },
 
-      return {
-        month: date.toLocaleString("default", {
-          month: "short",
-          year: "numeric"
-        }),
-        collected: item.collected
-      };
-    });
+      collected: "$payments.amount"
+    }
+  },
+  {
+    $group: {
+      _id: {
+        year: "$year",
+        month: "$month"
+      },
+      expected: { $sum: "$expected" },
+      collected: { $sum: "$collected" }
+    }
+  },
+  {
+    $sort: {
+      "_id.year": 1,
+      "_id.month": 1
+    } 
+  }
+]);
+  const monthlyFeeRevenue = monthlyFeeData.map(item => {
+  const date = new Date(item._id.year, item._id.month - 1);
+
+  const expected = Math.round(item.expected);
+  const collected = item.collected;
+  const pending = expected - collected;
+
+  return {
+    month: date.toLocaleString("default", {
+      month: "short",
+      year: "numeric"
+    }),
+    expected,
+    collected,
+    pending
+  };
+});
 
     // ===============================
     // ROLE BREAKDOWN
