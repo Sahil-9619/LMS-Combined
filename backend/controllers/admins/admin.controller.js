@@ -260,6 +260,7 @@ const getAdminDashboardData = async (req, res) => {
               "$tuitionFee",
               "$hostelFee",
               "$transportFee",
+              "$admissionFee",
               "$examFee"
             ]
           },
