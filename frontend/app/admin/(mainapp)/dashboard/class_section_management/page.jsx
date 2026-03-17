@@ -5,520 +5,490 @@ import { adminServices } from "@/services/admin/admin.service";
 import { toast } from "sonner";
 import { Trash2, Plus } from "lucide-react";
 
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+
+import {
+Select,
+SelectContent,
+SelectItem,
+SelectTrigger,
+SelectValue,
+} from "@/components/ui/select";
+
+import {
+Dialog,
+DialogContent,
+DialogHeader,
+DialogTitle,
+DialogFooter,
+} from "@/components/ui/dialog";
+
 export default function Page() {
 
-    const [classes, setClasses] = useState([]);
-    const [sections, setSections] = useState([]);
+const [classes,setClasses] = useState([])
+const [sections,setSections] = useState([])
 
-    const [newClass, setNewClass] = useState("");
-    const [sectionName, setSectionName] = useState("");
-    const [selectedClass, setSelectedClass] = useState("");
+const [newClass,setNewClass] = useState("")
+const [sectionName,setSectionName] = useState("")
+const [selectedClass,setSelectedClass] = useState("")
 
-    const [deleteType, setDeleteType] = useState(null);
-    const [deleteId, setDeleteId] = useState(null);
+const [deleteType,setDeleteType] = useState(null)
+const [deleteId,setDeleteId] = useState(null)
 
-    const [loading, setLoading] = useState(false);
+const [loading,setLoading] = useState(false)
 
 
 
-    /* ---------------- FETCH ALL DATA ---------------- */
+/* FETCH DATA */
 
-    const fetchAllData = async () => {
+const fetchAllData = async()=>{
 
-        try {
+try{
 
-            const res = await adminServices.getAllClasses();
-            const data = res?.data || [];
+const res = await adminServices.getAllClasses()
+const data = res?.data || []
 
-            /* unique classes */
-            const unique = [
-                ...new Map(data.map(item => [item.className, item])).values()
-            ];
+const unique = [...new Map(data.map(i=>[i.className,i])).values()]
 
-            setClasses(unique);
+setClasses(unique)
 
-            /* refresh section list if class selected */
+if(selectedClass){
 
-            if (selectedClass) {
+const selected = unique.find(c=>c._id===selectedClass)
 
-                const selected = unique.find(c => c._id === selectedClass);
+const sectionsList = data
+.filter(c=>c.className===selected?.className)
+.sort((a,b)=>a.section.localeCompare(b.section))
 
-                const sectionsList = data
-  .filter(c => c.className === selected?.className)
-  .sort((a,b) => a.section.localeCompare(b.section));
+setSections(sectionsList)
 
-setSections(sectionsList);
+}
 
-            }
+}catch{
 
-        } catch (err) {
+toast.error("Failed to load data")
 
-            toast.error("Failed to load data");
+}
 
-        }
+}
 
-    };
+useEffect(()=>{ fetchAllData() },[])
 
+useEffect(()=>{
 
+if(!selectedClass){
+setSections([])
+return
+}
 
-    useEffect(() => {
-        fetchAllData();
-    }, []);
+fetchAllData()
 
+},[selectedClass])
 
 
-    useEffect(() => {
 
-        if (!selectedClass) {
-            setSections([]);
-            return;
-        }
+/* CREATE CLASS */
 
-        fetchAllData();
+const createClass = async()=>{
 
-    }, [selectedClass]);
+const value = newClass.trim()
 
+if(!value){
+toast.error("Enter class name")
+return
+}
 
+if(classes.some(c=>c.className===value)){
+toast.error("Class already exists")
+return
+}
 
-    /* ---------------- CREATE CLASS ---------------- */
+try{
 
-    const createClass = async () => {
+setLoading(true)
 
-        const value = newClass.trim();
+await adminServices.createClass({
+className:value,
+section:"A",
+academicYear:new Date().getFullYear()
+})
 
-        if (!value) {
+toast.success("Class created")
 
-            toast.error("Enter class name");
-            return;
+setNewClass("")
+await fetchAllData()
 
-        }
+}catch{
 
-        if (classes.some(c => c.className === value)) {
+toast.error("Failed to create class")
 
-            toast.error("Class already exists");
-            return;
+}finally{
 
-        }
+setLoading(false)
 
-        try {
+}
 
-            setLoading(true);
+}
 
-            await adminServices.createClass({
 
-                className: value,
-                section: "A",
-                academicYear: new Date().getFullYear()
 
-            });
+/* DELETE CLASS */
 
-            toast.success("Class created");
+const deleteClass = async(id)=>{
 
-            setNewClass("");
+try{
 
-            await fetchAllData();
+const selected = classes.find(c=>c._id===id)
 
-        } catch (err) {
+const res = await adminServices.getAllClasses()
+const all = res?.data || []
 
-            toast.error(err?.response?.data?.message || "Failed to create class");
+const docs = all.filter(c=>c.className===selected.className)
 
-        }
-        finally {
+await Promise.all(
+docs.map(d=>adminServices.deleteClass(d._id))
+)
 
-            setLoading(false);
+toast.success("Class deleted")
 
-        }
+setSelectedClass("")
+setSections([])
 
-    };
+await fetchAllData()
 
+}catch{
 
+toast.error("Failed to delete class")
 
-    /* ---------------- DELETE CLASS (ALL SECTIONS) ---------------- */
+}
 
-    const deleteClass = async (classId) => {
+}
 
-        try {
 
-            const selected = classes.find(c => c._id === classId);
 
-            const res = await adminServices.getAllClasses();
-            const all = res?.data || [];
+/* CREATE SECTION */
 
-            const classDocs = all.filter(
-                c => c.className === selected.className
-            );
+const createSection = async()=>{
 
-            /* delete all sections of that class */
+let value = sectionName.trim().toUpperCase()
 
-            await Promise.all(
-                classDocs.map(doc =>
-                    adminServices.deleteClass(doc._id)
-                )
-            );
+if(!selectedClass){
+toast.error("Select class first")
+return
+}
 
-            toast.success("Class deleted");
+if(!value){
+toast.error("Enter section name")
+return
+}
 
-            setSelectedClass("");
-            setSections([]);
+const selected = classes.find(c=>c._id===selectedClass)
 
-            await fetchAllData();
+if(sections.some(sec=>sec.section===value)){
+toast.error("Section already exists")
+return
+}
 
-        } catch (err) {
+try{
 
-            toast.error("Failed to delete class");
+setLoading(true)
 
-        }
+await adminServices.createClass({
+className:selected.className,
+section:value,
+academicYear:new Date().getFullYear()
+})
 
-    };
+toast.success("Section created")
 
+setSectionName("")
+await fetchAllData()
 
+}catch{
 
-    /* ---------------- CREATE SECTION ---------------- */
+toast.error("Failed to create section")
 
-    const createSection = async () => {
+}finally{
 
-        let value = sectionName.trim().toUpperCase();   // CAPITAL
+setLoading(false)
 
-        if (!selectedClass) {
+}
 
-            toast.error("Select class first");
-            return;
+}
 
-        }
 
-        if (!value) {
 
-            toast.error("Enter section name");
-            return;
+/* DELETE SECTION */
 
-        }
+const deleteSection = async(id)=>{
 
-        const selected = classes.find(c => c._id === selectedClass);
+try{
 
-        /* prevent duplicate */
+await adminServices.deleteClass(id)
 
-        if (sections.some(sec => sec.section === value)) {
+toast.success("Section deleted")
 
-            toast.error("Section already exists");
-            return;
+setSections(prev=>prev.filter(s=>s._id!==id))
 
-        }
+await fetchAllData()
 
-        try {
+}catch{
 
-            setLoading(true);
+toast.error("Failed to delete section")
 
-            await adminServices.createClass({
+}
 
-                className: selected.className,
-                section: value,
-                academicYear: new Date().getFullYear()
+}
 
-            });
 
-            toast.success("Section created");
 
-            setSectionName("");
+const sortedClasses = [...classes].sort((a,b)=>
+a.className.localeCompare(b.className,undefined,{numeric:true})
+)
 
-            await fetchAllData();
 
-        } catch (err) {
 
-            toast.error(err?.response?.data?.message || "Failed to create section");
+const confirmDelete = async()=>{
 
-        }
-        finally {
+if(deleteType==="class") await deleteClass(deleteId)
+if(deleteType==="section") await deleteSection(deleteId)
 
-            setLoading(false);
+setDeleteType(null)
+setDeleteId(null)
 
-        }
+}
 
-    };
 
 
+/* UI */
 
-    /* ---------------- DELETE SECTION ---------------- */
+return(
 
-    const deleteSection = async (id) => {
+<div className="min-h-screen bg-muted/30 p-10">
 
-        try {
+<div className="max-w-6xl mx-auto space-y-8">
 
-            await adminServices.deleteClass(id);
 
-            toast.success("Section deleted");
+{/* HEADER */}
 
-            /* instant UI update */
+<div className="flex items-center justify-between border-b pb-4">
 
-            setSections(prev =>
-                prev.filter(sec => sec._id !== id)
-            );
+<div>
 
-            await fetchAllData();
+<h1 className="text-2xl font-semibold tracking-tight">
+Class & Section Management
+</h1>
 
-        } catch (err) {
+<p className="text-sm text-muted-foreground">
+Manage classes and sections for your school
+</p>
 
-            toast.error("Failed to delete section");
+</div>
 
-        }
 
-    };
+<div className="flex items-center gap-2">
 
+<Input
+placeholder="New class..."
+value={newClass}
+onChange={(e)=>setNewClass(e.target.value)}
+className="w-[220px]"
+/>
 
+<Button
+onClick={createClass}
+disabled={loading}
+className="flex gap-2"
+>
 
-    /* ---------------- SORT CLASSES ---------------- */
+<Plus size={16}/>
+Create
 
-    const sortedClasses = [...classes].sort((a, b) =>
-        a.className.localeCompare(b.className, undefined, { numeric: true })
-    );
+</Button>
 
+</div>
 
+</div>
 
-    /* ---------------- DELETE CONFIRM ---------------- */
 
-    const confirmDelete = async () => {
 
-        if (deleteType === "class") {
-            await deleteClass(deleteId);
-        }
+{/* WORKSPACE */}
 
-        if (deleteType === "section") {
-            await deleteSection(deleteId);
-        }
+<div className="grid grid-cols-[260px_1fr] gap-10">
 
-        setDeleteType(null);
-        setDeleteId(null);
 
-    };
+{/* LEFT SIDE CLASSES */}
 
+<div className="space-y-3">
 
+<h2 className="text-sm font-medium text-muted-foreground">
+Classes
+</h2>
 
-    return (
+<div className="border rounded-lg overflow-hidden bg-background">
 
-        <div className="min-h-screen bg-[#F8FAFC] p-10">
+{sortedClasses.map(cls=>(
 
-            <h1 className="text-3xl font-semibold text-slate-800 mb-10">
-                Class & Section Management
-            </h1>
+<div
+key={cls._id}
+onClick={()=>setSelectedClass(cls._id)}
+className={`flex items-center justify-between px-3 py-2 cursor-pointer transition
+${selectedClass===cls._id
+? "bg-accent"
+: "hover:bg-muted"}
+`}
+>
 
+<span className="text-sm font-medium">
+Class {cls.className}
+</span>
 
+<Button
+variant="ghost"
+size="icon"
+onClick={(e)=>{
+e.stopPropagation()
+setDeleteType("class")
+setDeleteId(cls._id)
+}}
+>
 
-            {/* CREATE CLASS */}
+<Trash2 size={14}/>
 
-            <div className="bg-white border rounded-lg p-6 mb-10">
+</Button>
 
-                <h2 className="font-semibold mb-4 text-slate-700">
-                    Create Class
-                </h2>
+</div>
 
-                <div className="flex gap-3">
+))}
 
-                    <input
-                        type="text"
-                        value={newClass}
-                        onChange={(e) => setNewClass(e.target.value)}
-                        placeholder="Example: 1,2,3"
-                        className="border rounded-md px-3 py-2 w-[250px]"
-                    />
+</div>
 
-                    <button
-                        onClick={createClass}
-                        disabled={loading}
-                        className="flex items-center gap-2 bg-cyan-700 text-white px-4 py-2 rounded-md hover:bg-cyan-800"
-                    >
-                        <Plus size={16} />
-                        Create
-                    </button>
+</div>
 
-                </div>
 
-            </div>
 
+{/* RIGHT SIDE SECTIONS */}
 
+<div className="space-y-6">
 
-            {/* CLASS LIST */}
 
-            <div className="bg-white border rounded-lg p-6 mb-10">
+{/* SECTION TOOLBAR */}
 
-                <h2 className="font-semibold mb-4 text-slate-700">
-                    Existing Classes
-                </h2>
+<div className="flex items-center gap-3">
 
-                {sortedClasses.length === 0 && (
-                    <p className="text-gray-500">No classes available</p>
-                )}
+<Input
+placeholder="Section"
+value={sectionName}
+onChange={(e)=>setSectionName(e.target.value.toUpperCase())}
+className="w-[160px]"
+/>
 
-                <div className="space-y-2">
+<Button
+onClick={createSection}
+disabled={loading || !selectedClass}
+className="flex gap-2"
+>
 
-                    {sortedClasses.map(cls => (
-                        <div
-                            key={cls._id}
-                            className="flex justify-between items-center border rounded-md px-4 py-2"
-                        >
+<Plus size={16}/>
+Add Section
 
-                            <span className="font-medium">
-                                Class {cls.className}
-                            </span>
+</Button>
 
-                            <button
-                                onClick={() => {
+</div>
 
-                                    setDeleteType("class");
-                                    setDeleteId(cls._id);
 
-                                }}
-                                className="text-red-500 hover:text-red-700"
-                            >
 
-                                <Trash2 size={16} />
+{/* SECTION LIST */}
 
-                            </button>
+<div className="border rounded-lg overflow-hidden bg-background">
 
-                        </div>
-                    ))}
+{sections.length===0 && (
 
-                </div>
+<div className="text-sm text-muted-foreground p-4">
+No sections available
+</div>
 
-            </div>
+)}
 
+{sections.map(sec=>(
 
+<div
+key={sec._id}
+className="flex justify-between items-center px-4 py-3 border-b last:border-none hover:bg-muted/40 transition"
+>
 
-            {/* SECTION MANAGEMENT */}
+<span className="text-sm font-medium">
+Section {sec.section}
+</span>
 
-            <div className="bg-white border rounded-lg p-6">
+<Button
+variant="ghost"
+size="icon"
+onClick={()=>{
+setDeleteType("section")
+setDeleteId(sec._id)
+}}
+>
 
-                <h2 className="font-semibold mb-4 text-slate-700">
-                    Manage Sections
-                </h2>
+<Trash2 size={14}/>
 
-                <div className="flex gap-3 mb-6">
+</Button>
 
-                    <select
-                        value={selectedClass}
-                        onChange={(e) => setSelectedClass(e.target.value)}
-                        className="border rounded-md px-3 py-2"
-                    >
+</div>
 
-                        <option value="">
-                            Select Class
-                        </option>
+))}
 
-                        {sortedClasses.map(cls => (
-                            <option key={cls._id} value={cls._id}>
-                                Class {cls.className}
-                            </option>
-                        ))}
+</div>
 
-                    </select>
+</div>
 
+</div>
 
-                    <input
-                        type="text"
-                        value={sectionName}
-                        onChange={(e) => setSectionName(e.target.value.toUpperCase())}
-                        placeholder="Section (A,B,C)"
-                        className="border rounded-md px-3 py-2 w-[180px]"
-                    />
 
-                    <button
-                        onClick={createSection}
-                        disabled={loading || !selectedClass}
-                        className="flex items-center gap-2 bg-slate-800 text-white px-4 py-2 rounded-md hover:bg-slate-900"
-                    >
 
-                        <Plus size={16} />
-                        Add Section
+{/* DELETE MODAL */}
 
-                    </button>
+<Dialog open={!!deleteType} onOpenChange={()=>setDeleteType(null)}>
 
-                </div>
+<DialogContent>
 
+<DialogHeader>
+<DialogTitle>
+Confirm Delete
+</DialogTitle>
+</DialogHeader>
 
+<p className="text-sm text-muted-foreground">
+Are you sure you want to delete this {deleteType}?
+</p>
 
-                {/* SECTION LIST */}
+<DialogFooter>
 
-                {selectedClass && sections.length === 0 && (
-                    <p className="text-gray-500">
-                        No sections available
-                    </p>
-                )}
+<Button
+variant="outline"
+onClick={()=>setDeleteType(null)}
+>
+Cancel
+</Button>
 
-                <div className="space-y-2">
+<Button
+variant="destructive"
+onClick={confirmDelete}
+>
+Delete
+</Button>
 
-                    {sections.map(sec => (
-                        <div
-                            key={sec._id}
-                            className="flex justify-between items-center border rounded-md px-4 py-2"
-                        >
+</DialogFooter>
 
-                            <span className="font-medium">
-                                Section {sec.section}
-                            </span>
+</DialogContent>
 
-                            <button
-                                onClick={() => {
+</Dialog>
 
-                                    setDeleteType("section");
-                                    setDeleteId(sec._id);
+</div>
 
-                                }}
-                                className="text-red-500 hover:text-red-700"
-                            >
+</div>
 
-                                <Trash2 size={16} />
-
-                            </button>
-
-                        </div>
-                    ))}
-
-                </div>
-
-            </div>
-
-
-
-            {/* DELETE POPUP */}
-
-            {deleteType && (
-
-                <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-
-                    <div className="bg-white rounded-lg shadow-lg p-6 w-[350px] text-center">
-
-                        <h3 className="text-lg font-semibold mb-3">
-                            Confirm Delete
-                        </h3>
-
-                        <p className="text-gray-500 mb-6">
-                            Are you sure you want to delete this {deleteType}?
-                        </p>
-
-                        <div className="flex justify-center gap-4">
-
-                            <button
-                                onClick={() => setDeleteType(null)}
-                                className="px-4 py-2 border rounded-md hover:bg-gray-100"
-                            >
-                                Cancel
-                            </button>
-
-                            <button
-                                onClick={confirmDelete}
-                                className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
-                            >
-                                Delete
-                            </button>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-            )}
-
-        </div>
-
-    );
+)
 
 }
