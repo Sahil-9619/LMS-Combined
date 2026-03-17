@@ -24,6 +24,13 @@ const studentFeeSchema = new mongoose.Schema(
     
   },
 
+  payments: [
+  {
+    amount: Number,
+    date: { type: Date, default: Date.now }
+  }
+],
+
   examFee: {
     type: Number,
     

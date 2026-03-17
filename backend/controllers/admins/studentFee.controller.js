@@ -136,6 +136,9 @@ exports.assignFeeToStudent = async (req, res) => {
 // ================================
 // GET FEES BY ADMISSION NUMBER
 // ================================
+// ================================
+// GET FEES BY ADMISSION NUMBER (FINAL FIXED)
+// ================================
 exports.getFeeByAdmissionNumber = async (req, res) => {
 
   try {
@@ -164,7 +167,6 @@ exports.getFeeByAdmissionNumber = async (req, res) => {
         status: "active",
       });
 
-      // If no fee structure exists, create a default one
       if (!feeStructure) {
         feeStructure = await getOrCreateFeeStructure(student.classId.className);
       }
@@ -182,9 +184,9 @@ exports.getFeeByAdmissionNumber = async (req, res) => {
           remainingAmount: feeStructure.totalFee,
           totalPaid: 0,
           status: "due",
+          payments: [] // 🔥 ensure payments array exists
         });
 
-        // Populate the newly created record
         fee = await StudentFee.findById(fee._id)
           .populate("studentId")
           .populate("feeStructureId")
@@ -209,10 +211,33 @@ exports.getFeeByAdmissionNumber = async (req, res) => {
     fee.transportFee = fee.transportFee ?? fee.feeStructureId?.transportFee ?? 0;
     fee.lateFeePerDay = fee.lateFeePerDay ?? fee.feeStructureId?.lateFeePerDay ?? 0;
 
+    // ==============================
+    // 📅 MONTHLY PAYMENT BREAKDOWN (FINAL)
+    // ==============================
+    const monthlyFees = {};
+
+    if (fee.payments && fee.payments.length > 0) {
+      fee.payments.forEach(p => {
+        const month = new Date(p.date).toLocaleString("default", {
+          month: "long"
+        });
+
+        if (!monthlyFees[month]) {
+          monthlyFees[month] = 0;
+        }
+
+        monthlyFees[month] += p.amount;
+      });
+    }
+
+    // ==============================
+    // FINAL RESPONSE
+    // ==============================
     res.json({
-      success:true,
+      success: true,
       student,
-      fee
+      fee,
+      monthlyFees // 🔥 THIS FIXES FRONTEND
     });
 
   } catch(error){
@@ -231,10 +256,13 @@ exports.getFeeByAdmissionNumber = async (req, res) => {
 // ================================
 // UPDATE PAYMENT (FIXED)
 // ================================
+// ================================
+// UPDATE PAYMENT (FINAL MONTH-WISE FIX)
+// ================================
 exports.updateStudentFee = async (req, res) => {
   try {
 
-    const { admissionNumber, payAmount } = req.body;
+    const { admissionNumber, payAmount, month } = req.body; // 🔥 month added
 
     const student = await Student.findOne({ admissionNumber });
 
@@ -293,8 +321,27 @@ exports.updateStudentFee = async (req, res) => {
       });
     }
 
-    // ✅ Update payment
+    // ==============================
+    // 🔥 MONTH BASED DATE FIX
+    // ==============================
+    let paymentDate = new Date();
+
+    if (month) {
+      const monthIndex = new Date(`${month} 1, 2026`).getMonth();
+      paymentDate = new Date(2026, monthIndex, 1);
+    }
+
+    // ==============================
+    // UPDATE PAYMENT
+    // ==============================
     studentFee.totalPaid += payment;
+
+    studentFee.payments = studentFee.payments || [];
+
+    studentFee.payments.push({
+      amount: payment,
+      date: paymentDate // 🔥 FIXED HERE
+    });
 
     studentFee.remainingAmount =
       studentFee.totalAssignedFee - studentFee.totalPaid;
@@ -331,7 +378,7 @@ exports.getFeesByStudent = async (req, res) => {
     res.status(200).json({
       success: true,
       data: fees
-    });
+    }); 
 
   } catch (error) {
 

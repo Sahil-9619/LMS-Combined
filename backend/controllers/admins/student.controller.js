@@ -231,8 +231,10 @@ exports.deleteStudent = async (req, res) => {
       });
     }
 
-    await StudentFee.deleteMany({ studentId: id });
+    // ❌ yeh line hata di
+    // await StudentFee.deleteMany({ studentId: id });
 
+    // ✅ sirf yeh chalega
     await Student.findByIdAndDelete(id);
 
     res.status(200).json({

@@ -84,12 +84,12 @@ const AdminDashboard = () => {
   );
 
   // Monthly revenue
-  const revenueData = (revenue?.monthly || []).map((m) => ({
-    month: m.month,
-    gross: m.gross || 0,
-    net: m.net || 0,
-    profit: m.profit || 0,
-  }));
+  const revenueData = (revenue?.monthlyFeeRevenue || []).map((m) => ({
+  month: m.month,
+  expected: m.expected || 0,
+  collected: m.collected || 0,
+  pending: m.pending || 0,
+}));
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
@@ -155,6 +155,41 @@ const AdminDashboard = () => {
           </Card>
         </div>
 
+        {/* 💰 Student Fee Revenue Cards */}
+<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+  {/* Expected Revenue */}
+  <Card className="shadow-lg bg-white">
+    <CardContent className="p-4">
+      <p className="text-sm text-gray-500">Expected Revenue</p>
+      <h2 className="text-2xl font-bold text-indigo-600">
+        ₹{revenue?.totalExpectedRevenue || 0}
+      </h2>
+    </CardContent>
+  </Card>
+
+  {/* Collected Revenue */}
+  <Card className="shadow-lg bg-white">
+    <CardContent className="p-4">
+      <p className="text-sm text-gray-500">Collected Revenue</p>
+      <h2 className="text-2xl font-bold text-green-600">
+        ₹{revenue?.totalCollectedRevenue || 0}
+      </h2>
+    </CardContent>
+  </Card>
+
+  {/* Pending Revenue */}
+  <Card className="shadow-lg bg-white">
+    <CardContent className="p-4">
+      <p className="text-sm text-gray-500">Pending Revenue</p>
+      <h2 className="text-2xl font-bold text-red-600">
+        ₹{revenue?.totalPendingRevenue || 0}
+      </h2>
+    </CardContent>
+  </Card>
+
+</div>
+
         {/* Enrollments and Top performers */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Card className="relative overflow-hidden border-0 shadow-lg bg-white">
@@ -165,7 +200,7 @@ const AdminDashboard = () => {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-gray-900">{totals?.enrollments ?? 0}</div>
+              <div className="text-3xl font-bold text-gray-900">{totals?.students ?? 0}</div>
               <p className="text-gray-500 text-sm">Active: {totals?.activeEnrollments ?? 0}</p>
             </CardContent>
           </Card>
@@ -229,9 +264,9 @@ const AdminDashboard = () => {
                   <XAxis dataKey="month" tick={{ fontSize: 12, fill: "#64748b" }} axisLine={{ stroke: "#e2e8f0" }} />
                   <YAxis tick={{ fontSize: 12, fill: "#64748b" }} axisLine={{ stroke: "#e2e8f0" }} />
                   <Tooltip contentStyle={{ backgroundColor: "white", border: "none", borderRadius: "8px", boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1)" }} />
-                  <Line type="monotone" dataKey="gross" stroke="#6366f1" strokeWidth={2} dot={false} name="Gross" />
-                  <Line type="monotone" dataKey="net" stroke="#10b981" strokeWidth={2} dot={false} name="Net" />
-                  <Line type="monotone" dataKey="profit" stroke="#f59e0b" strokeWidth={2} dot={false} name="Profit" />
+                  <Line type="monotone" dataKey="expected" stroke="#6366f1" strokeWidth={2} name="Expected" />
+                  <Line type="monotone" dataKey="collected" stroke="#10b981" strokeWidth={2} name="Collected" />
+                  <Line type="monotone" dataKey="pending" stroke="#ef4444" strokeWidth={2} name="Pending" />
                 </LineChart>
               </ResponsiveContainer>
             </CardContent>
@@ -342,7 +377,7 @@ const AdminDashboard = () => {
               <Calendar className="h-5 w-5 text-emerald-600" />
               <CardTitle className="text-xl text-gray-800">
                 Recent Enrollments
-              </CardTitle>
+              </CardTitle>  
             </div>
           </CardHeader>
           <CardContent className="pt-6">
@@ -388,7 +423,7 @@ const AdminDashboard = () => {
                           (enrollment.progress?.completionPercentage || 0) > 75
                             ? "success"
                             : (enrollment.progress?.completionPercentage || 0) > 50
-                            ? "warning"
+                            ? "warning" 
                             : "secondary"
                         }
                         className="text-xs"

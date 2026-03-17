@@ -252,29 +252,41 @@ document.removeEventListener("mousedown", handleClickOutside)
   };
 
   /* ---------------- HANDLE PAYMENT ---------------- */
+const handlePayment = async () => {
 
-  const handlePayment = async () => {
+  try {
 
-    try {
-
-      const payload = {
-        admissionNumber: admissionNo,
-        payAmount: Number(payAmount)
-      };
-
-      await adminServices.updateStudentFee(payload);
-
-      handleSearch();
-
-      setPayAmount("");
-
-    } catch (err) {
-
-      console.log(err);
-
+    if (!selectedMonth) {
+      toast.error("Please select a month first");
+      return;
     }
 
-  };
+    if (!payAmount || Number(payAmount) <= 0) {
+      toast.error("Enter valid amount");
+      return;
+    }
+
+    const payload = {
+      admissionNumber: admissionNo,
+      payAmount: Number(payAmount),
+      month: selectedMonth // ✅ correct
+    };
+
+    console.log("Sending Payload:", payload); // 🔥 DEBUG
+
+    await adminServices.updateStudentFee(payload);
+
+    handleSearch();
+
+    setPayAmount("");
+
+  } catch (err) {
+
+    console.log(err);
+
+  }
+
+};
   const handleFeeStructureUpdate = async () => {
 
     try {
@@ -293,26 +305,15 @@ document.removeEventListener("mousedown", handleClickOutside)
     }
 
   };
-  const monthlyFee = summary.totalAssignedFee
-    ? summary.totalAssignedFee / 12
-    : 0;
+  const getMonthStatus = (month) => {
+ const paid = monthlyFees[month] || 0;
+const monthlyExpected = summary.totalAssignedFee / 12;
+const pending = Math.max(monthlyExpected - paid, 0);
 
-  const getMonthStatus = (index) => {
-
-    const paidAmount = summary.totalPaid || 0;
-
-    const fullyPaidMonths = Math.floor(paidAmount / monthlyFee);
-
-    const partialAmount = paidAmount % monthlyFee;
-
-    if (index < fullyPaidMonths) return "full";
-
-    if (index === fullyPaidMonths && partialAmount > 0) return "partial";
-
-    return "none";
-
-  };
-
+  if (paid === 0) return "none";
+  if (paid < monthlyExpected) return "partial";
+  return "full";
+};
   const totalPages = Math.ceil(classStudents.length / rowsPerPage)
 
   const startIndex = (currentPage - 1) * rowsPerPage
@@ -1024,10 +1025,14 @@ ${summary.status === "paid"
 
               {months.map((month, index) => {
 
-                const status = getMonthStatus(index);
+                const paid = monthlyFees[month] || 0;
+  const monthlyExpected = summary.totalAssignedFee / 12;
+  const pending = Math.max(monthlyExpected - paid, 0);  
+
+               const status = getMonthStatus(month);
 
                 return (
-
+                  
                   <div
                     key={month}
                     className={`h-24 rounded-xl border flex flex-col items-center justify-center text-center font-semibold shadow-sm transition hover:scale-105
@@ -1042,10 +1047,17 @@ ${summary.status === "paid"
                   >
 
                     <p className="text-lg">{month.slice(0, 3)}</p>
+<p className="text-xs font-semibold">
+  {paid > 0 && (
+    <span className="text-white">₹{paid} Paid</span>
+  )}
 
-                    <p className="text-xs opacity-90">
-                      ₹{Math.round(monthlyFee)}
-                    </p>
+  {pending > 0 && (
+    <span className="text-red-200 block">
+      ₹{pending} Pending
+    </span>
+  )}
+</p>
 
                   </div>
 

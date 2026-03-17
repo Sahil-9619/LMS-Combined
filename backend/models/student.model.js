@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const StudentFee = require("./studentFee.model");
 
 const studentSchema = new mongoose.Schema(
   {
@@ -87,6 +88,22 @@ const studentSchema = new mongoose.Schema(
 // Indexes
 studentSchema.index({ classId: 1 });
 studentSchema.index({ admissionNumber: 1 });
+
+// AUTO DELETE StudentFee WHEN STUDENT IS DELETED
+studentSchema.pre("findOneAndDelete", async function (next) {
+  try {
+    const student = await this.model.findOne(this.getFilter());
+
+    if (student) {
+      await StudentFee.deleteMany({ studentId: student._id });
+      console.log("StudentFee deleted for student:", student._id);
+    }
+
+    next();
+  } catch (error) {
+    next(error);
+  }
+});
 
 
 // Virtual full name

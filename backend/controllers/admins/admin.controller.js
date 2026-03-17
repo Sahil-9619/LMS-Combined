@@ -4,6 +4,7 @@ const User = require("../../models/user.model");
 const Role = require("../../models/role.model");
 const bcrypt = require("bcrypt");
 const Student = require("../../models/student.model");
+const StudentFee = require("../../models/studentFee.model");
 
 const getInstructorProfile = async (req, res) => {
   try {
@@ -199,9 +200,6 @@ const getDashboardData = async (req, res) => {
 // Admin-wide dashboard with full platform metrics
 const getAdminDashboardData = async (req, res) => {
   try {
-    // Optional: assume authorization middleware restricts this to admins
-
-    // Totals
     const [
       totalUsers,
       totalCourses,
@@ -216,7 +214,61 @@ const getAdminDashboardData = async (req, res) => {
       Enrollment.countDocuments({ status: "active" }),
     ]);
 
-    // Role breakdown (students/instructors) via aggregation to role name
+    // ===============================
+    // 💰 STUDENT FEE REVENUE
+    // ===============================
+    const feeRevenue = await StudentFee.aggregate([
+      {
+        $group: {
+          _id: null,
+          totalCollected: { $sum: "$totalPaid" },
+          totalAssigned: { $sum: "$totalAssignedFee" }
+        }
+      }
+    ]);
+
+    const totalCollectedRevenue = feeRevenue[0]?.totalCollected || 0;
+    const totalExpectedRevenue = feeRevenue[0]?.totalAssigned || 0;
+    const totalPendingRevenue =
+      totalExpectedRevenue - totalCollectedRevenue;
+
+    // ===============================
+    // 📅 MONTHLY STUDENT FEE REVENUE (FIXED ✅)
+    // ===============================
+    const monthlyFeeData = await StudentFee.aggregate([
+      { $unwind: "$payments" },
+      {
+        $group: {
+          _id: {
+            year: { $year: "$payments.date" },
+            month: { $month: "$payments.date" }
+          },
+          collected: { $sum: "$payments.amount" }
+        }
+      },
+      {
+        $sort: {
+          "_id.year": 1,
+          "_id.month": 1
+        }
+      }
+    ]);
+
+    const monthlyFeeRevenue = monthlyFeeData.map(item => {
+      const date = new Date(item._id.year, item._id.month - 1);
+
+      return {
+        month: date.toLocaleString("default", {
+          month: "short",
+          year: "numeric"
+        }),
+        collected: item.collected
+      };
+    });
+
+    // ===============================
+    // ROLE BREAKDOWN
+    // ===============================
     const roleBreakdown = await User.aggregate([
       {
         $lookup: {
@@ -229,16 +281,17 @@ const getAdminDashboardData = async (req, res) => {
       { $unwind: "$role" },
       { $group: { _id: "$role.name", count: { $sum: 1 } } },
     ]);
+
     let totalInstructors = 0;
-    
     roleBreakdown.forEach((r) => {
       if (r._id === "instructor") totalInstructors = r.count;
-      
     });
 
     const totalStudents = await Student.countDocuments();
 
-    // Revenue stats (platform-wide)
+    // ===============================
+    // COURSE REVENUE (UNCHANGED)
+    // ===============================
     const monthlyGross = await Enrollment.aggregate([
       { $match: { "payment.paymentStatus": "completed" } },
       {
@@ -261,155 +314,17 @@ const getAdminDashboardData = async (req, res) => {
         year: "numeric",
       });
       grossRevenue += row.gross || 0;
-      const profit = (row.gross || 0) * COMMISSION_RATE; // platform profit (commission)
-      const net = (row.gross || 0) - profit; // payout to instructors
+      const profit = (row.gross || 0) * COMMISSION_RATE;
+      const net = (row.gross || 0) - profit;
       return { month: label, gross: row.gross || 0, net, profit };
     });
+
     const platformProfit = grossRevenue * COMMISSION_RATE;
     const netPayoutToInstructors = grossRevenue - platformProfit;
 
-    // Top courses by revenue
-    const topCoursesByRevenue = await Enrollment.aggregate([
-      { $match: { "payment.paymentStatus": "completed" } },
-      {
-        $group: {
-          _id: "$course",
-          gross: { $sum: "$payment.amount" },
-          enrollments: { $sum: 1 },
-        },
-      },
-      { $sort: { gross: -1 } },
-      { $limit: 5 },
-      {
-        $lookup: {
-          from: "courses",
-          localField: "_id",
-          foreignField: "_id",
-          as: "course",
-        },
-      },
-      { $unwind: "$course" },
-      {
-        $lookup: {
-          from: "users",
-          localField: "course.instructor",
-          foreignField: "_id",
-          as: "instructor",
-        },
-      },
-      { $unwind: { path: "$instructor", preserveNullAndEmptyArrays: true } },
-      {
-        $project: {
-          courseId: "$_id",
-          title: "$course.title",
-          slug: "$course.slug",
-          enrollments: 1,
-          gross: 1,
-          net: {
-            $subtract: ["$gross", { $multiply: ["$gross", COMMISSION_RATE] }],
-          },
-          profit: { $multiply: ["$gross", COMMISSION_RATE] },
-          instructor: {
-            _id: "$instructor._id",
-            name: "$instructor.name",
-            profileImage: "$instructor.profileImage",
-          },
-        },
-      },
-    ]);
-
-    // Top instructors by revenue
-    const topInstructorsByRevenue = await Enrollment.aggregate([
-      { $match: { "payment.paymentStatus": "completed" } },
-      {
-        $lookup: {
-          from: "courses",
-          localField: "course",
-          foreignField: "_id",
-          as: "course",
-        },
-      },
-      { $unwind: "$course" },
-      {
-        $group: {
-          _id: "$course.instructor",
-          gross: { $sum: "$payment.amount" },
-          enrollments: { $sum: 1 },
-        },
-      },
-      { $sort: { gross: -1 } },
-      { $limit: 5 },
-      {
-        $lookup: {
-          from: "users",
-          localField: "_id",
-          foreignField: "_id",
-          as: "instructor",
-        },
-      },
-      { $unwind: { path: "$instructor", preserveNullAndEmptyArrays: true } },
-      {
-        $project: {
-          instructorId: "$_id",
-          name: "$instructor.name",
-          profileImage: "$instructor.profileImage",
-          gross: 1,
-          net: {
-            $subtract: ["$gross", { $multiply: ["$gross", COMMISSION_RATE] }],
-          },
-          profit: { $multiply: ["$gross", COMMISSION_RATE] },
-          enrollments: 1,
-        },
-      },
-    ]);
-
-    // Enrollment count per course (platform-wide)
-    const enrollmentsPerCourse = await Enrollment.aggregate([
-      { $match: { status: "active" } },
-      { $group: { _id: "$course", count: { $sum: 1 } } },
-      {
-        $lookup: {
-          from: "courses",
-          localField: "_id",
-          foreignField: "_id",
-          as: "course",
-        },
-      },
-      { $unwind: "$course" },
-      { $project: { courseId: "$_id", title: "$course.title", count: 1 } },
-      { $sort: { count: -1 } },
-    ]);
-
-    // Completion % per course (platform-wide)
-    const completionPerCourse = await Enrollment.aggregate([
-      { $project: { course: 1, completion: "$progress.completionPercentage" } },
-      { $group: { _id: "$course", avgCompletion: { $avg: "$completion" } } },
-      {
-        $lookup: {
-          from: "courses",
-          localField: "_id",
-          foreignField: "_id",
-          as: "course",
-        },
-      },
-      { $unwind: "$course" },
-      {
-        $project: {
-          courseId: "$_id",
-          title: "$course.title",
-          avgCompletion: 1,
-        },
-      },
-      { $sort: { avgCompletion: -1 } },
-    ]);
-
-    // Recent enrollments (platform-wide)
-    const recentEnrollments = await Enrollment.find({})
-      .sort({ createdAt: -1 })
-      .limit(10)
-      .populate("user", "name email profileImage")
-      .populate("course", "title slug price");
-
+    // ===============================
+    // FINAL RESPONSE
+    // ===============================
     res.status(200).json({
       totals: {
         users: totalUsers,
@@ -424,14 +339,14 @@ const getAdminDashboardData = async (req, res) => {
         grossRevenue,
         netPayoutToInstructors,
         platformProfit,
-        monthly,
-      },
-      recentEnrollments,
-      topCoursesByRevenue,
-      topInstructorsByRevenue,
-      enrollmentsPerCourse,
-      completionPerCourse,
+        monthly, // course revenue
+        totalCollectedRevenue,
+        totalExpectedRevenue,
+        totalPendingRevenue,
+        monthlyFeeRevenue, // ✅ FIXED
+      }
     });
+
   } catch (error) {
     console.error("Error fetching admin dashboard data:", error);
     res.status(500).json({ message: "Server error" });
