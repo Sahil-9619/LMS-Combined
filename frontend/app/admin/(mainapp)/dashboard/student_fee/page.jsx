@@ -79,7 +79,6 @@ const res = await adminServices.getAllClasses()
 
 const data = res?.data || []
 
-console.log("Classes fetched from API:", data);
 
 /*
 Expected DB structure example
@@ -131,8 +130,6 @@ classId: item._id
 const formatted = Object.values(classMap).sort(
 (a,b)=>Number(a.className)-Number(b.className)
 )
-
-console.log("Formatted classes structure:", formatted);
 
 // Validate all sections have classId
 formatted.forEach((cls, idx) => {
@@ -370,13 +367,21 @@ return;
 }
 
 let allStudents = [];
+
+// NEW: fetch class fee using first section classId
+try {
+const feeRes = await adminServices.getClassFeeByClass(classData.sections[0]?.classId);
+console.log("Class Fee Response:", feeRes);
+} catch (err) {
+console.error("Error fetching class fee:", err);
+}
+
 for (const sec of classData.sections) {
 if (!sec.classId) {
 console.warn("Missing classId for section:", sec);
 continue;
 }
 try {
-console.log(`Loading students for section ${sec.name} with classId:`, sec.classId);
 const res = await adminServices.getstudentsByClass(sec.classId);
 const students = res?.data || [];
 allStudents = [...allStudents, ...students];
@@ -392,6 +397,7 @@ Number(b.admissionNumber.replace("ADM",""))
 );
 
 setClassStudents(sortedStudents);
+
 } else {
 // Load specific section
 if (!classData.classId) {
@@ -400,10 +406,23 @@ toast.error("Invalid section selected");
 return;
 }
 
-console.log(`Loading students for section ${classData.section} with classId:`, classData.classId);
 const res = await adminServices.getstudentsByClass(classData.classId)
 
 let students = res?.data || []
+
+// NEW: fetch class fee here
+try {
+const feeRes = await adminServices.getClassFeeByClass(classData.classId);
+
+const feeData = feeRes?.data || feeRes;
+
+setSummary(prev => ({
+  ...prev,
+  totalAssignedFee: feeData?.totalAssignedFee || 0
+}));
+} catch (err) {
+console.error("Error fetching class fee:", err);
+}
 
 const sortedStudents = students.sort(
 (a,b)=>
@@ -505,10 +524,11 @@ console.error("No sections available for this class");
 toast.error("No sections available");
 return;
 }
+setAdmissionNo("")
+router.replace("/admin/dashboard/student_fee")
 setSelectedClass(cls.sections[0]?.classId)
 setSelectedSection("ALL")
 setOpenClassMenu(false)
-console.log("Loading ALL sections for class:", cls.className, "with sections:", cls.sections);
 loadStudents({section: "ALL", sections: cls.sections})
 }}
 >
@@ -526,10 +546,11 @@ console.error("Invalid section data:", sec);
 toast.error("Invalid section data");
 return;
 }
+setAdmissionNo("")
+router.replace("/admin/dashboard/student_fee")
 setSelectedClass(sec.classId)
 setSelectedSection(sec.name)
 setOpenClassMenu(false)
-console.log(`Loading section ${sec.name} for class with classId:`, sec.classId);
 loadStudents({section: sec.name, classId: sec.classId})
 }}
 >
@@ -661,9 +682,11 @@ No students found
 
 {currentStudents.map((s, index) => {
 
-                  const remaining = (s.totalAssignedFee || 0) - (s.totalPaid || 0)
-
-                  return (
+  const totalAssignedFee = summary.totalAssignedFee || 0
+  const totalPaid = s?.totalPaid || s?.fee?.totalPaid || 0
+  const remaining = totalAssignedFee - totalPaid
+console.log("Student data:", s)
+  return (
                     <tr
                       key={s._id}
                       className={`
@@ -700,12 +723,16 @@ hover:bg-[#ECFAFC] transition
 
 
                       <td className="p-3 border border-[#D9F1F4] font-semibold">
-                        ₹{s.totalAssignedFee || 0}
+                      <Summary
+  label="Total Assigned Fee"
+  value={totalAssignedFee}
+  color="text-[#0F6F7C]"
+/>
                       </td>
 
                       <td className="p-3 border border-[#D9F1F4]">
 
-                        {remaining === 0 ? (
+                   {/**     {remaining === 0 ? (
 
                           <span className="text-green-600 font-semibold flex items-center gap-1">
                             ✓ Paid
@@ -725,7 +752,7 @@ hover:bg-[#ECFAFC] transition
 
                           </div>
 
-                        )}
+                        )} */}
 
                       </td>
 

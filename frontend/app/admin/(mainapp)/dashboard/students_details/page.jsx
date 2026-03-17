@@ -322,7 +322,7 @@ setLoading(false)
 
   return (
 
-    <div className="p-10  min-h-screen">
+    <div className="p-10  min-h-screen overflow-x-hidden">
 
       {/* PAGE HEADER */}
 
@@ -364,7 +364,7 @@ className="border border-gray-300 px-4 py-2 rounded-md text-sm w-40 bg-white fle
 
 {openClassMenu && (
 
-<div className="absolute top-10 left-0 bg-white border rounded-md shadow-md w-40 z-50">
+<div className="absolute top-10 left-0 bg-white border rounded-md shadow-md min-w-[160px] z-50">
 
 {classes.map((cls)=> (
 
@@ -385,7 +385,7 @@ Class {cls.className}
 
 {hoverClass===cls.className && (
 
-<div className="absolute left-full top-0 bg-white border rounded-md shadow-md w-32">
+<div className="absolute left-full top-0 bg-white border rounded-md shadow-md w-32 max-h-60 overflow-y-auto">
 
 <div
 className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
