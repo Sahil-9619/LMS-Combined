@@ -137,187 +137,427 @@ setSections(uniqueSections);
     finally { setSubmitting(false); }
   };
 
-  return (
-    <div className="px-8 py-10 min-h-screen">
+return (
+<div className="min-h-screen px-10 py-10">
 
-      <div className="border-b pb-4 mb-6">
-        <h1 className="text-2xl font-semibold text-gray-800">Create User</h1>
-      </div>
+<div className="max-w-4xl mx-auto space-y-8">
 
-      <div className="space-y-6">
-        <form onSubmit={onSubmit} className="space-y-5">
+{/* HEADER */}
 
-          {error && <div className="text-red-600 text-sm">{error}</div>}
-          {success && <div className="text-green-600 text-sm">{success}</div>}
+<div className="border-b pb-5">
+<h1 className="text-2xl font-semibold tracking-tight">
+Create User
+</h1>
+<p className="text-sm text-muted-foreground">
+Add students, instructors or administrators
+</p>
+</div>
 
-          {/* ROLE */}
-          <div>
-            <label className="block mb-1 text-sm font-medium">Role</label>
-            <Select
-              value={form.roleName}
-              onValueChange={(value) =>
-                setForm((prev) => ({ ...prev, roleName: value }))
-              }
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select Role" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="user">Student</SelectItem>
-                <SelectItem value="instructor">Instructor</SelectItem>
-                <SelectItem value="admin">Admin</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
 
-          {/* STUDENT FORM */}
-          {form.roleName === "user" ? (
-            <>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Input name="firstName" placeholder="First Name" onChange={onChange} required />
-                <Input name="lastName" placeholder="Last Name" onChange={onChange} required />
-              </div>
+<form onSubmit={onSubmit} className="space-y-8">
 
-              <div className="grid grid-cols-2 gap-4">
-                <Input name="fatherName" placeholder="Father Name" onChange={onChange} />
-                <Input name="motherName" placeholder="Mother Name" onChange={onChange} />
-              </div>
+{error && (
+<p className="text-sm text-red-600">{error}</p>
+)}
 
-              <div className="grid grid-cols-2 gap-4">
-                <Input name="phone" placeholder="Student Phone" onChange={onChange} />
-                <Input name="parentPhone" placeholder="Parent Phone" onChange={onChange} />
-              </div>
+{success && (
+<p className="text-sm text-green-600">{success}</p>
+)}
 
-              <Input type="email" name="email" placeholder="Email" onChange={onChange} />
 
-              <div className="grid grid-cols-2 gap-4">
-                <Input type="date" name="dateOfBirth" onChange={onChange} />
+{/* ROLE */}
 
-                <Select
-                  value={form.gender}
-                  onValueChange={(value) =>
-                    setForm((prev) => ({ ...prev, gender: value }))
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select Gender" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="male">Male</SelectItem>
-                    <SelectItem value="female">Female</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+<div className="space-y-2 max-w-[260px]">
 
-              <Input name="address" placeholder="Address" onChange={onChange} />
+<label className="text-sm font-medium">
+Role
+</label>
 
-              <Select
-                value={form.category}
-                onValueChange={(value) =>
-                  setForm((prev) => ({ ...prev, category: value }))
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select Category" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="general">General</SelectItem>
-                  <SelectItem value="obc">OBC</SelectItem>
-                  <SelectItem value="sc">SC</SelectItem>
-                  <SelectItem value="st">ST</SelectItem>
-                </SelectContent>
-              </Select>
+<Select
+value={form.roleName}
+onValueChange={(value)=>
+setForm(prev=>({...prev,roleName:value}))
+}
+>
 
-              {/* STATIC CLASS SELECT */}
-              <select
-                name="course"
-                value={form.course}
-                onChange={onChange}
-                className="input"
-              >
-                <option value="">Select Class</option>
+<SelectTrigger className="border-0 border-b-2 border-cyan-500 rounded-none px-0 focus:ring-0">
+<SelectValue placeholder="Select Role"/>
+</SelectTrigger>
 
-                {[...new Map(allClasses.map(c => [c.className, c])).values()]
-                  .sort((a, b) => Number(a.className) - Number(b.className))
-                  .map(cls => (
-                    <option key={cls.className} value={cls.className}>
-                      Class {cls.className}
-                    </option>
-                  ))}
+<SelectContent>
+<SelectItem value="user">Student</SelectItem>
+<SelectItem value="instructor">Instructor</SelectItem>
+<SelectItem value="admin">Admin</SelectItem>
+</SelectContent>
 
-              </select>
+</Select>
 
-              <select
-                name="section"
-                value={form.section}
-                onChange={onChange}
-                className="input"
-              >
+</div>
 
-                <option value="">
-                  Select Section
-                </option>
 
-                {sections.map(sec => (
-                  <option key={sec._id} value={sec.section}>
-                    Section {sec.section}
-                  </option>
-                ))}
 
-              </select>
+{/* STUDENT FORM */}
 
-              <Input type="file" name="photo" onChange={onChange} />
-            </>
-          ) : (
-            <>
-              <Input name="name" placeholder="Full Name" onChange={onChange} required />
-              <Input type="email" name="email" placeholder="Email" onChange={onChange} required />
-              <Input type="password" name="password" placeholder="Password" onChange={onChange} required />
-              <Input name="phone" placeholder="Phone" onChange={onChange} />
-            </>
-          )}
+{form.roleName==="user" ? (
 
-          <Button
-            type="submit"
-            className="w-full bg-[#178F9E] hover:bg-[#0F6F7C] text-white font-medium py-3"
-            disabled={submitting}
-          >
-            {submitting ? "Creating..." : "Create"}
-          </Button>
+<div className="space-y-8">
 
-        </form>
-        <AlertDialog open={showSuccessDialog}>
-          <AlertDialogContent>
 
-            <AlertDialogHeader>
-              <AlertDialogTitle>
-                Success
-              </AlertDialogTitle>
+{/* BASIC INFORMATION */}
 
-              <AlertDialogDescription>
-                {success || "User created successfully"}
-              </AlertDialogDescription>
-            </AlertDialogHeader>
+<div>
 
-            <AlertDialogFooter>
-              <AlertDialogAction
-                className="bg-[#178F9E] hover:bg-[#0F6F7C]"
-                onClick={() => {
-                  setShowSuccessDialog(false);
-                  router.push("/admin/dashboard/users");
-                }}
-              >
-                OK
-              </AlertDialogAction>
-            </AlertDialogFooter>
+<div className="flex items-center mb-4">
+<h3 className="text-sm font-semibold text-[#178F9E]">
+Basic Information
+</h3>
+<div className="h-px bg-border flex-1 ml-4 bg-cyan-500"></div>
+</div>
 
-          </AlertDialogContent>
-        </AlertDialog>
-      </div>
+<div className="grid md:grid-cols-2 gap-6">
 
-    </div>
-  );
+<Input
+name="firstName"
+placeholder="First Name"
+onChange={onChange}
+required
+className="border-0 border-b border-border rounded-none px-0"
+/>
+
+<Input
+name="lastName"
+placeholder="Last Name"
+onChange={onChange}
+required
+className="border-0 border-b border-border rounded-none px-0"
+/>
+
+<Input
+name="fatherName"
+placeholder="Father Name"
+onChange={onChange}
+className="border-0 border-b border-border rounded-none px-0"
+/>
+
+<Input
+name="motherName"
+placeholder="Mother Name"
+onChange={onChange}
+className="border-0 border-b border-border rounded-none px-0"
+/>
+
+</div>
+
+</div>
+
+
+
+{/* CONTACT */}
+
+<div>
+
+<div className="flex items-center mb-4">
+<h3 className="text-sm font-semibold text-[#178F9E]">
+Contact Details
+</h3>
+<div className="h-px bg-border flex-1 ml-4"></div>
+</div>
+
+<div className="grid md:grid-cols-2 gap-6">
+
+<Input
+name="phone"
+placeholder="Student Phone"
+onChange={onChange}
+className="border-0 border-b border-border rounded-none px-0"
+/>
+
+<Input
+name="parentPhone"
+placeholder="Parent Phone"
+onChange={onChange}
+className="border-0 border-b border-border rounded-none px-0"
+/>
+
+<Input
+type="email"
+name="email"
+placeholder="Email"
+onChange={onChange}
+className="md:col-span-2 border-0 border-b border-border rounded-none px-0"
+/>
+
+</div>
+
+</div>
+
+
+
+{/* PERSONAL */}
+
+<div>
+
+<div className="flex items-center mb-4">
+<h3 className="text-sm font-semibold text-[#178F9E]">
+Personal Details
+</h3>
+<div className="h-px bg-border flex-1 ml-4 bg-cyan-500"></div>
+</div>
+
+<div className="grid md:grid-cols-3 gap-6">
+
+<Input
+type="date"
+name="dateOfBirth"
+onChange={onChange}
+className="border-0 border-b border-border rounded-none px-0"
+/>
+
+<Select
+value={form.gender}
+onValueChange={(value)=>
+setForm(prev=>({...prev,gender:value}))
+}
+>
+
+<SelectTrigger className="border-0 border-b-2 border-cyan-500 rounded-none px-0 focus:ring-0">
+<SelectValue placeholder="Gender"/>
+</SelectTrigger>
+
+<SelectContent>
+<SelectItem value="male">Male</SelectItem>
+<SelectItem value="female">Female</SelectItem>
+<SelectItem value="other">Other</SelectItem>
+</SelectContent>
+
+</Select>
+
+<Select
+value={form.category}
+onValueChange={(value)=>
+setForm(prev=>({...prev,category:value}))
+}
+>
+
+<SelectTrigger className="border-0 border-b-2 border-cyan-500 rounded-none px-0 focus:ring-0">
+<SelectValue placeholder="Category"/>
+</SelectTrigger>
+
+<SelectContent>
+<SelectItem value="general">General</SelectItem>
+<SelectItem value="obc">OBC</SelectItem>
+<SelectItem value="sc">SC</SelectItem>
+<SelectItem value="st">ST</SelectItem>
+</SelectContent>
+
+</Select>
+
+</div>
+
+</div>
+
+
+
+{/* ACADEMIC */}
+
+<div>
+
+<div className="flex items-center mb-4">
+<h3 className="text-sm font-semibold text-[#178F9E]">
+Academic Details
+</h3>
+<div className="h-px bg-border flex-1 ml-4 bg-cyan-500"></div>
+</div>
+
+<div className="grid md:grid-cols-2 gap-6">
+
+<Select
+value={form.course}
+onValueChange={(value)=>{
+
+setForm(prev=>({...prev,course:value}))
+
+const filtered = allClasses.filter(c=>c.className===value)
+
+const uniqueSections = [
+...new Map(filtered.map(sec=>[sec.section,sec])).values()
+].sort((a,b)=>a.section.localeCompare(b.section))
+
+setSections(uniqueSections)
+
+}}
+>
+
+<SelectTrigger className="border-0 border-b-2 border-cyan-500 rounded-none px-0 focus:ring-0">
+<SelectValue placeholder="Select Class"/>
+</SelectTrigger>
+
+<SelectContent>
+
+{[...new Map(allClasses.map(c=>[c.className,c])).values()]
+.sort((a,b)=>Number(a.className)-Number(b.className))
+.map(cls=>(
+<SelectItem key={cls.className} value={cls.className}>
+Class {cls.className}
+</SelectItem>
+))}
+
+</SelectContent>
+
+</Select>
+
+
+<Select
+value={form.section}
+onValueChange={(value)=>{
+setForm(prev=>({...prev,section:value}))
+}}
+>
+<SelectTrigger className="border-0 border-b-2 border-cyan-500 rounded-none px-0 focus:ring-0">
+<SelectValue placeholder="Select Section"/>
+</SelectTrigger>
+
+<SelectContent>
+
+{sections.map(sec=>(
+<SelectItem key={sec._id} value={sec.section}>
+Section {sec.section}
+</SelectItem>
+))}
+
+</SelectContent>
+
+</Select>
+
+</div>
+
+</div>
+
+
+
+{/* ADDRESS */}
+
+<Input
+name="address"
+placeholder="Address"
+onChange={onChange}
+className="border-0 border-b border-border rounded-none px-0"
+/>
+
+
+
+{/* PHOTO */}
+
+<Input
+type="file"
+name="photo"
+onChange={onChange}
+className="border-0 border-b border-border rounded-none px-0"
+/>
+
+</div>
+
+) : (
+
+<div className="grid md:grid-cols-2 gap-6">
+
+<Input
+name="name"
+placeholder="Full Name"
+onChange={onChange}
+required
+className="border-0 border-b border-border rounded-none px-0"
+/>
+
+<Input
+type="email"
+name="email"
+placeholder="Email"
+onChange={onChange}
+required
+className="border-0 border-b border-border rounded-none px-0"
+/>
+
+<Input
+type="password"
+name="password"
+placeholder="Password"
+onChange={onChange}
+required
+className="border-0 border-b border-border rounded-none px-0"
+/>
+
+<Input
+name="phone"
+placeholder="Phone"
+onChange={onChange}
+className="border-0 border-b border-border rounded-none px-0"
+/>
+
+</div>
+
+)}
+
+
+
+{/* SUBMIT */}
+
+<div className="pt-6 flex justify-end">
+
+<Button
+type="submit"
+className="bg-[#178F9E] hover:bg-[#0F6F7C] px-6"
+disabled={submitting}
+>
+
+{submitting ? "Creating..." : "Create User"}
+
+</Button>
+
+</div>
+
+
+</form>
+
+
+
+{/* SUCCESS MODAL */}
+
+<AlertDialog open={showSuccessDialog}>
+
+<AlertDialogContent>
+
+<AlertDialogHeader>
+
+<AlertDialogTitle>Success</AlertDialogTitle>
+
+<AlertDialogDescription>
+{success || "User created successfully"}
+</AlertDialogDescription>
+
+</AlertDialogHeader>
+
+<AlertDialogFooter>
+
+<AlertDialogAction
+className="bg-[#178F9E] hover:bg-[#0F6F7C]"
+onClick={()=>{
+setShowSuccessDialog(false)
+router.push("/admin/dashboard/users")
+}}
+>
+OK
+</AlertDialogAction>
+
+</AlertDialogFooter>
+
+</AlertDialogContent>
+
+</AlertDialog>
+
+</div>
+</div>
+);
 };
 
 export default AddUsers;

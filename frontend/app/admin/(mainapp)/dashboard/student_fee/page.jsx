@@ -69,119 +69,119 @@ export default function AdminFeeManagement() {
   }, [admissionParam]);
 
 
-useEffect(() => {
+  useEffect(() => {
 
-const fetchClasses = async () => {
+    const fetchClasses = async () => {
 
-try {
+      try {
 
-const res = await adminServices.getAllClasses()
+        const res = await adminServices.getAllClasses()
 
-const data = res?.data || []
+        const data = res?.data || []
 
 
-/*
-Expected DB structure example
-[
- { _id, className:"7", section:"A" },
- { _id, className:"7", section:"B" },
- { _id, className:"8", section:"A" }
-]
-*/
+        /*
+        Expected DB structure example
+        [
+         { _id, className:"7", section:"A" },
+         { _id, className:"7", section:"B" },
+         { _id, className:"8", section:"A" }
+        ]
+        */
 
-const classMap = {}
+        const classMap = {}
 
-data.forEach((item) => {
+        data.forEach((item) => {
 
-if (!item._id || !item.className) {
-console.warn("Incomplete class data - missing ID or className:", item);
-return;
-}
+          if (!item._id || !item.className) {
+            console.warn("Incomplete class data - missing ID or className:", item);
+            return;
+          }
 
-if (!classMap[item.className]) {
+          if (!classMap[item.className]) {
 
-classMap[item.className] = {
-className: item.className,
-sections: []
-}
+            classMap[item.className] = {
+              className: item.className,
+              sections: []
+            }
 
-}
+          }
 
-// Only add section if it exists and is not empty
-if (item.section && item.section.trim()) {
-if (!classMap[item.className].sections.find(s => s.name === item.section)) {
-classMap[item.className].sections.push({
-name: item.section,
-classId: item._id
-})
-}
-} else {
-// If no section, add this class's _id as a fallback section
-if (!classMap[item.className].sections.find(s => s.classId === item._id)) {
-classMap[item.className].sections.push({
-name: "Default",
-classId: item._id
-})
-} 
-}
+          // Only add section if it exists and is not empty
+          if (item.section && item.section.trim()) {
+            if (!classMap[item.className].sections.find(s => s.name === item.section)) {
+              classMap[item.className].sections.push({
+                name: item.section,
+                classId: item._id
+              })
+            }
+          } else {
+            // If no section, add this class's _id as a fallback section
+            if (!classMap[item.className].sections.find(s => s.classId === item._id)) {
+              classMap[item.className].sections.push({
+                name: "Default",
+                classId: item._id
+              })
+            }
+          }
 
-})
+        })
 
-const formatted = Object.values(classMap).sort(
-(a,b)=>Number(a.className)-Number(b.className)
-)
+        const formatted = Object.values(classMap).sort(
+          (a, b) => Number(a.className) - Number(b.className)
+        )
 
-// Validate all sections have classId
-formatted.forEach((cls, idx) => {
-try {
-cls.sections.forEach((sec, secIdx) => {
-if (!sec.classId) {
-console.error(`Class ${idx}, Section ${secIdx}: Missing classId!`, sec);
-} else {
-console.log(`✓ Class ${cls.className} Section ${sec.name}: classId = ${sec.classId}`);
-}
-});
-} catch (e) {
-console.error(`Error validating class ${idx}:`, e, cls);
-}
-});
+        // Validate all sections have classId
+        formatted.forEach((cls, idx) => {
+          try {
+            cls.sections.forEach((sec, secIdx) => {
+              if (!sec.classId) {
+                console.error(`Class ${idx}, Section ${secIdx}: Missing classId!`, sec);
+              } else {
+                console.log(`✓ Class ${cls.className} Section ${sec.name}: classId = ${sec.classId}`);
+              }
+            });
+          } catch (e) {
+            console.error(`Error validating class ${idx}:`, e, cls);
+          }
+        });
 
-setClasses(formatted)
+        setClasses(formatted)
 
-} catch (err) {
+      } catch (err) {
 
-console.error("Error fetching classes:", err)
+        console.error("Error fetching classes:", err)
 
-}
+      }
 
-}
+    }
 
-fetchClasses()
+    fetchClasses()
 
-}, [])
-useEffect(() => {
+  }, [])
+  useEffect(() => {
 
-const handleClickOutside = (event) => {
+    const handleClickOutside = (event) => {
 
-if (
-dropdownRef.current &&
-!dropdownRef.current.contains(event.target)
-) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target)
+      ) {
 
-setOpenClassMenu(false)
-setHoverClass(null)
+        setOpenClassMenu(false)
+        setHoverClass(null)
 
-}
+      }
 
-}
+    }
 
-document.addEventListener("mousedown", handleClickOutside)
+    document.addEventListener("mousedown", handleClickOutside)
 
-return () => {
-document.removeEventListener("mousedown", handleClickOutside)
-}
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside)
+    }
 
-}, [])
+  }, [])
   /* ---------------- SEARCH STUDENT ---------------- */
 
   const handleSearch = async (admission) => {
@@ -349,101 +349,101 @@ const pending = Math.max(monthlyExpected - paid, 0);
   }
 
   const visiblePages = getVisiblePages()
-const loadStudents = async (classData) => {
+  const loadStudents = async (classData) => {
 
-try {
+    try {
 
-if (!classData || !classData.section) {
-console.error("Invalid classData:", classData);
-toast.error("Please select a valid class and section");
-return;
-}
+      if (!classData || !classData.section) {
+        console.error("Invalid classData:", classData);
+        toast.error("Please select a valid class and section");
+        return;
+      }
 
-if (classData.section === "ALL") {
-// Load all sections for this class
-if (!classData.sections || classData.sections.length === 0) {
-console.error("No sections available");
-toast.error("No sections found for this class");
-return;
-}
+      if (classData.section === "ALL") {
+        // Load all sections for this class
+        if (!classData.sections || classData.sections.length === 0) {
+          console.error("No sections available");
+          toast.error("No sections found for this class");
+          return;
+        }
 
-let allStudents = [];
+        let allStudents = [];
 
-// NEW: fetch class fee using first section classId
-try {
-const feeRes = await adminServices.getClassFeeByClass(classData.sections[0]?.classId);
-console.log("Class Fee Response:", feeRes);
-} catch (err) {
-console.error("Error fetching class fee:", err);
-}
+        // NEW: fetch class fee using first section classId
+        try {
+          const feeRes = await adminServices.getClassFeeByClass(classData.sections[0]?.classId);
+          console.log("Class Fee Response:", feeRes);
+        } catch (err) {
+          console.error("Error fetching class fee:", err);
+        }
 
-for (const sec of classData.sections) {
-if (!sec.classId) {
-console.warn("Missing classId for section:", sec);
-continue;
-}
-try {
-const res = await adminServices.getstudentsByClass(sec.classId);
-const students = res?.data || [];
-allStudents = [...allStudents, ...students];
-} catch (sectionErr) {
-console.error(`Error loading students for section ${sec.name}:`, sectionErr);
-}
-}
+        for (const sec of classData.sections) {
+          if (!sec.classId) {
+            console.warn("Missing classId for section:", sec);
+            continue;
+          }
+          try {
+            const res = await adminServices.getstudentsByClass(sec.classId);
+            const students = res?.data || [];
+            allStudents = [...allStudents, ...students];
+          } catch (sectionErr) {
+            console.error(`Error loading students for section ${sec.name}:`, sectionErr);
+          }
+        }
 
-const sortedStudents = allStudents.sort(
-(a,b)=>
-Number(a.admissionNumber.replace("ADM","")) -
-Number(b.admissionNumber.replace("ADM",""))
-);
+        const sortedStudents = allStudents.sort(
+          (a, b) =>
+            Number(a.admissionNumber.replace("ADM", "")) -
+            Number(b.admissionNumber.replace("ADM", ""))
+        );
 
-setClassStudents(sortedStudents);
+        setClassStudents(sortedStudents);
 
-} else {
-// Load specific section
-if (!classData.classId) {
-console.error("Missing classId for section:", classData.section);
-toast.error("Invalid section selected");
-return;
-}
+      } else {
+        // Load specific section
+        if (!classData.classId) {
+          console.error("Missing classId for section:", classData.section);
+          toast.error("Invalid section selected");
+          return;
+        }
 
-const res = await adminServices.getstudentsByClass(classData.classId)
+        const res = await adminServices.getstudentsByClass(classData.classId)
 
-let students = res?.data || []
+        let students = res?.data || []
 
-// NEW: fetch class fee here
-try {
-const feeRes = await adminServices.getClassFeeByClass(classData.classId);
+        // NEW: fetch class fee here
+        try {
+          const feeRes = await adminServices.getClassFeeByClass(classData.classId);
 
-const feeData = feeRes?.data || feeRes;
+          const feeData = feeRes?.data || feeRes;
 
-setSummary(prev => ({
-  ...prev,
-  totalAssignedFee: feeData?.totalFee || 0
-}));
-} catch (err) {
-console.error("Error fetching class fee:", err);
-}
+          setSummary(prev => ({
+            ...prev,
+            totalAssignedFee: feeData?.totalFee || 0
+          }));
+        } catch (err) {
+          console.error("Error fetching class fee:", err);
+        }
 
-const sortedStudents = students.sort(
-(a,b)=>
-Number(a.admissionNumber.replace("ADM","")) -
-Number(b.admissionNumber.replace("ADM",""))
-)
+        const sortedStudents = students.sort(
+          (a, b) =>
+            Number(a.admissionNumber.replace("ADM", "")) -
+            Number(b.admissionNumber.replace("ADM", ""))
+        )
 
-setClassStudents(sortedStudents);
-}
+        setClassStudents(sortedStudents);
+      }
 
-setCurrentPage(1)
+      setCurrentPage(1)
 
-} catch(err) {
+    } catch (err) {
 
-console.error("Load students error:", err)
-toast.error("Failed to load students");
+      console.error("Load students error:", err)
+      toast.error("Failed to load students");
 
-}
+    }
 
-}
+  }
 
   return (
 
@@ -458,122 +458,121 @@ toast.error("Failed to load students");
         </h2>
 
         <div className="flex flex-wrap gap-4 items-end">
-<div ref={dropdownRef} className="relative">
+          <div ref={dropdownRef} className="relative">
 
-<button
-  onClick={() => setOpenClassMenu(!openClassMenu)}
-  className="border border-gray-300 px-4 py-2 rounded-md text-sm w-40 bg-white flex items-center justify-between"
->
-  <span>
-    {selectedClass
-      ? (() => {
-          if (selectedSection === "ALL") {
-            for (const cls of classes) {
-              if (cls.sections.some(s => s.classId === selectedClass)) {
-                return `Class ${cls.className} - ALL`;
-              }
-            }
-          }
-          for (const cls of classes) {
-            const section = cls.sections.find(s => s.classId === selectedClass);
-            if (section) {
-              return `Class ${cls.className} - ${section.name}`;
-            }
-          }
-          return "Select Class";
-        })()
-      : "Select Class"}
-  </span>
+            <button
+              onClick={() => setOpenClassMenu(!openClassMenu)}
+              className="border border-gray-300 px-4 py-2 rounded-md text-sm w-40 bg-white flex items-center justify-between"
+            >
+              <span>
+                {selectedClass
+                  ? (() => {
+                    if (selectedSection === "ALL") {
+                      for (const cls of classes) {
+                        if (cls.sections.some(s => s.classId === selectedClass)) {
+                          return `Class ${cls.className} - ALL`;
+                        }
+                      }
+                    }
+                    for (const cls of classes) {
+                      const section = cls.sections.find(s => s.classId === selectedClass);
+                      if (section) {
+                        return `Class ${cls.className} - ${section.name}`;
+                      }
+                    }
+                    return "Select Class";
+                  })()
+                  : "Select Class"}
+              </span>
 
-  <ChevronDown
-    size={16}
-    className={`text-gray-500 transition-transform ${
-      openClassMenu ? "rotate-180" : ""
-    }`}
-  />
-</button>
+              <ChevronDown
+                size={16}
+                className={`text-gray-500 transition-transform ${openClassMenu ? "rotate-180" : ""
+                  }`}
+              />
+            </button>
 
-{openClassMenu && (
+            {openClassMenu && (
 
-<div className="absolute top-10 left-0 bg-white border rounded-md shadow-md w-40 z-50">
+              <div className="absolute top-10 left-0 bg-white border rounded-md shadow-md w-40 z-50">
 
-{classes.map((cls) => (
+                {classes.map((cls) => (
 
-<div
-key={cls.className}
-onClick={() =>
-  setHoverClass(hoverClass === cls.className ? null : cls.className)
-}
-className="relative px-4 py-2 hover:bg-gray-100 cursor-pointer flex justify-between"
->
+                  <div
+                    key={cls.className}
+                    onClick={() =>
+                      setHoverClass(hoverClass === cls.className ? null : cls.className)
+                    }
+                    className="relative px-4 py-2 hover:bg-gray-100 cursor-pointer flex justify-between"
+                  >
 
-<span>Class {cls.className}</span>
+                    <span>Class {cls.className}</span>
 
-<ChevronRight size={16} className="text-gray-500" />
+                    <ChevronRight size={16} className="text-gray-500" />
 
-{/* SECTION MENU */}
+                    {/* SECTION MENU */}
 
-{hoverClass === cls.className && (
+                    {hoverClass === cls.className && (
 
-<div className="absolute left-full top-0 bg-white border rounded-md shadow-md w-32">
+                      <div className="absolute left-full top-0 bg-white border rounded-md shadow-md w-32">
 
-<div
-className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
-onClick={() => {
-if (!cls.sections || cls.sections.length === 0) {
-console.error("No sections available for this class");
-toast.error("No sections available");
-return;
-}
-setAdmissionNo("")
-router.replace("/admin/dashboard/student_fee")
-setSelectedClass(cls.sections[0]?.classId)
-setSelectedSection("ALL")
-setOpenClassMenu(false)
-loadStudents({section: "ALL", sections: cls.sections})
-}}
->
-All
-</div>
+                        <div
+                          className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
+                          onClick={() => {
+                            if (!cls.sections || cls.sections.length === 0) {
+                              console.error("No sections available for this class");
+                              toast.error("No sections available");
+                              return;
+                            }
+                            setAdmissionNo("")
+                            router.replace("/admin/dashboard/student_fee")
+                            setSelectedClass(cls.sections[0]?.classId)
+                            setSelectedSection("ALL")
+                            setOpenClassMenu(false)
+                            loadStudents({ section: "ALL", sections: cls.sections })
+                          }}
+                        >
+                          All
+                        </div>
 
-{cls.sections.map((sec) => (
+                        {cls.sections.map((sec) => (
 
-<div
-key={sec.name}
-className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
-onClick={() => {
-if (!sec || !sec.classId || !sec.name) {
-console.error("Invalid section data:", sec);
-toast.error("Invalid section data");
-return;
-}
-setAdmissionNo("")
-router.replace("/admin/dashboard/student_fee")
-setSelectedClass(sec.classId)
-setSelectedSection(sec.name)
-setOpenClassMenu(false)
-loadStudents({section: sec.name, classId: sec.classId})
-}}
->
-{sec.name}
+                          <div
+                            key={sec.name}
+                            className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
+                            onClick={() => {
+                              if (!sec || !sec.classId || !sec.name) {
+                                console.error("Invalid section data:", sec);
+                                toast.error("Invalid section data");
+                                return;
+                              }
+                              setAdmissionNo("")
+                              router.replace("/admin/dashboard/student_fee")
+                              setSelectedClass(sec.classId)
+                              setSelectedSection(sec.name)
+                              setOpenClassMenu(false)
+                              loadStudents({ section: sec.name, classId: sec.classId })
+                            }}
+                          >
+                            {sec.name}
 
-</div>
+                          </div>
 
-))}
+                        ))}
 
-</div>
+                      </div>
 
-)}
+                    )}
 
-</div>
+                  </div>
 
-))}
+                ))}
 
-</div>
+              </div>
 
-)}
+            )}
 
-</div>
+          </div>
 
 
           <select
@@ -628,7 +627,7 @@ loadStudents({section: sec.name, classId: sec.classId})
         </div>
 
       </section>
-    {selectedClass && !admissionNo && (
+      {selectedClass && !admissionNo && (
 
         <section>
 
@@ -670,28 +669,28 @@ loadStudents({section: sec.name, classId: sec.classId})
 
               </thead>
 
-              
-                <tbody>
 
-{currentStudents.length === 0 && (
-<tr>
-<td colSpan="8" className="text-center py-6 text-gray-500">
-No students found
-</td>
-</tr>
-)}
+              <tbody>
 
-{currentStudents.map((s, index) => {
-const totalAssignedFee =
-  s?.fee?.totalAssignedFee || 0
+                {currentStudents.length === 0 && (
+                  <tr>
+                    <td colSpan="8" className="text-center py-6 text-gray-500">
+                      No students found
+                    </td>
+                  </tr>
+                )}
 
-const totalPaid =
-  s?.fee?.totalPaid || 0
+                {currentStudents.map((s, index) => {
+                  const totalAssignedFee =
+                    s?.fee?.totalAssignedFee || 0
 
-const remaining =
-  s?.fee?.remainingAmount || 0
-console.log("Student data:", s)
-  return (
+                  const totalPaid =
+                    s?.fee?.totalPaid || 0
+
+                  const remaining =
+                    s?.fee?.remainingAmount || 0
+                  console.log("Student data:", s)
+                  return (
                     <tr
                       key={s._id}
                       className={`
@@ -728,36 +727,28 @@ hover:bg-[#ECFAFC] transition
 
 
                       <td className="p-3 border border-[#D9F1F4] font-semibold">
-                      <Summary
-  label="Total Assigned Fee"
-  value={totalAssignedFee}
-  color="text-[#0F6F7C]"
-/>
+                        <Summary
+                         
+                          value={totalAssignedFee}
+                          color="text-[#0F6F7C]"
+                        />
                       </td>
 
                       <td className="p-3 border border-[#D9F1F4]">
 
                        {remaining === 0 ? (
 
-                          <span className="text-green-600 font-semibold flex items-center gap-1">
-                            ✓ Paid
-                          </span>
+  <span className="text-green-600 font-semibold flex items-center gap-1">
+    ✓ Paid
+  </span>
 
-                        ) : (
+) : (
 
-                          <div className="flex flex-col">
+  <span className="text-red-600 font-semibold">
+    ₹{remaining} Due
+  </span>
 
-                            <span className="text-black font-semibold">
-                              ₹{totalAssignedFee}
-                            </span>
-
-                            <span className="text-red-600 font-semibold text-xs">
-                              ₹{remaining} Remaining
-                            </span>
-
-                          </div>
-
-                        )} 
+)}
 
                       </td>
 
