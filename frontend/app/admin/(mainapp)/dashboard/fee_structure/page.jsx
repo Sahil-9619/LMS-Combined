@@ -3,6 +3,22 @@
 import { adminServices } from "@/services/admin/admin.service";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
+import { Pencil, Save, Search } from "lucide-react";
+import {
+Select,
+SelectContent,
+SelectItem,
+SelectTrigger,
+SelectValue,
+} from "@/components/ui/select";
+
+
+
 
 export default function ClassFeeManagement() {
 
@@ -150,125 +166,220 @@ export default function ClassFeeManagement() {
     setEditing(false);
   }
 
-  return (
+return (
+<div className="p-8 space-y-10 max-w-5xl">
 
-    <div className="p-8 bg-[#F4FDFE] min-h-screen">
+  {/* HEADER */}
 
-      <h1 className="text-2xl font-bold text-[#0F6F7C] mb-8">
+  <div className="flex items-center justify-between border-b pb-4">
+
+    <div className="space-y-1">
+      <h1 className="text-2xl font-semibold tracking-tight">
         Class Fee Management
       </h1>
 
-      <div className="max-w-3xl">
+      <p className="text-sm text-muted-foreground">
+        Configure and manage fee structure for each class
+      </p>
+    </div>
 
-        {/* CLASS SELECT */}
+    <Badge variant="secondary">
+      Admin Panel
+    </Badge>
 
-        <label className="block text-sm mb-2 font-semibold">
+  </div>
+
+
+  {/* CLASS SELECT SECTION */}
+
+  <div className="space-y-4">
+
+    <div className="grid md:grid-cols-3 gap-4 items-end">
+
+      <div className="md:col-span-2 space-y-2">
+
+        <label className="text-sm font-medium">
           Select Class
         </label>
 
-        <select
-          value={classId}
-          onChange={submitChange}
-          className="w-full border rounded-lg p-3 mb-4"
-        >
-          <option value="">Select Class</option>
+<Select
+value={classId}
+onValueChange={(value)=>{
+setClassId(value)
+setError("")
+setTuitionFee("")
+setAdmissionFee("")
+setExamFee("")
+setHostelFee("")
+setTransportFee("")
+setLateFeePerDay("")
+setEditing(false)
+}}
+>
 
-          {classes
-            .sort((a, b) => Number(a.className) - Number(b.className))
-            .map((cls) => (
-              <option key={cls._id} value={cls._id}>
-                Class {cls.className}
-              </option>
-            ))}
+<SelectTrigger className="w-full">
+<SelectValue placeholder="Select Class" />
+</SelectTrigger>
 
-        </select>
-        {error && (
-          <p className="text-red-600 text-sm mb-3">
-            {error}
-          </p>
-        )}
+<SelectContent>
 
-        <button
-          onClick={fetchCurrentFee}
-          className="bg-[#178F9E] text-white px-4 py-2 rounded-lg mb-6"
-        >
-          Fetch Current Fee
-        </button>
+{classes
+.sort((a,b)=>Number(a.className)-Number(b.className))
+.map((cls)=>(
+<SelectItem key={cls._id} value={cls._id}>
+Class {cls.className}
+</SelectItem>
+))}
 
-        {/* FEE FIELDS */}
+</SelectContent>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+</Select>
 
-          <Input label="Tuition Fee" value={tuitionFee} setValue={setTuitionFee} disabled={!editing} />
-          <Input label="Admission Fee" value={admissionFee} setValue={setAdmissionFee} disabled={!editing} />
-          <Input label="Exam Fee" value={examFee} setValue={setExamFee} disabled={!editing} />
-          <Input label="Hostel Fee" value={hostelFee} setValue={setHostelFee} disabled={!editing} />
-          <Input label="Transport Fee" value={transportFee} setValue={setTransportFee} disabled={!editing} />
-          <Input label="Late Fee / Day" value={lateFeePerDay} setValue={setLateFeePerDay} disabled={!editing} />
-
-        </div>
-
-        {/* TOTAL FEE */}
-
-        <div className="pt-6 border-t">
-
-          <p className="text-gray-500 text-sm">
-            Total Fee
-          </p>
-
-          <p className="text-lg font-bold">
-            ₹{Number(tuitionFee) + Number(admissionFee) + Number(examFee) + Number(hostelFee) + Number(transportFee)}
-          </p>
-
-        </div>
-
-        {/* BUTTONS */}
-
-        <div className="flex gap-4 pt-6">
-
-          {!editing && (
-            <button
-              onClick={() => setEditing(true)}
-              className="flex-1 bg-yellow-500 text-white py-3 rounded-lg"
-            >
-              Edit
-            </button>
-          )}
-
-          {editing && (
-            <button
-              onClick={updateFee}
-              className="flex-1 bg-[#0F6F7C] text-white py-3 rounded-lg"
-            >
-              Update Fee
-            </button>
-          )}
-
-        </div>
       </div>
+<Button
+onClick={fetchCurrentFee}
+className="w-full flex items-center gap-2"
+>
+
+<Search size={16} />
+
+Fetch Fee
+
+</Button>
 
     </div>
-  );
+
+    {error && (
+      <p className="text-sm text-red-500">
+        {error}
+      </p>
+    )}
+
+  </div>
+
+  <Separator />
+
+
+  {/* FEE GRID */}
+
+  <div className="space-y-4">
+
+    <h3 className="text-sm font-semibold text-muted-foreground">
+      Fee Structure
+    </h3>
+
+    <div className="grid md:grid-cols-3 gap-6">
+
+      <InputField label="Tuition Fee" value={tuitionFee} setValue={setTuitionFee} disabled={!editing}/>
+      <InputField label="Admission Fee" value={admissionFee} setValue={setAdmissionFee} disabled={!editing}/>
+      <InputField label="Exam Fee" value={examFee} setValue={setExamFee} disabled={!editing}/>
+      <InputField label="Hostel Fee" value={hostelFee} setValue={setHostelFee} disabled={!editing}/>
+      <InputField label="Transport Fee" value={transportFee} setValue={setTransportFee} disabled={!editing}/>
+      <InputField label="Late Fee / Day" value={lateFeePerDay} setValue={setLateFeePerDay} disabled={!editing}/>
+
+    </div>
+
+  </div>
+
+
+  <Separator />
+
+
+  {/* TOTAL FEE */}
+
+  <div className="flex items-center justify-between bg-muted/40 rounded-lg p-6">
+
+    <div className="space-y-1">
+
+      <p className="text-sm text-muted-foreground">
+        Total Fee
+      </p>
+
+      <p className="text-2xl font-semibold">
+        ₹{Number(tuitionFee)+Number(admissionFee)+Number(examFee)+Number(hostelFee)+Number(transportFee)}
+      </p>
+
+    </div>
+
+    <Badge variant="outline">
+      Auto Calculated
+    </Badge>
+
+  </div>
+
+
+  {/* ACTION BUTTONS */}
+
+<div className="flex gap-4">
+
+{!editing && (
+
+<Button
+variant="secondary"
+className="flex-1 flex items-center justify-center gap-2"
+onClick={()=>setEditing(true)}
+>
+
+<Pencil size={16} />
+
+Edit Fee Structure
+
+</Button>
+
+)}
+
+{editing && (
+
+<Button
+className="flex-1 flex items-center justify-center gap-2"
+onClick={updateFee}
+>
+
+<Save size={16} />
+
+Save Changes
+
+</Button>
+
+)}
+
+</div>
+
+</div>
+)
 }
 
 /* INPUT COMPONENT */
 
-function Input({ label, value, setValue, disabled }) {
+function InputField({ label, value, setValue, disabled }) {
 
-  return (
-    <div>
-      <label className="block text-sm font-semibold mb-1">
-        {label}
-      </label>
+return (
 
-      <input
-        type="number"
-        value={value}
-        placeholder="Enter Amount"
-        disabled={disabled}
-        onChange={(e) => setValue(e.target.value)}
-        className="w-full border border-gray-300 focus:border-[#178F9E] focus:ring-1 focus:ring-[#178F9E] p-3 rounded-md appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-      />
-    </div>
-  )
+<div className="space-y-2">
+
+<label className="text-sm font-medium">
+{label}
+</label>
+
+<div className="relative">
+
+<span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
+₹
+</span>
+
+<input
+type="number"
+value={value}
+disabled={disabled}
+placeholder="Enter amount"
+onChange={(e)=>setValue(e.target.value)}
+className="w-full pl-7 border rounded-md p-2 bg-background disabled:bg-muted"
+/>
+
+</div>
+
+</div>
+
+)
+
 }

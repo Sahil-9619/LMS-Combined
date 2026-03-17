@@ -2,9 +2,11 @@
 
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { Search, Eye, Trash2 } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -58,170 +60,258 @@ export default function SupportRequestsPage() {
     }
   };
 
-  return (
-    <>
-      {/* 🔥 Blur Background when modal open */}
-      <div className={deleteId ? "blur-sm pointer-events-none" : ""}>
-        <motion.div
-          className="p-10 space-y-10"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.4 }}
-        >
-          {/* HEADER */}
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-            <div>
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-500 to-purple-600 bg-clip-text text-transparent">
-                Support Center
-              </h1>
-              <p className="text-muted-foreground mt-2">
-                Manage customer requests efficiently and professionally.
-              </p>
-            </div>
+ return (
+<>
+<div className={deleteId ? "blur-sm pointer-events-none" : ""}>
 
-            <div className="w-full md:w-[350px]">
-              <Input
-                placeholder="Search by name or email..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="h-11 shadow-sm"
-              />
-            </div>
-          </div>
+<motion.div
+className="p-10 space-y-10 max-w-7xl"
+initial={{ opacity: 0 }}
+animate={{ opacity: 1 }}
+transition={{ duration: 0.4 }}
+>
 
-          {/* TABLE CARD */}
-          <Card className="backdrop-blur-xl bg-white/70 border border-gray-200 shadow-xl rounded-2xl overflow-hidden">
-            <CardContent className="p-0">
-              {loading ? (
-                <div className="p-12 text-center text-lg text-muted-foreground">
-                  Loading support tickets...
-                </div>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow className="bg-gradient-to-r from-gray-50 to-gray-100">
-                      <TableHead>User</TableHead>
-                      <TableHead>Subject</TableHead>
-                      <TableHead>Date</TableHead>
-                      <TableHead className="text-right pr-6">
-                        Actions
-                      </TableHead>
-                    </TableRow>
-                  </TableHeader>
+{/* HEADER */}
 
-                  <TableBody>
-                    {filteredData.map((req) => (
-                      <TableRow key={req._id}>
-                        <TableCell className="py-5">
-                          <div>
-                            <div className="font-semibold text-gray-800">
-                              {req?.name || "N/A"}
-                            </div>
-                            <div className="text-sm text-muted-foreground">
-                              {req?.email || "N/A"}
-                            </div>
-                          </div>
-                        </TableCell>
+<div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 border-b pb-6">
 
-                        <TableCell className="max-w-[280px] truncate text-gray-700">
-                          {req?.subject || "-"}
-                        </TableCell>
+<div>
 
-                        <TableCell className="text-gray-600">
-                          {req?.createdAt
-                            ? new Date(req.createdAt).toLocaleDateString()
-                            : "-"}
-                        </TableCell>
+<h1 className="text-3xl font-semibold tracking-tight">
+Support Requests
+</h1>
 
-                        <TableCell className="text-right pr-6 space-x-2">
-                          <Link
-                            href={`/admin/dashboard/support/view/${req._id}`}
-                          >
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="border-indigo-400 text-indigo-600 hover:bg-indigo-50"
-                            >
-                              View
-                            </Button>
-                          </Link>
+<p className="text-sm text-muted-foreground mt-1">
+Manage and respond to customer support tickets.
+</p>
 
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            onClick={() => setDeleteId(req._id)}
-                          >
-                            Delete
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
+</div>
 
-                    {filteredData.length === 0 && (
-                      <TableRow>
-                        <TableCell
-                          colSpan={4}
-                          className="text-center py-16 text-muted-foreground"
-                        >
-                          🚫 No support requests found.
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              )}
-            </CardContent>
-          </Card>
-        </motion.div>
-      </div>
+<Badge variant="secondary">
+Support Center
+</Badge>
 
-      {/* 🔥 Animated Modal */}
-      <AnimatePresence>
-        {deleteId && (
-          <>
-            <motion.div
-              className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setDeleteId(null)}
-            />
+</div>
 
-            <motion.div
-              className="fixed inset-0 flex items-center justify-center z-50"
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.8, opacity: 0 }}
-              transition={{ duration: 0.2 }}
-            >
-              <div className="bg-white rounded-2xl shadow-2xl p-8 w-[400px] text-center">
-                <h2 className="text-xl font-semibold mb-4">
-                  Delete Support Ticket?
-                </h2>
-                <p className="text-muted-foreground mb-6">
-                  This action cannot be undone.
-                </p>
 
-                <div className="flex justify-center gap-4">
-                  <Button
-                    variant="outline"
-                    onClick={() => setDeleteId(null)}
-                  >
-                    Cancel
-                  </Button>
+{/* SEARCH */}
 
-                  <Button
-                    variant="destructive"
-                    onClick={() => handleDelete(deleteId)}
-                  >
-                    Delete
-                  </Button>
-                </div>
-              </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
-    </>
-  );
+<div className="flex items-center gap-4 max-w-md">
+
+<div className="relative w-full">
+
+<Search
+size={16}
+className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+/>
+
+<Input
+placeholder="Search by name or email..."
+value={search}
+onChange={(e) => setSearch(e.target.value)}
+className="pl-9"
+/>
+
+</div>
+
+</div>
+
+<Separator />
+
+
+{/* TABLE */}
+
+<div className="border rounded-lg overflow-hidden">
+
+<Table>
+
+<TableHeader>
+
+<TableRow className="bg-muted/40">
+
+<TableHead>User</TableHead>
+
+<TableHead>Subject</TableHead>
+
+<TableHead>Date</TableHead>
+
+<TableHead className="text-right pr-6">
+Actions
+</TableHead>
+
+</TableRow>
+
+</TableHeader>
+
+<TableBody>
+
+{loading ? (
+
+<TableRow>
+<TableCell colSpan={4} className="text-center py-12">
+Loading support tickets...
+</TableCell>
+</TableRow>
+
+) : filteredData.length === 0 ? (
+
+<TableRow>
+<TableCell colSpan={4} className="text-center py-16 text-muted-foreground">
+No support requests found
+</TableCell>
+</TableRow>
+
+) : (
+
+filteredData.map((req) => (
+
+<TableRow key={req._id}>
+
+<TableCell className="py-5">
+
+<div>
+
+<div className="font-medium">
+{req?.name || "N/A"}
+</div>
+
+<div className="text-sm text-muted-foreground">
+{req?.email || "N/A"}
+</div>
+
+</div>
+
+</TableCell>
+
+
+<TableCell className="max-w-[320px] truncate">
+{req?.subject || "-"}
+</TableCell>
+
+
+<TableCell>
+
+{req?.createdAt
+? new Date(req.createdAt).toLocaleDateString()
+: "-"}
+
+</TableCell>
+
+
+<TableCell className="text-right pr-6 space-x-2">
+
+<Link href={`/admin/dashboard/support/view/${req._id}`}>
+
+<Button
+variant="outline"
+size="sm"
+className="gap-2"
+>
+
+<Eye size={14} />
+
+View
+
+</Button>
+
+</Link>
+
+
+<Button
+variant="destructive"
+size="sm"
+className="gap-2"
+onClick={() => setDeleteId(req._id)}
+>
+
+<Trash2 size={14} />
+
+Delete
+
+</Button>
+
+</TableCell>
+
+</TableRow>
+
+))
+
+)}
+
+</TableBody>
+
+</Table>
+
+</div>
+
+</motion.div>
+
+</div>
+
+
+{/* DELETE MODAL */}
+
+<AnimatePresence>
+
+{deleteId && (
+
+<>
+
+<motion.div
+className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40"
+initial={{ opacity: 0 }}
+animate={{ opacity: 1 }}
+exit={{ opacity: 0 }}
+onClick={() => setDeleteId(null)}
+/>
+
+
+<motion.div
+className="fixed inset-0 flex items-center justify-center z-50"
+initial={{ scale: 0.9, opacity: 0 }}
+animate={{ scale: 1, opacity: 1 }}
+exit={{ scale: 0.9, opacity: 0 }}
+transition={{ duration: 0.2 }}
+>
+
+<div className="bg-background border rounded-xl shadow-lg p-8 w-[420px] text-center">
+
+<h2 className="text-lg font-semibold mb-2">
+Delete Support Ticket
+</h2>
+
+<p className="text-sm text-muted-foreground mb-6">
+This action cannot be undone.
+</p>
+
+<div className="flex justify-center gap-4">
+
+<Button
+variant="outline"
+onClick={() => setDeleteId(null)}
+>
+Cancel
+</Button>
+
+<Button
+variant="destructive"
+onClick={() => handleDelete(deleteId)}
+>
+Delete
+</Button>
+
+</div>
+
+</div>
+
+</motion.div>
+
+</>
+
+)}
+
+</AnimatePresence>
+
+</>
+)
 }
