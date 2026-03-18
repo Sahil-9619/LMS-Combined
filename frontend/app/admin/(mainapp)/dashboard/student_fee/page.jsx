@@ -307,7 +307,10 @@ const handlePayment = async () => {
   };
   const getMonthStatus = (month) => {
  const paid = monthlyFees[month] || 0;
-const monthlyExpected = summary.totalAssignedFee / 12;
+const monthlyExpected =
+  (summary.tuitionFee || 0) / 12 +
+  (summary.hostelFee || 0) / 12 +
+  (summary.transportFee || 0) / 12;
 const pending = Math.max(monthlyExpected - paid, 0);
 
   if (paid === 0) return "none";
@@ -1017,7 +1020,9 @@ ${summary.status === "paid"
               {months.map((month, index) => {
 
                 const paid = monthlyFees[month] || 0;
-  const monthlyExpected = summary.totalAssignedFee / 12;
+  const monthlyExpected =  (summary.tuitionFee || 0) / 12 +
+  (summary.hostelFee || 0) / 12 +
+  (summary.transportFee || 0) / 12;
   const pending = Math.max(monthlyExpected - paid, 0);  
 
                const status = getMonthStatus(month);

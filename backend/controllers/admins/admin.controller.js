@@ -233,7 +233,7 @@ const getAdminDashboardData = async (req, res) => {
       totalExpectedRevenue - totalCollectedRevenue;
 
     // ===============================
-    // 📅 MONTHLY STUDENT FEE REVENUE (FIXED ✅)
+    // 📅 MONTHLY STUDENT FEE REVENUE 
     // ===============================
     const monthlyFeeData = await StudentFee.aggregate([
   { $unwind: "$payments" },
@@ -252,40 +252,34 @@ const getAdminDashboardData = async (req, res) => {
         }
       },
 
-      // monthly expected
+      // ✅ ONLY monthly fees
       expected: {
-        $divide: [
-          {
-            $add: [
-              "$tuitionFee",
-              "$hostelFee",
-              "$transportFee",
-              "$admissionFee",
-              "$examFee"
-            ]
-          },
-          12
+        $add: [
+          { $divide: ["$tuitionFee", 12] },
+          { $divide: ["$hostelFee", 12] },
+          { $divide: ["$transportFee", 12] }
         ]
       },
 
       collected: "$payments.amount"
     }
   },
-  {
-    $group: {
-      _id: {
-        year: "$year",
-        month: "$month"
-      },
-      expected: { $sum: "$expected" },
-      collected: { $sum: "$collected" }
-    }
-  },
+ {
+  $group: {
+    _id: {
+      year: "$year",
+      month: "$month",
+      studentId: "$_id"
+    },
+    expected: { $first: "$expected" },
+    collected: { $sum: "$collected" }
+  }
+},
   {
     $sort: {
       "_id.year": 1,
       "_id.month": 1
-    } 
+    }
   }
 ]);
   const monthlyFeeRevenue = monthlyFeeData.map(item => {

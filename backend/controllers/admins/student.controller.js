@@ -39,7 +39,85 @@ exports.createStudent = async (req, res) => {
       parentPhone,
       phone,
       email,
+      dateOfBirth,
     } = req.body;
+
+    // ========================
+// dateOfBirth STRONG VALIDATION
+// ========================
+if (dateOfBirth) {
+  const birthDate = new Date(dateOfBirth);
+  const today = new Date();
+
+  if (isNaN(birthDate)) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid date of birth",
+    });
+  }
+
+  if (birthDate > today) {
+    return res.status(400).json({
+      success: false,
+      message: "dateOfBirth cannot be in the future",
+    });
+  }
+
+  if (birthDate.getFullYear() < 1900) {
+    return res.status(400).json({
+      success: false,
+      message: "dateOfBirth year must be greater than 1900",
+    });
+  }
+
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const monthDiff = today.getMonth() - birthDate.getMonth();
+
+  if (
+    monthDiff < 0 ||
+    (monthDiff === 0 && today.getDate() < birthDate.getDate())
+  ) {
+    age--;
+  }
+
+  if (age < 1 || age > 20) {
+    return res.status(400).json({
+      success: false,
+      message: "Student age must be between 1 and 20 years",
+    });
+  }
+}
+
+    // ========================
+// PHONE VALIDATION
+// ========================
+const phoneRegex = /^[0-9]{10}$/;
+
+if (phone && !phoneRegex.test(phone)) {
+  return res.status(400).json({
+    success: false,
+    message: "Phone number must be exactly 10 digits",
+  });
+}
+
+if (parentPhone && !phoneRegex.test(parentPhone)) {
+  return res.status(400).json({
+    success: false,
+    message: "Parent phone number must be exactly 10 digits",
+  });
+}
+
+// ========================
+// EMAIL VALIDATION
+// ========================
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+if (email && !emailRegex.test(email)) {
+  return res.status(400).json({
+    success: false,
+    message: "Invalid email format",
+  });
+}
 
     if (!firstName || !course) {
       return res.status(400).json({
@@ -121,6 +199,14 @@ exports.createStudent = async (req, res) => {
 
   } catch (error) {
     console.error("Create Student Error:", error);
+
+    //Duplicate email error handle
+  if (error.code === 11000) {
+    return res.status(400).json({
+      success: false,
+      message: "Email already exists",
+    });
+  }
 
     res.status(500).json({
       success: false,

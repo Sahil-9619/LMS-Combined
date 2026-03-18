@@ -48,6 +48,7 @@ const studentSchema = new mongoose.Schema(
     phone: String,
     email: {
       type: String,
+      unique: true,
       lowercase: true,
       trim: true,
     },
@@ -57,7 +58,16 @@ const studentSchema = new mongoose.Schema(
       trim: true,
    },
 
-    address: String,
+    address: {
+  type: String,
+  validate: {
+    validator: function (v) {
+      if (!v) return true;
+      return v.trim().split(/\s+/).length <= 100;
+    },
+    message: "Address must not exceed 100 words",
+  },
+},
 
     fatherName: String,
     motherName: String,
