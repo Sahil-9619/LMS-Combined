@@ -261,15 +261,7 @@ export default function ClassSectionManagement() {
         
         {selectedClass ? (
           <>
-            {/* Toolbar (Mobile Back Button) */}
-            <div className="md:hidden h-14 flex items-center px-4 border-b border-border flex-shrink-0">
-              <button 
-                onClick={() => setSelectedClass("")}
-                className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
-              >
-                <ArrowRight className="w-4 h-4 rotate-180" /> Back to Directory
-              </button>
-            </div>
+            
 
             {/* Detail Header */}
             <div className="px-8 pt-10 pb-6 flex-shrink-0">
@@ -316,6 +308,7 @@ export default function ClassSectionManagement() {
                     No sections available. Add one above.
                   </div>
                 )}
+                
 
                 <AnimatePresence>
                   {sections.map((sec) => (
@@ -345,6 +338,15 @@ export default function ClassSectionManagement() {
                   ))}
                 </AnimatePresence>
               </div>
+              {/* Toolbar (Mobile Back Button) */}
+            <div className="md:hidden h-14 flex items-center px-4 border-b border-border flex-shrink-0">
+              <button 
+                onClick={() => setSelectedClass("")}
+                className="flex bg-cyan-800 rounded-xl text-white p-2 items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <ArrowRight className="w-4 h-4 rotate-180" /> Back to Class List
+              </button>
+            </div>
             </div>
           </>
         ) : (
@@ -360,6 +362,7 @@ export default function ClassSectionManagement() {
           </div>
         )}
       </div>
+      
 
       {/* ====================================================
           THEMED DELETE MODAL

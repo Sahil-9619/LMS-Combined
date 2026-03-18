@@ -3,7 +3,6 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { adminServices } from "@/services/admin/admin.service";
-import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,7 +24,7 @@ import {
 import { 
   UserPlus, ShieldCheck, User, Phone, 
   Settings2, BookOpen, MapPin, Camera, 
-  UploadCloud, X 
+  UploadCloud, X, AlertTriangle 
 } from "lucide-react";
 
 const AddUsers = () => {
@@ -58,6 +57,7 @@ const AddUsers = () => {
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [showErrorDialog, setShowErrorDialog] = useState(false);
   const [success, setSuccess] = useState("");
   const [allClasses, setAllClasses] = useState([]);
   const [sections, setSections] = useState([]);
@@ -104,19 +104,68 @@ const AddUsers = () => {
     }
   };
 
+  /* CUSTOM STRICT VALIDATION ENGINE */
+  const validateForm = () => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    // Strict 10-digit phone number check
+    const phoneRegex = /^[0-9]{10}$/;
+
+    if (form.roleName === "user") {
+      if (!form.firstName.trim()) return "First Name is required.";
+      if (!form.lastName.trim()) return "Last Name is required.";
+      
+      if (!form.phone.trim()) return "Student Phone Number is required.";
+      if (!phoneRegex.test(form.phone.trim())) return "Invalid Student Phone Number. Must be exactly 10 digits.";
+      
+      if (form.parentPhone && !phoneRegex.test(form.parentPhone.trim())) return "Invalid Parent Phone Number. Must be exactly 10 digits.";
+      
+      if (!form.email.trim()) return "Email Address is required.";
+      if (!emailRegex.test(form.email.trim())) return "Invalid Email Address format.";
+      
+      if (!form.dateOfBirth) return "Date of Birth is required.";
+      const dob = new Date(form.dateOfBirth);
+      if (dob >= new Date()) return "Date of Birth must be a valid past date.";
+      
+      if (!form.gender) return "Gender selection is required.";
+      if (!form.course) return "Academic Class selection is required.";
+      if (!form.section) return "Academic Section selection is required.";
+      
+      if (!form.photo) return "Profile Photo MUST be uploaded.";
+      
+    } else {
+      if (!form.name.trim()) return "Full Name is required.";
+      
+      if (!form.email.trim()) return "Email Address is required.";
+      if (!emailRegex.test(form.email.trim())) return "Invalid Email Address format.";
+      
+      if (!form.password) return "Temporary Password is required.";
+      if (form.password.length < 6) return "Password must be at least 6 characters long.";
+      
+      if (form.phone && !phoneRegex.test(form.phone.trim())) return "Invalid Phone Number. Must be exactly 10 digits.";
+    }
+
+    return null; // Return null if no errors found
+  };
+
   /* HANDLE SUBMIT */
   const onSubmit = async (e) => {
     e.preventDefault();
+    
+    // 1. Run Validations (Triggers Modal if fails)
+    const validationError = validateForm();
+    if (validationError) {
+      setError(validationError);
+      setShowErrorDialog(true);
+      return;
+    }
+
+    // 2. Process Submission
     setSubmitting(true);
     setError("");
+    setShowErrorDialog(false);
     setSuccess("");
     try {
       if (form.roleName === "user") {
-        if (!form.course) {
-          setError("Please select a class");
-          setSubmitting(false);
-          return;
-        }
         const formData = new FormData();
         Object.keys(form).forEach((key) => {
           if (form[key]) {
@@ -138,263 +187,264 @@ const AddUsers = () => {
       }
       setShowSuccessDialog(true);
     } catch (err) {
-      setError(err?.response?.data?.message || "Something went wrong");
+      setError(err?.response?.data?.message || "Something went wrong while creating the user.");
+      setShowErrorDialog(true);
     } finally {
       setSubmitting(false);
     }
   };
 
-  // Shared Premium Input Styles
-  const inputStyles = "bg-slate-50 border-slate-200 focus:bg-white focus:border-[#178F9E] focus:ring-2 focus:ring-[#178F9E]/20 rounded-xl  transition-all shadow-sm";
+  // Shared Flat Input Styles (White inputs popping off the slate background)
+  const inputStyles = "bg-white border-slate-200 focus:border-[#178F9E] focus:ring-2 focus:ring-[#178F9E]/20 rounded-xl transition-all shadow-sm";
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] bg-slate-50/50 p-4 md:p-8 font-sans overflow-y-hidden">
-      <div className="max-w-4xl mx-auto space-y-auto">
+    <div className="min-h-screen bg-slate-50/50 p-4 md:p-8 font-sans pb-24">
+      <div className="max-w-3xl mx-auto space-y-12">
         
-        {/* HEADER AREA (Outside the card for an airy feel) */}
+        {/* HEADER AREA */}
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-[#178F9E]/10 flex items-center justify-center text-[#178F9E]">
-            <UserPlus className="w-6 h-6" />
+          <div className="w-14 h-14 rounded-2xl bg-[#178F9E]/10 flex items-center justify-center text-[#178F9E]">
+            <UserPlus className="w-7 h-7" />
           </div>
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">
+            <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-slate-900">
               Create New User
             </h1>
-            <p className="text-sm text-slate-500 mt-1">
+            <p className="text-base text-slate-500 mt-1">
               Add a new student, instructor, or administrator to the platform.
             </p>
           </div>
         </div>
 
-        {/* MASTER CARD - Using only ONE card for the entire form */}
+        {/* FLAT FORM LAYOUT (No Cards) */}
+        <form onSubmit={onSubmit} className="space-y-10">
+          
+          {/* SUCCESS MESSAGE INLINE */}
+          {success && (
+            <div className={`p-4 rounded-xl text-sm font-medium bg-teal-50 text-[#178F9E]`}>
+              {success}
+            </div>
+          )}
 
-         
-            <form onSubmit={onSubmit} className="divide-y divide-slate-100">
-              
-              {/* STATUS MESSAGES */}
-              {(error || success) && (
-                <div className={`p-4 mx-6 mt-6 rounded-xl text-sm font-medium ${error ? "bg-red-50 text-red-600" : "bg-teal-50 text-[#178F9E]"}`}>
-                  {error || success}
+          {/* ==========================================
+              ROLE SELECTION
+              ========================================== */}
+          <div className="space-y-4">
+            <h2 className="text-lg font-bold text-slate-800 border-b border-slate-200 pb-2 flex items-center gap-2">
+              <ShieldCheck className="w-5 h-5 text-[#178F9E]" /> Assign Role
+            </h2>
+            <div className="max-w-sm">
+              <Select
+                value={form.roleName}
+                onValueChange={(value) => setForm((prev) => ({ ...prev, roleName: value }))}
+              >
+                <SelectTrigger className={`h-12 bg-white ${inputStyles}`}>
+                  <SelectValue placeholder="Select Role" />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl shadow-lg border-slate-200">
+                  <SelectItem value="user">Student</SelectItem>
+                  <SelectItem value="instructor">Instructor</SelectItem>
+                  <SelectItem value="admin">Administrator</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* ==========================================
+              DYNAMIC FORM FIELDS
+              ========================================== */}
+          <div>
+            {form.roleName === "user" ? (
+              // ----------------------------------------
+              // STUDENT FORM
+              // ----------------------------------------
+              <div className="space-y-10">
+                
+                {/* Basic Information */}
+                <div className="space-y-4">
+                  <h2 className="text-lg font-bold text-slate-800 border-b border-slate-200 pb-2 flex items-center gap-2">
+                    <User className="w-5 h-5 text-[#178F9E]" /> Basic Information
+                  </h2>
+                  <div className="grid md:grid-cols-2 gap-5">
+                    <Input name="firstName" placeholder="First Name" onChange={onChange} className={inputStyles} />
+                    <Input name="lastName" placeholder="Last Name" onChange={onChange} className={inputStyles} />
+                    <Input name="fatherName" placeholder="Father's Name" onChange={onChange} className={inputStyles} />
+                    <Input name="motherName" placeholder="Mother's Name" onChange={onChange} className={inputStyles} />
+                  </div>
                 </div>
-              )}
 
-              {/* ROLE SELECTION HEADER */}
-              <div className="p-6 md:p-8 bg-slate-50/50">
-                <div className="space-y-3 max-w-sm">
-                  <label className="text-sm font-bold text-slate-700 flex items-center gap-2">
-                    <ShieldCheck className="w-4 h-4 text-[#178F9E]" /> Assign Role
-                  </label>
-                  <Select
-                    value={form.roleName}
-                    onValueChange={(value) => setForm((prev) => ({ ...prev, roleName: value }))}
-                  >
-                    <SelectTrigger className={`h-10 bg-white ${inputStyles}`}>
-                      <SelectValue placeholder="Select Role" />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-xl shadow-lg border-slate-200">
-                      <SelectItem value="user">Student</SelectItem>
-                      <SelectItem value="instructor">Instructor</SelectItem>
-                      <SelectItem value="admin">Administrator</SelectItem>
-                    </SelectContent>
-                  </Select>
+                {/* Contact Details */}
+                <div className="space-y-4">
+                  <h2 className="text-lg font-bold text-slate-800 border-b border-slate-200 pb-2 flex items-center gap-2">
+                    <Phone className="w-5 h-5 text-[#178F9E]" /> Contact Details
+                  </h2>
+                  <div className="grid md:grid-cols-2 gap-5">
+                    <Input name="phone" placeholder="Student Phone Number (10 Digits)" onChange={onChange} className={inputStyles} />
+                    <Input name="parentPhone" placeholder="Parent Phone Number (10 Digits)" onChange={onChange} className={inputStyles} />
+                    <Input type="email" name="email" placeholder="Email Address" onChange={onChange} className={`md:col-span-2 ${inputStyles}`} />
+                  </div>
                 </div>
-              </div>
 
-              {/* DYNAMIC FORM FIELDS */}
-              <div className="p-6 md:p-8 space-y-auto">
-                {form.roleName === "user" ? (
-                  // ==============================
-                  // STUDENT FORM
-                  // ==============================
-                  <div className="space-y-10">
+                {/* Personal Details */}
+                <div className="space-y-4">
+                  <h2 className="text-lg font-bold text-slate-800 border-b border-slate-200 pb-2 flex items-center gap-2">
+                    <Settings2 className="w-5 h-5 text-[#178F9E]" /> Personal Details
+                  </h2>
+                  <div className="grid md:grid-cols-3 gap-5">
+                    <Input type="date" name="dateOfBirth" onChange={onChange} className={inputStyles} />
                     
-                    {/* Basic Information */}
-                    <div className="space-y-5">
-                      <div className="flex items-center gap-2 text-[#178F9E]">
-                        <User className="w-5 h-5" />
-                        <h3 className="text-base font-bold">Basic Information</h3>
-                      </div>
-                      <div className="grid md:grid-cols-2 gap-5">
-                        <Input name="firstName" placeholder="First Name" onChange={onChange} required className={inputStyles} />
-                        <Input name="lastName" placeholder="Last Name" onChange={onChange} required className={inputStyles} />
-                        <Input name="fatherName" placeholder="Father's Name" onChange={onChange} className={inputStyles} />
-                        <Input name="motherName" placeholder="Mother's Name" onChange={onChange} className={inputStyles} />
-                      </div>
-                    </div>
+                    <Select value={form.gender} onValueChange={(value) => setForm((prev) => ({ ...prev, gender: value }))}>
+                      <SelectTrigger className={`h-10 ${inputStyles}`}>
+                        <SelectValue placeholder="Gender" />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl border-slate-200 shadow-lg">
+                        <SelectItem value="male">Male</SelectItem>
+                        <SelectItem value="female">Female</SelectItem>
+                        <SelectItem value="other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
 
-                    {/* Contact Details */}
-                    <div className="space-y-5">
-                      <div className="flex items-center gap-2 text-[#178F9E]">
-                        <Phone className="w-5 h-5" />
-                        <h3 className="text-base font-bold">Contact Details</h3>
-                      </div>
-                      <div className="grid md:grid-cols-2 gap-5">
-                        <Input name="phone" placeholder="Student Phone Number" onChange={onChange} className={inputStyles} />
-                        <Input name="parentPhone" placeholder="Parent Phone Number" onChange={onChange} className={inputStyles} />
-                        <Input type="email" name="email" placeholder="Email Address" onChange={onChange} className={`md:col-span-2 ${inputStyles}`} />
-                      </div>
-                    </div>
+                    <Select value={form.category} onValueChange={(value) => setForm((prev) => ({ ...prev, category: value }))}>
+                      <SelectTrigger className={`h-10 ${inputStyles}`}>
+                        <SelectValue placeholder="Category" />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl border-slate-200 shadow-lg">
+                        <SelectItem value="general">General</SelectItem>
+                        <SelectItem value="obc">OBC</SelectItem>
+                        <SelectItem value="sc">SC</SelectItem>
+                        <SelectItem value="st">ST</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
 
-                    {/* Personal Details */}
-                    <div className="space-y-5">
-                      <div className="flex items-center gap-2 text-[#178F9E]">
-                        <Settings2 className="w-5 h-5" />
-                        <h3 className="text-base font-bold">Personal Details</h3>
-                      </div>
-                      <div className="grid md:grid-cols-3 gap-5">
-                        <Input type="date" name="dateOfBirth" onChange={onChange} className={inputStyles} />
-                        
-                        <Select value={form.gender} onValueChange={(value) => setForm((prev) => ({ ...prev, gender: value }))}>
-                          <SelectTrigger className={`h-12 ${inputStyles}`}>
-                            <SelectValue placeholder="Gender" />
-                          </SelectTrigger>
-                          <SelectContent className="rounded-xl border-slate-200 shadow-lg">
-                            <SelectItem value="male">Male</SelectItem>
-                            <SelectItem value="female">Female</SelectItem>
-                            <SelectItem value="other">Other</SelectItem>
-                          </SelectContent>
-                        </Select>
+                {/* Academic Details */}
+                <div className="space-y-4">
+                  <h2 className="text-lg font-bold text-slate-800 border-b border-slate-200 pb-2 flex items-center gap-2">
+                    <BookOpen className="w-5 h-5 text-[#178F9E]" /> Academic Enrollment
+                  </h2>
+                  <div className="grid md:grid-cols-2 gap-5">
+                    <Select
+                      value={form.course}
+                      onValueChange={(value) => {
+                        setForm((prev) => ({ ...prev, course: value }));
+                        const filtered = allClasses.filter((c) => c.className === value);
+                        const uniqueSections = [...new Map(filtered.map((sec) => [sec.section, sec])).values()].sort((a, b) => a.section.localeCompare(b.section));
+                        setSections(uniqueSections);
+                      }}
+                    >
+                      <SelectTrigger className={`h-10 ${inputStyles}`}>
+                        <SelectValue placeholder="Select Class" />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl border-slate-200 shadow-lg">
+                        {[...new Map(allClasses.map((c) => [c.className, c])).values()]
+                          .sort((a, b) => Number(a.className) - Number(b.className))
+                          .map((cls) => (
+                            <SelectItem key={cls.className} value={cls.className}>
+                              Class {cls.className}
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
 
-                        <Select value={form.category} onValueChange={(value) => setForm((prev) => ({ ...prev, category: value }))}>
-                          <SelectTrigger className={`h-12 ${inputStyles}`}>
-                            <SelectValue placeholder="Category" />
-                          </SelectTrigger>
-                          <SelectContent className="rounded-xl border-slate-200 shadow-lg">
-                            <SelectItem value="general">General</SelectItem>
-                            <SelectItem value="obc">OBC</SelectItem>
-                            <SelectItem value="sc">SC</SelectItem>
-                            <SelectItem value="st">ST</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
+                    <Select value={form.section} onValueChange={(value) => setForm((prev) => ({ ...prev, section: value }))}>
+                      <SelectTrigger className={`h-10 ${inputStyles}`}>
+                        <SelectValue placeholder="Select Section" />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl border-slate-200 shadow-lg">
+                        {sections.map((sec) => (
+                          <SelectItem key={sec._id} value={sec.section}>
+                            Section {sec.section}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
 
-                    {/* Academic Details */}
-                    <div className="space-y-5">
-                      <div className="flex items-center gap-2 text-[#178F9E]">
-                        <BookOpen className="w-5 h-5" />
-                        <h3 className="text-base font-bold">Academic Enrollment</h3>
-                      </div>
-                      <div className="grid md:grid-cols-2 gap-5">
-                        <Select
-                          value={form.course}
-                          onValueChange={(value) => {
-                            setForm((prev) => ({ ...prev, course: value }));
-                            const filtered = allClasses.filter((c) => c.className === value);
-                            const uniqueSections = [...new Map(filtered.map((sec) => [sec.section, sec])).values()].sort((a, b) => a.section.localeCompare(b.section));
-                            setSections(uniqueSections);
-                          }}
-                        >
-                          <SelectTrigger className={`h-12 ${inputStyles}`}>
-                            <SelectValue placeholder="Select Class" />
-                          </SelectTrigger>
-                          <SelectContent className="rounded-xl border-slate-200 shadow-lg">
-                            {[...new Map(allClasses.map((c) => [c.className, c])).values()]
-                              .sort((a, b) => Number(a.className) - Number(b.className))
-                              .map((cls) => (
-                                <SelectItem key={cls.className} value={cls.className}>
-                                  Class {cls.className}
-                                </SelectItem>
-                              ))}
-                          </SelectContent>
-                        </Select>
+                {/* Address & Photo */}
+                <div className="grid md:grid-cols-2 gap-8 pt-2">
+                  <div className="space-y-4">
+                    <h2 className="text-lg font-bold text-slate-800 border-b border-slate-200 pb-2 flex items-center gap-2">
+                      <MapPin className="w-5 h-5 text-[#178F9E]" /> Address
+                    </h2>
+                    <Input name="address" placeholder="Full Residential Address" onChange={onChange} className={inputStyles} />
+                  </div>
 
-                        <Select value={form.section} onValueChange={(value) => setForm((prev) => ({ ...prev, section: value }))}>
-                          <SelectTrigger className={`h-12 ${inputStyles}`}>
-                            <SelectValue placeholder="Select Section" />
-                          </SelectTrigger>
-                          <SelectContent className="rounded-xl border-slate-200 shadow-lg">
-                            {sections.map((sec) => (
-                              <SelectItem key={sec._id} value={sec.section}>
-                                Section {sec.section}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-
-                    {/* Address & Photo */}
-                    <div className="grid md:grid-cols-2 gap-8 pt-2">
-                      <div className="space-y-5">
-                        <div className="flex items-center gap-2 text-[#178F9E]">
-                          <MapPin className="w-5 h-5" />
-                          <h3 className="text-base font-bold">Address</h3>
+                  <div className="space-y-4">
+                    <h2 className="text-lg font-bold text-slate-800 border-b border-slate-200 pb-2 flex items-center gap-2">
+                      <Camera className="w-5 h-5 text-[#178F9E]" /> Profile Photo
+                    </h2>
+                    <div className="flex items-center gap-5">
+                      {photoPreview ? (
+                        <div className="relative">
+                          <img src={photoPreview} alt="preview" className="w-16 h-16 rounded-full object-cover border-2 border-[#178F9E] shadow-md" />
+                          <button
+                            type="button"
+                            onClick={() => { setPhotoPreview(null); setForm((prev) => ({ ...prev, photo: null })); }}
+                            className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors shadow-sm"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
                         </div>
-                        <Input name="address" placeholder="Full Residential Address" onChange={onChange} className={inputStyles} />
-                      </div>
-
-                      <div className="space-y-5">
-                        <div className="flex items-center gap-2 text-[#178F9E]">
-                          <Camera className="w-5 h-5" />
-                          <h3 className="text-base font-bold">Profile Photo</h3>
+                      ) : (
+                        <div className="w-16 h-16 rounded-full border-2 border-dashed border-slate-300 bg-white flex items-center justify-center text-slate-400">
+                          <User className="w-6 h-6" />
                         </div>
-                        <div className="flex items-center gap-5">
-                          {photoPreview ? (
-                            <div className="relative">
-                              <img src={photoPreview} alt="preview" className="w-16 h-16 rounded-full object-cover border-2 border-[#178F9E] shadow-md" />
-                              <button
-                                type="button"
-                                onClick={() => { setPhotoPreview(null); setForm((prev) => ({ ...prev, photo: null })); }}
-                                className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors shadow-sm"
-                              >
-                                <X className="w-3 h-3" />
-                              </button>
-                            </div>
-                          ) : (
-                            <div className="w-16 h-16 rounded-full border-2 border-dashed border-slate-300 bg-slate-50 flex items-center justify-center text-slate-400">
-                              <User className="w-6 h-6" />
-                            </div>
-                          )}
-                          <label className="cursor-pointer border border-[#178F9E] px-5 py-2.5 rounded-xl text-sm font-medium text-[#178F9E] hover:bg-[#178F9E] hover:text-white transition-all shadow-sm flex items-center gap-2">
-                            <UploadCloud className="w-4 h-4" />
-                            {photoPreview ? "Change Photo" : "Upload Photo"}
-                            <input type="file" name="photo" accept="image/*" onChange={onChange} className="hidden" />
-                          </label>
-                        </div>
-                      </div>
+                      )}
+                      <label className="cursor-pointer bg-white border border-[#178F9E] px-5 py-2.5 rounded-xl text-sm font-medium text-[#178F9E] hover:bg-[#178F9E] hover:text-white transition-all shadow-sm flex items-center gap-2">
+                        <UploadCloud className="w-4 h-4" />
+                        {photoPreview ? "Change Photo" : "Upload Photo"}
+                        <input type="file" name="photo" accept="image/*" onChange={onChange} className="hidden" />
+                      </label>
                     </div>
                   </div>
-                ) : (
-                  // ==============================
-                  // ADMIN / INSTRUCTOR FORM
-                  // ==============================
-                  <div className="grid md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <label className="text-sm font-bold text-slate-700 ml-1">Full Name</label>
-                      <Input name="name" placeholder="John Doe" onChange={onChange} required className={inputStyles} />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-bold text-slate-700 ml-1">Email Address</label>
-                      <Input type="email" name="email" placeholder="john@example.com" onChange={onChange} required className={inputStyles} />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-bold text-slate-700 ml-1">Temporary Password</label>
-                      <Input type="password" name="password" placeholder="••••••••" onChange={onChange} required className={inputStyles} />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-bold text-slate-700 ml-1">Phone Number</label>
-                      <Input name="phone" placeholder="+1 (555) 000-0000" onChange={onChange} className={inputStyles} />
-                    </div>
+                </div>
+              </div>
+            ) : (
+              // ----------------------------------------
+              // ADMIN / INSTRUCTOR FORM
+              // ----------------------------------------
+              <div className="space-y-4">
+                <h2 className="text-lg font-bold text-slate-800 border-b border-slate-200 pb-2 flex items-center gap-2">
+                  <User className="w-5 h-5 text-[#178F9E]" /> Credentials
+                </h2>
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="text-sm font-bold text-slate-700 ml-1">Full Name</label>
+                    <Input name="name" placeholder="John Doe" onChange={onChange} className={inputStyles} />
                   </div>
-                )}
+                  <div className="space-y-2">
+                    <label className="text-sm font-bold text-slate-700 ml-1">Email Address</label>
+                    <Input type="email" name="email" placeholder="john@example.com" onChange={onChange} className={inputStyles} />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-bold text-slate-700 ml-1">Temporary Password</label>
+                    <Input type="password" name="password" placeholder="••••••••" onChange={onChange} className={inputStyles} />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-bold text-slate-700 ml-1">Phone Number</label>
+                    <Input name="phone" placeholder="10 Digit Phone Number" onChange={onChange} className={inputStyles} />
+                  </div>
+                </div>
               </div>
+            )}
+          </div>
 
-              {/* FOOTER / SUBMIT BUTTON */}
-              <div className="p-6 md:p-8 bg-slate-50/50 flex justify-end">
-                <Button
-                  type="submit"
-                  disabled={submitting}
-                  className="bg-[#178F9E] hover:bg-[#0F6F7C] text-white font-bold px-8 py-6 rounded-xl shadow-lg shadow-[#178F9E]/20 transition-all text-base"
-                >
-                  {submitting ? "Processing..." : `Create ${form.roleName === "user" ? "Student" : form.roleName.charAt(0).toUpperCase() + form.roleName.slice(1)}`}
-                </Button>
-              </div>
-            </form>
-      
+          {/* FOOTER / SUBMIT BUTTON */}
+          <div className="pt-8 flex justify-end">
+            <Button
+              type="submit"
+              disabled={submitting}
+              className="bg-[#178F9E] hover:bg-[#0F6F7C] text-white font-bold px-10 py-6 rounded-xl shadow-lg shadow-[#178F9E]/20 transition-all text-lg"
+            >
+              {submitting ? "Processing..." : `Create ${form.roleName === "user" ? "Student" : form.roleName.charAt(0).toUpperCase() + form.roleName.slice(1)}`}
+            </Button>
+          </div>
+        </form>
 
         {/* SUCCESS MODAL */}
-        <AlertDialog open={showSuccessDialog}>
+        <AlertDialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
           <AlertDialogContent className="rounded-2xl border-slate-200">
             <AlertDialogHeader>
               <AlertDialogTitle className="text-[#178F9E] flex items-center gap-2">
@@ -413,6 +463,28 @@ const AddUsers = () => {
                 }}
               >
                 Continue
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* ERROR MODAL (Popping from top via standard Shadcn behavior) */}
+        <AlertDialog open={showErrorDialog} onOpenChange={setShowErrorDialog}>
+          <AlertDialogContent className="rounded-2xl border-slate-200">
+            <AlertDialogHeader>
+              <AlertDialogTitle className="text-red-600 flex items-center gap-2">
+                <AlertTriangle className="w-5 h-5" /> Validation Error
+              </AlertDialogTitle>
+              <AlertDialogDescription className="text-slate-600 text-base">
+                {error || "An error occurred while trying to process your request. Please check your inputs."}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogAction
+                className="bg-slate-900 hover:bg-slate-800 text-white rounded-xl px-6"
+                onClick={() => setShowErrorDialog(false)}
+              >
+                Close
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

@@ -1,385 +1,429 @@
 "use client";
 
+import React, { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { adminServices } from "@/services/admin/admin.service";
-import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Separator } from "@/components/ui/separator";
-import { Pencil, Save, Search } from "lucide-react";
-import {
-Select,
-SelectContent,
-SelectItem,
-SelectTrigger,
-SelectValue,
-} from "@/components/ui/select";
-
-
-
+import { 
+  Search, Banknote, Receipt, Lock, Unlock,
+  GraduationCap, Building, Bus, FileText, Clock, Pencil, Save,
+  CheckCircle2
+} from "lucide-react";
 
 export default function ClassFeeManagement() {
-
-  const [msg, setMsg] = useState("");
   const [error, setError] = useState("");
   const [classes, setClasses] = useState([]);
   const [classId, setClassId] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
 
-  const [feeId, setFeeId] = useState("");
-  const [tuitionFee, setTuitionFee] = useState();
-  const [admissionFee, setAdmissionFee] = useState();
-  const [examFee, setExamFee] = useState();
-  const [hostelFee, setHostelFee] = useState();
-  const [transportFee, setTransportFee] = useState();
-  const [lateFeePerDay, setLateFeePerDay] = useState();
+  const [tuitionFee, setTuitionFee] = useState("");
+  const [admissionFee, setAdmissionFee] = useState("");
+  const [examFee, setExamFee] = useState("");
+  const [hostelFee, setHostelFee] = useState("");
+  const [transportFee, setTransportFee] = useState("");
+  const [lateFeePerDay, setLateFeePerDay] = useState("");
 
   const [loading, setLoading] = useState(false);
   const [editing, setEditing] = useState(false);
+  const [dataFetched, setDataFetched] = useState(false);
 
+  // 1. Fetch Classes on Mount
   useEffect(() => {
-    fetchClasses();
-    const clearMessage = () => setMsg("");
-
-    window.addEventListener("click", clearMessage);
-
-    return () => window.removeEventListener("click", clearMessage);
-  }, [])
-
-  const fetchClasses = async () => {
-    try {
-
-      const res = await adminServices.getAllClasses();
-      const data = res?.data || [];
-
-      // remove duplicate classes (A,B sections)
-      const uniqueClasses = [
-        ...new Map(data.map(item => [item.className, item])).values()
-      ];
-
-      setClasses(uniqueClasses);
-
-    } catch (err) {
-      console.log(err);
-    }
-  };
-
-  /* FETCH CURRENT FEE */
-
-  const fetchCurrentFee = async () => {
-    if (!classId) {
-      setError("Please select a class");
-      return;
+    const fetchClasses = async () => {
+      try {
+        const res = await adminServices.getAllClasses();
+        const data = res?.data || [];
+        const uniqueClasses = [...new Map(data.map(item => [item.className, item])).values()];
+        setClasses(uniqueClasses);
+      } catch (err) {
+        toast.error("Failed to load classes directory.");
+      }
     };
-    setError("");
+    fetchClasses();
+  }, []);
 
-    try {
+  // 2. Fetch Fee Data automatically when a Class is selected from the sidebar
+  useEffect(() => {
+    if (!classId) return;
+
+    const fetchCurrentFee = async () => {
+      setError("");
       setLoading(true);
+      setDataFetched(false);
 
-      const res = await adminServices.getClassFeeByClass(classId);
+      try {
+        const res = await adminServices.getClassFeeByClass(classId);
+        const data = res?.data || res;
 
-      const data = res?.data || res;
+        setTuitionFee(data.tuitionFee || 0);
+        setAdmissionFee(data.admissionFee || 0);
+        setExamFee(data.examFee || 0);
+        setHostelFee(data.hostelFee || 0);
+        setTransportFee(data.transportFee || 0);
+        setLateFeePerDay(data.lateFeePerDay || 0);
 
-      // ✅ SET VALUES FROM DB
-      setTuitionFee(data.tuitionFee || 0);
-      setAdmissionFee(data.admissionFee || 0);
-      setExamFee(data.examFee || 0);
-      setHostelFee(data.hostelFee || 0);
-      setTransportFee(data.transportFee || 0);
-      setLateFeePerDay(data.lateFeePerDay || 0);
+        setEditing(false);
+        setDataFetched(true);
+      } catch (err) {
+        // Reset if not found
+        setTuitionFee("");
+        setAdmissionFee("");
+        setExamFee("");
+        setHostelFee("");
+        setTransportFee("");
+        setLateFeePerDay("");
+        setDataFetched(true);
+        setEditing(true); // Auto-unlock for new entries
+      } finally {
+        setLoading(false);
+      }
+    };
 
-      setEditing(false);
-
-    } catch (err) {
-      console.log(err);
-    } finally {
-      setLoading(false);
-    }
-  }
+    fetchCurrentFee();
+  }, [classId]);
 
   /* UPDATE FEE */
-
   const updateFee = async () => {
-    if (!classId) {
-      setError("Please select a class");
-      return;
-    }
+    if (!classId) return;
     try {
-
       const payload = {
         classId,
-        tuitionFee,
-        admissionFee,
-        examFee,
-        hostelFee,
-        transportFee,
-        lateFeePerDay
+        tuitionFee: Number(tuitionFee) || 0,
+        admissionFee: Number(admissionFee) || 0,
+        examFee: Number(examFee) || 0,
+        hostelFee: Number(hostelFee) || 0,
+        transportFee: Number(transportFee) || 0,
+        lateFeePerDay: Number(lateFeePerDay) || 0
       };
 
       try {
-        // Try updating first
         await adminServices.updateClassFee(classId, payload);
-
       } catch (err) {
-
-        // If not found then create
         if (err?.response?.data?.message === "Fee structure not found") {
-
           await adminServices.createFeeStructure(payload);
-
         } else {
           throw err;
         }
-
       }
-      toast.success("Fee saved successfully!", {
-        position: "bottom-center",
-        style: {
-          background: "#178F9E",
-          color: "#fff",
-        },
-      });
+      
+      toast.success("Fee ledger updated successfully.");
       setEditing(false);
-
     } catch (err) {
-      toast.error(
-        err?.response?.data?.message || "Something went wrong",
-        {
-          position: "top-center",
-        }
-      );
+      toast.error(err?.response?.data?.message || "Failed to save fee structure.");
     }
   };
 
-  const submitChange = (e) => {
-    const id = e.target.value;
-    setClassId(id);
-    setError("");
-    // reset fields when class changes
-    setTuitionFee("");
-    setAdmissionFee("");
-    setExamFee("");
-    setHostelFee("");
-    setTransportFee("");
-    setLateFeePerDay("");
-    setEditing(false);
-  }
+  // Calculations
+  const totalFee = 
+    (Number(tuitionFee) || 0) + 
+    (Number(admissionFee) || 0) + 
+    (Number(examFee) || 0) + 
+    (Number(hostelFee) || 0) + 
+    (Number(transportFee) || 0);
 
-return (
-<div className="p-8 space-y-10 max-w-5xl">
+  const sortedClasses = [...classes]
+    .filter(c => c.className.toLowerCase().includes(searchQuery.toLowerCase()))
+    .sort((a, b) => Number(a.className) - Number(b.className));
 
-  {/* HEADER */}
+  const activeClassObject = classes.find(c => c._id === classId);
 
-  <div className="flex items-center justify-between border-b pb-4">
+  return (
+    <div className="min-h-[calc(100vh-4rem)] bg-white flex flex-col md:flex-row font-sans border-t border-slate-100 overflow-hidden">
+      
+      {/* ====================================================
+          LEFT PANE: DIRECTORY
+          ==================================================== */}
+      <div className={`w-full md:w-[320px] lg:w-[380px] flex-shrink-0 flex flex-col border-r border-slate-200 bg-slate-50/50 ${classId ? 'hidden md:flex' : 'flex'}`}>
+        
+        {/* Header & Search */}
+        <div className="p-6 md:p-8 pb-4">
+          <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 mb-6 flex items-center gap-3">
+            <Banknote className="w-6 h-6 text-[#178F9E]" />
+            Fee Management
+          </h1>
+          <div className="relative group">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-[#178F9E] transition-colors" />
+            <input
+              type="text"
+              placeholder="Search classes..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-white border border-slate-200 focus:border-[#178F9E] focus:ring-4 focus:ring-[#178F9E]/10 rounded-xl py-3 pl-11 pr-4 text-sm font-medium outline-none transition-all placeholder:text-slate-400 shadow-sm"
+            />
+          </div>
+        </div>
 
-    <div className="space-y-1">
-      <h1 className="text-2xl font-semibold tracking-tight">
-        Class Fee Management
-      </h1>
-
-      <p className="text-sm text-muted-foreground">
-        Configure and manage fee structure for each class
-      </p>
-    </div>
-
-    <Badge variant="secondary">
-      Admin Panel
-    </Badge>
-
-  </div>
-
-
-  {/* CLASS SELECT SECTION */}
-
-  <div className="space-y-4">
-
-    <div className="grid md:grid-cols-3 gap-4 items-end">
-
-      <div className="md:col-span-2 space-y-2">
-
-        <label className="text-sm font-medium">
-          Select Class
-        </label>
-
-<Select
-value={classId}
-onValueChange={(value)=>{
-setClassId(value)
-setError("")
-setTuitionFee("")
-setAdmissionFee("")
-setExamFee("")
-setHostelFee("")
-setTransportFee("")
-setLateFeePerDay("")
-setEditing(false)
-}}
->
-
-<SelectTrigger className="w-full">
-<SelectValue placeholder="Select Class" />
-</SelectTrigger>
-
-<SelectContent>
-
-{classes
-.sort((a,b)=>Number(a.className)-Number(b.className))
-.map((cls)=>(
-<SelectItem key={cls._id} value={cls._id}>
-Class {cls.className}
-</SelectItem>
-))}
-
-</SelectContent>
-
-</Select>
-
+        {/* Flat List */}
+        <div className="flex-1 overflow-y-auto px-4 pb-8 space-y-1">
+          <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3 px-4">Select Class Ledger</h3>
+          
+          {sortedClasses.length === 0 ? (
+            <div className="text-center p-6 text-slate-400 text-sm font-medium">
+              No classes found.
+            </div>
+          ) : (
+            sortedClasses.map((cls) => {
+              const isActive = classId === cls._id;
+              return (
+                <button
+                  key={cls._id}
+                  onClick={() => setClassId(cls._id)}
+                  className={`w-full text-left flex items-center justify-between px-5 py-3.5 rounded-xl transition-all relative ${
+                    isActive 
+                      ? "bg-[#178F9E] text-white shadow-md shadow-[#178F9E]/20" 
+                      : "hover:bg-slate-200/50 text-slate-600 hover:text-slate-900"
+                  }`}
+                >
+                  <span className="text-base font-bold">
+                    Class {cls.className}
+                  </span>
+                  {!isActive && (
+                    <Receipt className="w-4 h-4 text-slate-300" />
+                  )}
+                </button>
+              );
+            })
+          )}
+        </div>
       </div>
-<Button
-onClick={fetchCurrentFee}
-className="w-full flex items-center gap-2"
->
 
-<Search size={16} />
+      {/* ====================================================
+          RIGHT PANE: INVOICE/LEDGER VIEW
+          ==================================================== */}
+      <div className={`flex-1 flex flex-col bg-white relative min-w-0 ${!classId ? 'hidden md:flex' : 'flex'}`}>
+        
+        {classId ? (
+          <>
+            {/* Mobile Back Button */}
+            <div className="md:hidden p-4 border-b border-slate-100 flex items-center flex-shrink-0">
+              <button 
+                onClick={() => setClassId("")}
+                className="text-sm bg-cyan-800 text-white p-2 rounded-xl font-bold text-slate-500 hover:text-slate-900 flex items-center gap-2 mt-5"
+              >
+                ← Back to Class List
+              </button>
+            </div>
 
-Fetch Fee
+            {loading ? (
+              <div className="flex-1 flex flex-col items-center justify-center text-slate-400">
+                <div className="w-10 h-10 border-4 border-slate-100 border-t-[#178F9E] rounded-full animate-spin mb-4"></div>
+                <p className="font-semibold tracking-wide">Retrieving ledger data...</p>
+              </div>
+            ) : (
+              <div className="flex-1 flex flex-col h-full overflow-hidden">
+                
+                {/* Ledger Header */}
+                <div className="px-8 md:px-16 pt-12 pb-8 border-b border-slate-100 flex-shrink-0 flex items-end justify-between">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-3 mb-2">
+                      <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest flex items-center gap-1.5 ${editing ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'}`}>
+                        {editing ? <Unlock className="w-3 h-3" /> : <Lock className="w-3 h-3" />}
+                        {editing ? "Editing Mode" : "Locked & Active"}
+                      </span>
+                    </div>
+                    {/* Academic Session has been removed, only showing the Class Name */}
+                    <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight truncate">
+                      Class {activeClassObject?.className}
+                    </h1>
+                  </div>
+                  
+                  {!editing && (
+                    <button
+                      onClick={() => setEditing(true)}
+                      className="hidden sm:flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-[#178F9E] bg-slate-50 hover:bg-[#178F9E]/10 px-4 py-2.5 rounded-xl transition-colors flex-shrink-0"
+                    >
+                      <Pencil className="w-4 h-4" /> Edit Ledger
+                    </button>
+                  )}
+                </div>
 
-</Button>
+                {/* Ledger Rows (Scrollable) */}
+                <div className="flex-1 overflow-y-auto px-8 md:px-16 py-8">
+                  <div className="max-w-2xl mx-auto space-y-2">
+                    
+                    <LedgerRow 
+                      icon={GraduationCap} 
+                      label="Annual Tuition Fee" 
+                      value={tuitionFee} 
+                      setValue={setTuitionFee} 
+                      disabled={!editing} 
+                    />
+                    <LedgerRow 
+                      icon={CheckCircle2} 
+                      label="Admission / Registration Fee" 
+                      value={admissionFee} 
+                      setValue={setAdmissionFee} 
+                      disabled={!editing} 
+                    />
+                    <LedgerRow 
+                      icon={FileText} 
+                      label="Examination & Lab Fees" 
+                      value={examFee} 
+                      setValue={setExamFee} 
+                      disabled={!editing} 
+                    />
+                    <LedgerRow 
+                      icon={Building} 
+                      label="Hostel & Boarding Fee" 
+                      value={hostelFee} 
+                      setValue={setHostelFee} 
+                      disabled={!editing} 
+                    />
+                    <LedgerRow 
+                      icon={Bus} 
+                      label="Transport & Bus Fee" 
+                      value={transportFee} 
+                      setValue={setTransportFee} 
+                      disabled={!editing} 
+                    />
 
+                    {/* Separator */}
+                    <div className="py-6">
+                      <div className="w-full h-px bg-slate-200 border-b border-dashed border-slate-300"></div>
+                    </div>
+
+                    <LedgerRow 
+                      icon={Clock} 
+                      label="Late Payment Penalty (Per Day)" 
+                      value={lateFeePerDay} 
+                      setValue={setLateFeePerDay} 
+                      disabled={!editing} 
+                      isPenalty 
+                    />
+
+                  </div>
+                </div>
+
+                {/* Sticky Summary & Save Footer */}
+                <div className="bg-slate-900 border-t border-slate-200 px-8 md:px-16 py-6 flex flex-col sm:flex-row items-center justify-between gap-6 flex-shrink-0 min-w-0">
+                  <div className="flex items-center gap-6 min-w-0">
+                    <div className="hidden sm:flex w-12 h-12 rounded-full bg-white/10 items-center justify-center text-white flex-shrink-0">
+                      <Banknote className="w-6 h-6" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mb-1 truncate">
+                        Calculated Total
+                      </p>
+                      <div className="flex items-baseline min-w-0">
+                        <span className="text-3xl font-black text-white tracking-tight mr-1">₹</span>
+                        <p 
+                          className="text-3xl font-black text-white tracking-tight truncate max-w-[180px] md:max-w-[250px]"
+                          title={totalFee.toLocaleString('en-IN')}
+                        >
+                          {totalFee.toLocaleString('en-IN')}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {editing ? (
+                    <div className="flex gap-3 w-full sm:w-auto flex-shrink-0">
+                      <button
+                        onClick={() => {
+                          setEditing(false);
+                          setClassId(classId); // re-trigger fetch
+                        }}
+                        className="flex-1 sm:flex-none px-6 py-3.5 rounded-xl font-bold text-slate-300 hover:text-white hover:bg-white/10 transition-colors"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={updateFee}
+                        className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl font-bold text-white bg-[#178F9E] hover:bg-[#0F6F7C] shadow-lg shadow-[#178F9E]/30 transition-all"
+                      >
+                        <Save className="w-5 h-5" /> Save Ledger
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => setEditing(true)}
+                      className="sm:hidden w-full flex items-center justify-center gap-2 text-base font-bold text-slate-900 bg-white border border-slate-200 px-6 py-3.5 rounded-xl transition-colors"
+                    >
+                      <Pencil className="w-5 h-5" /> Edit Ledger
+                    </button>
+                  )}
+                </div>
+
+              </div>
+            )}
+          </>
+        ) : (
+          /* EMPTY STATE */
+          <div className="flex-1 flex flex-col items-center justify-center text-center p-8 bg-slate-50/30">
+            <div className="w-24 h-24 rounded-full bg-slate-100 flex items-center justify-center mb-6 text-slate-300">
+              <Receipt className="w-10 h-10" />
+            </div>
+            <h3 className="text-2xl font-bold text-slate-800 mb-2">No Class Selected</h3>
+            <p className="text-slate-500 font-medium max-w-sm">
+              Please select a class from the directory on the left to view, manage, and configure its financial ledger.
+            </p>
+          </div>
+        )}
+      </div>
     </div>
-
-    {error && (
-      <p className="text-sm text-red-500">
-        {error}
-      </p>
-    )}
-
-  </div>
-
-  <Separator />
-
-
-  {/* FEE GRID */}
-
-  <div className="space-y-4">
-
-    <h3 className="text-sm font-semibold text-muted-foreground">
-      Fee Structure
-    </h3>
-
-    <div className="grid md:grid-cols-3 gap-6">
-
-      <InputField label="Tuition Fee" value={tuitionFee} setValue={setTuitionFee} disabled={!editing}/>
-      <InputField label="Admission Fee" value={admissionFee} setValue={setAdmissionFee} disabled={!editing}/>
-      <InputField label="Exam Fee" value={examFee} setValue={setExamFee} disabled={!editing}/>
-      <InputField label="Hostel Fee" value={hostelFee} setValue={setHostelFee} disabled={!editing}/>
-      <InputField label="Transport Fee" value={transportFee} setValue={setTransportFee} disabled={!editing}/>
-      <InputField label="Late Fee / Day" value={lateFeePerDay} setValue={setLateFeePerDay} disabled={!editing}/>
-
-    </div>
-
-  </div>
-
-
-  <Separator />
-
-
-  {/* TOTAL FEE */}
-
-  <div className="flex items-center justify-between bg-muted/40 rounded-lg p-6">
-
-    <div className="space-y-1">
-
-      <p className="text-sm text-muted-foreground">
-        Total Fee
-      </p>
-
-      <p className="text-2xl font-semibold">
-        ₹{Number(tuitionFee)+Number(admissionFee)+Number(examFee)+Number(hostelFee)+Number(transportFee)}
-      </p>
-
-    </div>
-
-    <Badge variant="outline">
-      Auto Calculated
-    </Badge>
-
-  </div>
-
-
-  {/* ACTION BUTTONS */}
-
-<div className="flex gap-4">
-
-{!editing && (
-
-<Button
-variant="secondary"
-className="flex-1 flex items-center justify-center gap-2"
-onClick={()=>setEditing(true)}
->
-
-<Pencil size={16} />
-
-Edit Fee Structure
-
-</Button>
-
-)}
-
-{editing && (
-
-<Button
-className="flex-1 flex items-center justify-center gap-2"
-onClick={updateFee}
->
-
-<Save size={16} />
-
-Save Changes
-
-</Button>
-
-)}
-
-</div>
-
-</div>
-)
+  );
 }
 
-/* INPUT COMPONENT */
+/* =========================================================
+   CUSTOM INVOICE-STYLE ROW COMPONENT
+   ========================================================= */
+function LedgerRow({ icon: Icon, label, value, setValue, disabled, isPenalty = false }) {
+  return (
+    <div className="group flex flex-col sm:flex-row sm:items-center justify-between py-3 sm:py-2 gap-2 sm:gap-6 rounded-xl transition-colors hover:bg-slate-50 focus-within:bg-slate-50 px-2 sm:px-4 -mx-2 sm:-mx-4">
+      
+      {/* Label Side */}
+      <div className="flex items-center gap-4 flex-1 min-w-0">
+        <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors ${
+          disabled ? 'bg-slate-100 text-slate-400' : isPenalty ? 'bg-rose-50 text-rose-500' : 'bg-[#178F9E]/10 text-[#178F9E]'
+        }`}>
+          <Icon className="w-5 h-5" />
+        </div>
+        {/* FIX: Removed 'truncate' so long text fully displays and wraps normally */}
+        <span className={`text-base font-bold whitespace-normal leading-tight ${isPenalty ? 'text-rose-600' : 'text-slate-700'}`}>
+          {label}
+        </span>
+        {/* Decorative Dotted Line filler */}
+        <div className="hidden sm:block flex-1 border-b-2 border-dotted border-slate-200 mx-4 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity"></div>
+      </div>
 
-function InputField({ label, value, setValue, disabled }) {
-
-return (
-
-<div className="space-y-2">
-
-<label className="text-sm font-medium">
-{label}
-</label>
-
-<div className="relative">
-
-<span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
-₹
-</span>
-
-<input
-type="number"
-value={value}
-disabled={disabled}
-placeholder="Enter amount"
-onChange={(e)=>setValue(e.target.value)}
-className="w-full pl-7 border rounded-md p-2 bg-background disabled:bg-muted"
-/>
-
-</div>
-
-</div>
-
-)
-
+      {/* Input Side */}
+      <div className="relative flex items-center w-full sm:w-48 flex-shrink-0 min-w-0">
+        <span className={`absolute left-4 font-black text-lg ${disabled ? 'text-slate-400' : isPenalty ? 'text-rose-500' : 'text-slate-900'}`}>
+          ₹
+        </span>
+        
+        {/* INPUT FIXES:
+            1. No arrows: [appearance:textfield] & webkit-outer-spin-button hides browser arrows.
+            2. No scrolling: onWheel={(e) => e.target.blur()} prevents mouse scroll changing values.
+            3. No negatives: onKeyDown explicitly blocks '-', '+', 'e', 'E'.
+            4. No blowouts: Internal scrolling inside the input (via flex-shrink-0 min-w-0 on parent).
+        */}
+        <input
+          type="number"
+          min="0"
+          value={value}
+          disabled={disabled}
+          placeholder="0"
+          onWheel={(e) => e.target.blur()} 
+          onKeyDown={(e) => {
+            if (['-', '+', 'e', 'E'].includes(e.key)) {
+              e.preventDefault();
+            }
+          }}
+          onChange={(e) => {
+            const val = e.target.value;
+            // Strict check to prevent any accidental negative pastes
+            if (val === "" || Number(val) >= 0) {
+              setValue(val);
+            }
+          }}
+          className={`w-full min-w-0 pl-9 pr-4 py-2.5 text-right text-xl font-black font-mono rounded-xl outline-none transition-all [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${
+            disabled 
+              ? 'bg-transparent text-slate-500 cursor-not-allowed' 
+              : `bg-white border-2 shadow-sm ${isPenalty ? 'border-rose-200 focus:border-rose-500 focus:ring-4 focus:ring-rose-500/10 text-rose-700' : 'border-slate-200 focus:border-[#178F9E] focus:ring-4 focus:ring-[#178F9E]/10 text-[#178F9E] hover:border-slate-300'}`
+          }`}
+        />
+      </div>
+    </div>
+  );
 }
