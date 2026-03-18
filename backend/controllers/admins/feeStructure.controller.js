@@ -67,41 +67,41 @@ exports.createFeeStructure = async (req, res) => {
       totalFee
     });
     // ================================
-// AUTO ASSIGN FEE TO ALL STUDENTS
-// ================================
-const students = await require("../../models/student.model").find({
-  classId
-});
-
-for (const student of students) {
-
-  const exists = await StudentFee.findOne({
-    studentId: student._id
-  });
-
-  if (!exists) {
-
-    await StudentFee.create({
-
-      studentId: student._id,
-      feeStructureId: fee._id,
-
-      tuitionFee: fee.tuitionFee,
-      admissionFee: fee.admissionFee,
-      examFee: fee.examFee,
-      hostelFee: fee.hostelFee,
-      transportFee: fee.transportFee,
-
-      totalAssignedFee: fee.totalFee,
-      remainingAmount: fee.totalFee,
-      totalPaid: 0,
-      status: "due"
-
+    // AUTO ASSIGN FEE TO ALL STUDENTS
+    // ================================
+    const students = await require("../../models/student.model").find({
+      classId
     });
 
-  }
+    for (const student of students) {
 
-}
+      const exists = await StudentFee.findOne({
+        studentId: student._id
+      });
+
+      if (!exists) {
+
+        await StudentFee.create({
+
+          studentId: student._id,
+          feeStructureId: fee._id,
+
+          tuitionFee: fee.tuitionFee,
+          admissionFee: fee.admissionFee,
+          examFee: fee.examFee,
+          hostelFee: fee.hostelFee,
+          transportFee: fee.transportFee,
+
+          totalAssignedFee: fee.totalFee,
+          remainingAmount: fee.totalFee,
+          totalPaid: 0,
+          status: "due"
+
+        });
+
+      }
+
+    }
 
     res.status(201).json({
       success: true,
@@ -159,8 +159,8 @@ exports.getSingleFeeStructure = async (req, res) => {
 
     if (!classData) {
       return res.status(404).json({
-        success:false,
-        message:"Class not found"
+        success: false,
+        message: "Class not found"
       });
     }
 
@@ -203,8 +203,8 @@ exports.updateFeeStructure = async (req, res) => {
 
     if (!classData) {
       return res.status(404).json({
-        success:false,
-        message:"Class not found"
+        success: false,
+        message: "Class not found"
       });
     }
 
@@ -285,7 +285,7 @@ exports.updateFeeStructure = async (req, res) => {
 exports.deleteFeeStructure = async (req, res) => {
   try {
 
-    const { id } = req.params;  
+    const { id } = req.params;
 
     const deleted = await FeeStructure.findByIdAndDelete(id);
 

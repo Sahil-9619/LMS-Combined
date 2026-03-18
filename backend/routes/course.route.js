@@ -4,10 +4,10 @@ const courseController = require("../controllers/course.controller");
 const authorizePermission = require("../middlewares/authorization");
 const { authenticateToken } = require("../middlewares/user.auth");
 const { upload } = require("../helpers/multer");
-const {addOrUpdateReview,
-deleteReview,
-getCourseReviews,
-getMyReviewForCourse,
+const { addOrUpdateReview,
+  deleteReview,
+  getCourseReviews,
+  getMyReviewForCourse,
 } = require("../controllers/review.controller");
 
 const {
@@ -97,7 +97,7 @@ router.post(
   authenticateToken,
   addCourseMeeting
 );
-router.delete("/:id/meetings/:meetingId", authenticateToken,courseController.deleteMeeting);
+router.delete("/:id/meetings/:meetingId", authenticateToken, courseController.deleteMeeting);
 
 // Reviews
 // Public: list reviews for a course

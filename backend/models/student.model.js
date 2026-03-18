@@ -9,18 +9,18 @@ const studentSchema = new mongoose.Schema(
       unique: true,
       trim: true,
     },
-        classId: {
+    classId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Class",
       required: true,
     },
-      className: String,
+    className: String,
     section: {
       type: String, // A, B, C
       required: true,
     },
 
-   
+
 
     firstName: {
       type: String,
@@ -52,22 +52,22 @@ const studentSchema = new mongoose.Schema(
       lowercase: true,
       trim: true,
     },
-    altEmail:{
+    altEmail: {
       type: String,
       lowercase: true,
       trim: true,
-   },
+    },
 
     address: {
-  type: String,
-  validate: {
-    validator: function (v) {
-      if (!v) return true;
-      return v.trim().split(/\s+/).length <= 100;
+      type: String,
+      validate: {
+        validator: function (v) {
+          if (!v) return true;
+          return v.trim().split(/\s+/).length <= 100;
+        },
+        message: "Address must not exceed 100 words",
+      },
     },
-    message: "Address must not exceed 100 words",
-  },
-},
 
     fatherName: String,
     motherName: String,
@@ -75,7 +75,7 @@ const studentSchema = new mongoose.Schema(
 
     profileImage: String,
 
-    
+
 
     academicYear: {
       type: String,

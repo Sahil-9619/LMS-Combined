@@ -252,53 +252,53 @@ export default function AdminFeeManagement() {
   };
 
   /* ---------------- HANDLE PAYMENT ---------------- */
-const handlePayment = async () => {
-  try {
+  const handlePayment = async () => {
+    try {
 
-    if (!selectedMonth) {
-      toast.error("Please select a month first");
-      return;
+      if (!selectedMonth) {
+        toast.error("Please select a month first");
+        return;
+      }
+
+      if (!payAmount || Number(payAmount) <= 0) {
+        toast.error("Enter valid amount");
+        return;
+      }
+
+      const payload = {
+        admissionNumber: admissionNo,
+        payAmount: Number(payAmount),
+        month: selectedMonth
+      };
+
+      // 🔥 STEP 1: Payment update + invoiceId milega
+      const res = await adminServices.updateStudentFee(payload);
+
+      const invoiceId = res.invoiceId;
+
+      console.log("API RESPONSE:", res);
+
+      if (!invoiceId) {
+        toast.error("Invoice not generated");
+        return;
+      }
+
+      const blob = await adminServices.generateInvoicePDF(invoiceId);
+      const url = window.URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `invoice_${student.admissionNumber}.pdf`;
+      a.click();
+
+      await handleSearch();
+      setPayAmount("");
+
+    } catch (err) {
+      console.log(err);
+      toast.error("Payment failed");
     }
-
-    if (!payAmount || Number(payAmount) <= 0) {
-      toast.error("Enter valid amount");
-      return;
-    }
-
-    const payload = {
-      admissionNumber: admissionNo,
-      payAmount: Number(payAmount),
-      month: selectedMonth
-    };
-
-    // 🔥 STEP 1: Payment update + invoiceId milega
-    const res = await adminServices.updateStudentFee(payload);
-
-    const invoiceId = res.invoiceId;
-
-console.log("API RESPONSE:", res);
-
-    if (!invoiceId) {
-      toast.error("Invoice not generated");
-      return;
-    }
-
-    const blob = await adminServices.generateInvoicePDF(invoiceId);
-    const url = window.URL.createObjectURL(blob);
-
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `invoice_${student.admissionNumber}.pdf`;
-    a.click();
-
-    await handleSearch();
-    setPayAmount("");
-
-  } catch (err) {
-    console.log(err);
-    toast.error("Payment failed");
-  }
-};
+  };
   const handleFeeStructureUpdate = async () => {
 
     try {
@@ -318,17 +318,17 @@ console.log("API RESPONSE:", res);
 
   };
   const getMonthStatus = (month) => {
- const paid = monthlyFees[month] || 0;
-const monthlyExpected =
-  (summary.tuitionFee || 0) / 12 +
-  (summary.hostelFee || 0) / 12 +
-  (summary.transportFee || 0) / 12;
-const pending = Math.max(monthlyExpected - paid, 0);
+    const paid = monthlyFees[month] || 0;
+    const monthlyExpected =
+      (summary.tuitionFee || 0) / 12 +
+      (summary.hostelFee || 0) / 12 +
+      (summary.transportFee || 0) / 12;
+    const pending = Math.max(monthlyExpected - paid, 0);
 
-  if (paid === 0) return "none";
-  if (paid < monthlyExpected) return "partial";
-  return "full";
-};
+    if (paid === 0) return "none";
+    if (paid < monthlyExpected) return "partial";
+    return "full";
+  };
   const totalPages = Math.ceil(classStudents.length / rowsPerPage)
 
   const startIndex = (currentPage - 1) * rowsPerPage
@@ -743,7 +743,7 @@ hover:bg-[#ECFAFC] transition
 
                       <td className="p-3 border border-[#D9F1F4] font-semibold">
                         <Summary
-                         
+
                           value={totalAssignedFee}
                           color="text-[#0F6F7C]"
                         />
@@ -751,19 +751,19 @@ hover:bg-[#ECFAFC] transition
 
                       <td className="p-3 border border-[#D9F1F4]">
 
-                       {remaining === 0 ? (
+                        {remaining === 0 ? (
 
-  <span className="text-green-600 font-semibold flex items-center gap-1">
-    ✓ Paid
-  </span>
+                          <span className="text-green-600 font-semibold flex items-center gap-1">
+                            ✓ Paid
+                          </span>
 
-) : (
+                        ) : (
 
-  <span className="text-red-600 font-semibold">
-    ₹{remaining} Due
-  </span>
+                          <span className="text-red-600 font-semibold">
+                            ₹{remaining} Due
+                          </span>
 
-)}
+                        )}
 
                       </td>
 
@@ -1032,15 +1032,15 @@ ${summary.status === "paid"
               {months.map((month, index) => {
 
                 const paid = monthlyFees[month] || 0;
-  const monthlyExpected =  (summary.tuitionFee || 0) / 12 +
-  (summary.hostelFee || 0) / 12 +
-  (summary.transportFee || 0) / 12;
-  const pending = Math.max(monthlyExpected - paid, 0);  
+                const monthlyExpected = (summary.tuitionFee || 0) / 12 +
+                  (summary.hostelFee || 0) / 12 +
+                  (summary.transportFee || 0) / 12;
+                const pending = Math.max(monthlyExpected - paid, 0);
 
-               const status = getMonthStatus(month);
+                const status = getMonthStatus(month);
 
                 return (
-                  
+
                   <div
                     key={month}
                     className={`h-24 rounded-xl border flex flex-col items-center justify-center text-center font-semibold shadow-sm transition hover:scale-105
@@ -1055,17 +1055,17 @@ ${summary.status === "paid"
                   >
 
                     <p className="text-lg">{month.slice(0, 3)}</p>
-<p className="text-xs font-semibold">
-  {paid > 0 && (
-    <span className="text-white">₹{paid} Paid</span>
-  )}
+                    <p className="text-xs font-semibold">
+                      {paid > 0 && (
+                        <span className="text-white">₹{paid} Paid</span>
+                      )}
 
-  {pending > 0 && (
-    <span className="text-red-200 block">
-      ₹{pending} Pending
-    </span>
-  )}
-</p>
+                      {pending > 0 && (
+                        <span className="text-red-200 block">
+                          ₹{pending} Pending
+                        </span>
+                      )}
+                    </p>
 
                   </div>
 

@@ -15,7 +15,7 @@ const upload = require("../../middlewares/upload");
 router.get("/dashboard", authenticateToken, getAdminDashboardData);
 router.get("/users", authenticateToken, getAllUsersWithRole);
 router.get("/users/:id", authenticateToken, getUserByIdWithDetail);
-router.post("/users", authenticateToken,  upload.single("photo"), createUser);
+router.post("/users", authenticateToken, upload.single("photo"), createUser);
 router.put("/users/:id", authenticateToken, updateUserByAdmin);
 router.get("/user-with-student/:id", authenticateToken, getUserWithStudentCheck);
 router.delete("/users/:id", authenticateToken, deleteUserByAdmin);

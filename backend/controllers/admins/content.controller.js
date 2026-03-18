@@ -6,7 +6,7 @@ const createContent = async (req, res) => {
     const { section, title, description, altText } = req.body;
 
     if (!section || !title || !description) {
-      return res.status(400).json({ message: "All fields are required" });        
+      return res.status(400).json({ message: "All fields are required" });
     }
 
     const images = [];
@@ -21,12 +21,12 @@ const createContent = async (req, res) => {
     }
 
     const content = await AdminContent.create({
-  section,
-  title,
-  description,
-  images,
-  createdBy: req.user?.id,
-});
+      section,
+      title,
+      description,
+      images,
+      createdBy: req.user?.id,
+    });
 
     res.status(201).json({
       message: "Content created successfully",

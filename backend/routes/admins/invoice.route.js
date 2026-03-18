@@ -3,7 +3,7 @@ const router = express.Router();
 
 const {
   getAllInvoices,
-    downloadInvoice,
+  downloadInvoice,
 } = require("../../controllers/admins/invoice.controller");
 
 // GET ALL

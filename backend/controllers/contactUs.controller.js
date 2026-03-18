@@ -131,7 +131,7 @@ exports.updateContactStatus = async (req, res) => {
 =================================*/
 exports.deleteContact = async (req, res) => {
   try {
-    const deletedContact = await Contact.findByIdAndDelete(req.params.id);  
+    const deletedContact = await Contact.findByIdAndDelete(req.params.id);
 
     if (!deletedContact) {
       return res.status(404).json({
@@ -146,7 +146,7 @@ exports.deleteContact = async (req, res) => {
     });
   } catch (error) {
     console.error("Delete Contact Error:", error);
-    res.status(500).json({  
+    res.status(500).json({
       success: false,
       message: "Server Error",
     });

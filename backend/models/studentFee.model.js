@@ -1,76 +1,76 @@
 const mongoose = require("mongoose");
 
 const studentFeeSchema = new mongoose.Schema(
-{
-  studentId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Student",
-    required: true,
-  },
-
-  feeStructureId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "FeeStructure",
-    required: true,
-  },
-
-  tuitionFee: {
-    type: Number,
-    
-  },
-
-  admissionFee: {
-    type: Number,
-    
-  },
-
-  payments: [
   {
-    amount: Number,
-    date: { type: Date, default: Date.now }
-  }
-],
+    studentId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Student",
+      required: true,
+    },
 
-  examFee: {
-    type: Number,
-    
+    feeStructureId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "FeeStructure",
+      required: true,
+    },
+
+    tuitionFee: {
+      type: Number,
+
+    },
+
+    admissionFee: {
+      type: Number,
+
+    },
+
+    payments: [
+      {
+        amount: Number,
+        date: { type: Date, default: Date.now }
+      }
+    ],
+
+    examFee: {
+      type: Number,
+
+    },
+
+    hostelFee: {
+      type: Number,
+
+    },
+
+    transportFee: {
+      type: Number,
+
+    },
+
+    lateFeePerDay: { type: Number, default: 0 },
+
+    totalAssignedFee: {
+      type: Number,
+      required: true,
+    },
+
+    totalPaid: {
+      type: Number,
+      default: 0,
+    },
+
+    remainingAmount: {
+      type: Number,
+      required: true,
+    },
+
+    status: {
+      type: String,
+      enum: ["paid", "partial", "due"],
+      default: "due",
+    },
+
   },
-
-  hostelFee: {
-    type: Number,
-    
-  },
-
-  transportFee: {
-    type: Number,
-    
-  },
-
-  lateFeePerDay: { type: Number, default: 0 },
-
-  totalAssignedFee: {
-    type: Number,
-    required: true,
-  },
-
-  totalPaid: {
-    type: Number,
-    default: 0,
-  },
-
-  remainingAmount: {
-    type: Number,
-    required: true,
-  },
-
-  status: {
-    type: String,
-    enum: ["paid", "partial", "due"],
-    default: "due",
-  },
-
-},
-{ timestamps: true }
+  { timestamps: true }
 );
 
 studentFeeSchema.index({ studentId: 1 });

@@ -69,13 +69,13 @@ const AdminDashboard = () => {
   const { totals, revenue } = dashboardData;
 
   // Map enrollments per course for PieChart (items have title, count)
- const enrollmentsPieData = (dashboardData.enrollmentsPerClass || []).map(
-  (item, idx) => ({
-    name: item.name,
-    value: item.count || 0,
-    color: COLORS[idx % COLORS.length],
-  })
-);
+  const enrollmentsPieData = (dashboardData.enrollmentsPerClass || []).map(
+    (item, idx) => ({
+      name: item.name,
+      value: item.count || 0,
+      color: COLORS[idx % COLORS.length],
+    })
+  );
 
   // Map completion per course for BarChart
   const completionBarData = (dashboardData.completionPerCourse || []).map(
@@ -87,11 +87,11 @@ const AdminDashboard = () => {
 
   // Monthly revenue
   const revenueData = (revenue?.monthlyFeeRevenue || []).map((m) => ({
-  month: m.month,
-  expected: m.expected || 0,
-  collected: m.collected || 0,
-  pending: m.pending || 0,
-}));
+    month: m.month,
+    expected: m.expected || 0,
+    collected: m.collected || 0,
+    pending: m.pending || 0,
+  }));
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
@@ -119,7 +119,7 @@ const AdminDashboard = () => {
               <div className="text-3xl font-bold mb-1">
                 {totals?.classes ?? 0}
               </div>
-              
+
             </CardContent>
             <div className="absolute -bottom-2 -right-2 w-16 h-16 bg-white opacity-10 rounded-full"></div>
           </Card>
@@ -144,12 +144,12 @@ const AdminDashboard = () => {
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-lg font-medium opacity-90">Gross Revenue</CardTitle>
-              
+
               </div>
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold mb-1">
-                ₹{ (revenue?.grossRevenue || 0).toFixed(2) }
+                ₹{(revenue?.grossRevenue || 0).toFixed(2)}
               </div>
               <p className="text-orange-100 text-sm">Profit: ₹{(revenue?.platformProfit || 0).toFixed(2)} • Payout: ₹{(revenue?.netPayoutToInstructors || 0).toFixed(2)}</p>
             </CardContent>
@@ -158,39 +158,39 @@ const AdminDashboard = () => {
         </div>
 
         {/* 💰 Student Fee Revenue Cards */}
-<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 
-  {/* Expected Revenue */}
-  <Card className="shadow-lg bg-white">
-    <CardContent className="p-4">
-      <p className="text-sm text-gray-500">Expected Revenue</p>
-      <h2 className="text-2xl font-bold text-indigo-600">
-        ₹{revenue?.totalExpectedRevenue || 0}
-      </h2>
-    </CardContent>
-  </Card>
+          {/* Expected Revenue */}
+          <Card className="shadow-lg bg-white">
+            <CardContent className="p-4">
+              <p className="text-sm text-gray-500">Expected Revenue</p>
+              <h2 className="text-2xl font-bold text-indigo-600">
+                ₹{revenue?.totalExpectedRevenue || 0}
+              </h2>
+            </CardContent>
+          </Card>
 
-  {/* Collected Revenue */}
-  <Card className="shadow-lg bg-white">
-    <CardContent className="p-4">
-      <p className="text-sm text-gray-500">Collected Revenue</p>
-      <h2 className="text-2xl font-bold text-green-600">
-        ₹{revenue?.totalCollectedRevenue || 0}
-      </h2>
-    </CardContent>
-  </Card>
+          {/* Collected Revenue */}
+          <Card className="shadow-lg bg-white">
+            <CardContent className="p-4">
+              <p className="text-sm text-gray-500">Collected Revenue</p>
+              <h2 className="text-2xl font-bold text-green-600">
+                ₹{revenue?.totalCollectedRevenue || 0}
+              </h2>
+            </CardContent>
+          </Card>
 
-  {/* Pending Revenue */}
-  <Card className="shadow-lg bg-white">
-    <CardContent className="p-4">
-      <p className="text-sm text-gray-500">Pending Revenue</p>
-      <h2 className="text-2xl font-bold text-red-600">
-        ₹{revenue?.totalPendingRevenue || 0}
-      </h2>
-    </CardContent>
-  </Card>
+          {/* Pending Revenue */}
+          <Card className="shadow-lg bg-white">
+            <CardContent className="p-4">
+              <p className="text-sm text-gray-500">Pending Revenue</p>
+              <h2 className="text-2xl font-bold text-red-600">
+                ₹{revenue?.totalPendingRevenue || 0}
+              </h2>
+            </CardContent>
+          </Card>
 
-</div>
+        </div>
 
         {/* Enrollments and Top performers */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -282,7 +282,7 @@ const AdminDashboard = () => {
                   Enrollments per Class
                 </CardTitle>
               </div>
-            </CardHeader> 
+            </CardHeader>
             <CardContent className="pt-6">
               <ResponsiveContainer width="100%" height={280}>
                 <PieChart>
@@ -379,7 +379,7 @@ const AdminDashboard = () => {
               <Calendar className="h-5 w-5 text-emerald-600" />
               <CardTitle className="text-xl text-gray-800">
                 Recent Enrollments
-              </CardTitle>  
+              </CardTitle>
             </div>
           </CardHeader>
           <CardContent className="pt-6">
@@ -425,16 +425,16 @@ const AdminDashboard = () => {
                           (enrollment.progress?.completionPercentage || 0) > 75
                             ? "success"
                             : (enrollment.progress?.completionPercentage || 0) > 50
-                            ? "warning" 
-                            : "secondary"
+                              ? "warning"
+                              : "secondary"
                         }
                         className="text-xs"
                       >
                         {(enrollment.progress?.completionPercentage || 0) > 75
                           ? "Excellent"
                           : (enrollment.progress?.completionPercentage || 0) > 50
-                          ? "Good"
-                          : "Started"}
+                            ? "Good"
+                            : "Started"}
                       </Badge>
                     </div>
                   </div>

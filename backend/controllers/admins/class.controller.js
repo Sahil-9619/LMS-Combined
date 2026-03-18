@@ -4,9 +4,9 @@ const FeeStructure = require("../../models/feeStructure.model")
 // Create Class
 exports.createClass = async (req, res) => {
   try {
-    const { className, section,  classTeacher } = req.body;
+    const { className, section, classTeacher } = req.body;
 
-    if (!className || !section  ) {
+    if (!className || !section) {
       return res.status(400).json({
         success: false,
         message: "className, section  are required",
@@ -16,7 +16,7 @@ exports.createClass = async (req, res) => {
     const newClass = await Class.create({
       className,
       section,
-      
+
       classTeacher,
     });
 
@@ -32,7 +32,7 @@ exports.createClass = async (req, res) => {
   }
 };
 
-exports.getClassById = async (req, res) => {   
+exports.getClassById = async (req, res) => {
   try {
     const classId = req.params.id;
     const classData = await Class.findById(classId);
@@ -58,7 +58,7 @@ exports.getAllClasses = async (req, res) => {
 
   try {
     const classes = await Class.find();
-    res.status(200).json({    
+    res.status(200).json({
       success: true,
       data: classes,
     });
@@ -68,7 +68,7 @@ exports.getAllClasses = async (req, res) => {
       message: error.message,
     });
   }
-};  
+};
 
 exports.updateClass = async (req, res) => {
   try {
@@ -76,10 +76,10 @@ exports.updateClass = async (req, res) => {
     const updatedClass = await Class.findByIdAndUpdate(classId, req.body, { new: true });
     if (!updatedClass) {
       return res.status(404).json({
-        success: false, 
+        success: false,
         message: "Class not found",
       });
-    } 
+    }
     res.status(200).json({
       success: true,
       data: updatedClass,
@@ -90,7 +90,7 @@ exports.updateClass = async (req, res) => {
 
       message: error.message,
     });
-  } 
+  }
 };
 
 // ==========================================

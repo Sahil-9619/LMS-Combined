@@ -215,42 +215,42 @@ const getAdminDashboardData = async (req, res) => {
     ]);
 
     // ===============================
-// 📊 ENROLLMENTS PER CLASS
-// ===============================
-const enrollmentsPerClass = await Student.aggregate([
-  {
-    $lookup: {
-      from: "classes",
-      localField: "classId",
-      foreignField: "_id",
-      as: "class",
-    },
-  },
-  { $unwind: "$class" },
-  {
-    $group: {
-      _id: {
-        className: "$class.className",
-        section: "$class.section",
+    // 📊 ENROLLMENTS PER CLASS
+    // ===============================
+    const enrollmentsPerClass = await Student.aggregate([
+      {
+        $lookup: {
+          from: "classes",
+          localField: "classId",
+          foreignField: "_id",
+          as: "class",
+        },
       },
-      count: { $sum: 1 },
-    },
-  },
-  {
-    $project: {
-      name: {
-        $concat: [
-          "Class ",
-          "$_id.className",
-          " - ",
-          "$_id.section",
-        ],
+      { $unwind: "$class" },
+      {
+        $group: {
+          _id: {
+            className: "$class.className",
+            section: "$class.section",
+          },
+          count: { $sum: 1 },
+        },
       },
-      count: 1,
-    },
-  },
-  { $sort: { name: 1 } },
-]);
+      {
+        $project: {
+          name: {
+            $concat: [
+              "Class ",
+              "$_id.className",
+              " - ",
+              "$_id.section",
+            ],
+          },
+          count: 1,
+        },
+      },
+      { $sort: { name: 1 } },
+    ]);
 
     // ===============================
     // 💰 STUDENT FEE REVENUE
@@ -274,69 +274,69 @@ const enrollmentsPerClass = await Student.aggregate([
     // 📅 MONTHLY STUDENT FEE REVENUE 
     // ===============================
     const monthlyFeeData = await StudentFee.aggregate([
-  { $unwind: "$payments" },
-  {
-    $project: {
-      year: {
-        $year: {
-          date: "$payments.date",
-          timezone: "Asia/Kolkata"
+      { $unwind: "$payments" },
+      {
+        $project: {
+          year: {
+            $year: {
+              date: "$payments.date",
+              timezone: "Asia/Kolkata"
+            }
+          },
+          month: {
+            $month: {
+              date: "$payments.date",
+              timezone: "Asia/Kolkata"
+            }
+          },
+
+          // ✅ ONLY monthly fees
+          expected: {
+            $add: [
+              { $divide: ["$tuitionFee", 12] },
+              { $divide: ["$hostelFee", 12] },
+              { $divide: ["$transportFee", 12] }
+            ]
+          },
+
+          collected: "$payments.amount"
         }
       },
-      month: {
-        $month: {
-          date: "$payments.date",
-          timezone: "Asia/Kolkata"
+      {
+        $group: {
+          _id: {
+            year: "$year",
+            month: "$month",
+            studentId: "$_id"
+          },
+          expected: { $first: "$expected" },
+          collected: { $sum: "$collected" }
         }
       },
+      {
+        $sort: {
+          "_id.year": 1,
+          "_id.month": 1
+        }
+      }
+    ]);
+    const monthlyFeeRevenue = monthlyFeeData.map(item => {
+      const date = new Date(item._id.year, item._id.month - 1);
 
-      // ✅ ONLY monthly fees
-      expected: {
-        $add: [
-          { $divide: ["$tuitionFee", 12] },
-          { $divide: ["$hostelFee", 12] },
-          { $divide: ["$transportFee", 12] }
-        ]
-      },
+      const expected = Math.round(item.expected);
+      const collected = item.collected;
+      const pending = Math.max(expected - collected, 0);
 
-      collected: "$payments.amount"
-    }
-  },
- {
-  $group: {
-    _id: {
-      year: "$year",
-      month: "$month",
-      studentId: "$_id"
-    },
-    expected: { $first: "$expected" },
-    collected: { $sum: "$collected" }
-  }
-},
-  {
-    $sort: {
-      "_id.year": 1,
-      "_id.month": 1
-    }
-  }
-]);
-  const monthlyFeeRevenue = monthlyFeeData.map(item => {
-  const date = new Date(item._id.year, item._id.month - 1);
-
-  const expected = Math.round(item.expected);
-  const collected = item.collected;
-  const pending = Math.max(expected - collected, 0);
-
-  return {
-    month: date.toLocaleString("default", {
-      month: "short",
-      year: "numeric"
-    }),
-    expected,
-    collected,
-    pending
-  };
-});
+      return {
+        month: date.toLocaleString("default", {
+          month: "short",
+          year: "numeric"
+        }),
+        expected,
+        collected,
+        pending
+      };
+    });
 
     // ===============================
     // ROLE BREAKDOWN
@@ -392,10 +392,10 @@ const enrollmentsPerClass = await Student.aggregate([
     });
 
     const totalGrossRevenue =
-  grossRevenue + totalCollectedRevenue; //  add fees also
+      grossRevenue + totalCollectedRevenue; //  add fees also
 
-const platformProfit = grossRevenue * COMMISSION_RATE; // only courses pe commission
-const netPayoutToInstructors = grossRevenue - platformProfit;
+    const platformProfit = grossRevenue * COMMISSION_RATE; // only courses pe commission
+    const netPayoutToInstructors = grossRevenue - platformProfit;
 
     // ===============================
     // FINAL RESPONSE
@@ -420,7 +420,7 @@ const netPayoutToInstructors = grossRevenue - platformProfit;
         monthlyFeeRevenue, // 
       },
       enrollmentsPerClass,
-      
+
     });
 
   } catch (error) {

@@ -9,7 +9,7 @@ const { upload } = require("../helpers/multer");
 router.get("/", getSettings);
 
 // Protected: update settings (limit to authenticated admins if you have permission middleware)
-router.put("/", upload.single('logo'), 
-authenticateToken, /* authorizePermission("manage_settings"), */ updateSettings);
+router.put("/", upload.single('logo'),
+    authenticateToken, /* authorizePermission("manage_settings"), */ updateSettings);
 
 module.exports = router;

@@ -8,7 +8,7 @@ const {
   markLessonCompleted,
   checkCourseAccess,
   getEnrollmentandEarning,
-  submitQuizAttempt,downloadCertificate
+  submitQuizAttempt, downloadCertificate
 } = require("../controllers/courseEnrollment.controller");
 const { authenticateToken } = require("../middlewares/user.auth");
 router.get("/myearning", authenticateToken, getEnrollmentandEarning);

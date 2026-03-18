@@ -308,21 +308,21 @@ const updateCourse = async (req, res) => {
         // Cap quizzes to 3, and normalize
         const quizzes = Array.isArray(section.quizzes)
           ? section.quizzes.slice(0, 3).map((quiz, idx) => ({
-              title: quiz.title,
-              description: quiz.description || "",
-              timeLimit: quiz.timeLimit ? parseInt(quiz.timeLimit) : 0,
-              passScore: quiz.passScore ? parseInt(quiz.passScore) : 0,
-              isFree: !!quiz.isFree,
-              order: typeof quiz.order === "number" ? quiz.order : idx,
-              questions: (quiz.questions || []).map((q) => ({
-                question: q.question,
-                options: (q.options || []).slice(0, 10),
-                correctOptionIndex:
-                  typeof q.correctOptionIndex === "number" ? q.correctOptionIndex : 0,
-                points: q.points ? parseInt(q.points) : 1,
-                explanation: q.explanation || "",
-              })),
-            }))
+            title: quiz.title,
+            description: quiz.description || "",
+            timeLimit: quiz.timeLimit ? parseInt(quiz.timeLimit) : 0,
+            passScore: quiz.passScore ? parseInt(quiz.passScore) : 0,
+            isFree: !!quiz.isFree,
+            order: typeof quiz.order === "number" ? quiz.order : idx,
+            questions: (quiz.questions || []).map((q) => ({
+              question: q.question,
+              options: (q.options || []).slice(0, 10),
+              correctOptionIndex:
+                typeof q.correctOptionIndex === "number" ? q.correctOptionIndex : 0,
+              points: q.points ? parseInt(q.points) : 1,
+              explanation: q.explanation || "",
+            })),
+          }))
           : [];
 
         return {
@@ -852,10 +852,10 @@ const uploadMeetingRecording = async (req, res) => {
     // Update the meeting with the recording URL
     const course = await Course.findOneAndUpdate(
       { 'meetings._id': meetingId },
-      { 
-        $set: { 
-          'meetings.$.recordingUrl': `/uploads/${recordingFile.filename}` 
-        } 
+      {
+        $set: {
+          'meetings.$.recordingUrl': `/uploads/${recordingFile.filename}`
+        }
       },
       { new: true }
     );
@@ -864,7 +864,7 @@ const uploadMeetingRecording = async (req, res) => {
       return res.status(404).json({ message: 'Meeting not found' });
     }
 
-    res.status(200).json({ 
+    res.status(200).json({
       message: 'Recording uploaded successfully',
       recordingUrl: `/uploads/${recordingFile.filename}`
     });
@@ -910,5 +910,5 @@ module.exports = {
   addNewCategory,
   updateCategory,
   deleteCategory,
-  addCourseMeeting,uploadMeetingRecording,deleteMeeting
+  addCourseMeeting, uploadMeetingRecording, deleteMeeting
 };
