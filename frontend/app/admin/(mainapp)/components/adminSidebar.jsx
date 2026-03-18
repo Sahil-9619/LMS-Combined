@@ -119,8 +119,7 @@ export default function AdminSidebar() {
 
       <aside 
         className={`fixed md:relative z-50 flex flex-col h-screen bg-slate-950 text-slate-300 transition-transform duration-300 ease-in-out border-r border-slate-800 shadow-2xl flex-shrink-0 
-          ${open ? "translate-x-0 w-[280px]" : "-translate-x-full md:translate-x-0 md:w-[80px]"}
-        `}
+${open ? "translate-x-0 w-[240px]" : "-translate-x-full md:translate-x-0 md:w-[70px]"}        `}
       >
         {/* Desktop Collapse Toggle Button (Hidden on Mobile) */}
         {!isMobile && (
@@ -144,9 +143,9 @@ export default function AdminSidebar() {
 
         {/* App Logo Area */}
         <div className="h-24 flex items-center justify-center border-b border-slate-800/50 px-6 flex-shrink-0">
-          <h1 className={`font-black text-white tracking-tight transition-all duration-300 truncate ${open ? "text-xl" : "text-sm"}`}>
-            {open ? `${brandName?.toUpperCase() || "APP"} ADMIN` : (brandName?.substring(0, 2).toUpperCase() || "AD")}
-          </h1>
+          <h1 className={`font-black text-white tracking-tight transition-all duration-300 whitespace-nowrap ${open ? "text-smsideebar" : "text-sm"}`}>
+  {open ? `${brandName?.toUpperCase() || "APP"} ADMIN` : (brandName?.substring(0, 2).toUpperCase() || "AD")}
+</h1>
         </div>
 
         {/* Navigation Links */}
