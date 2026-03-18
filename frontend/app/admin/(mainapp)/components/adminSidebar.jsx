@@ -1,210 +1,257 @@
 "use client";
-import React, { useState } from "react";
-import {
-  Home,
-  Package,
-  Menu,
-  X,
-  LogOut,
-  ChevronDown,
-  Coins,
-  HeartHandshake,
-  User,
-  Settings,
-  Wallet,
-  Layout,
-} from "lucide-react";
+
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useDispatch, useSelector } from "react-redux";
+import { usePathname, useRouter } from "next/navigation";
+import { useDispatch } from "react-redux";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Home, Package, Menu, X, LogOut, ChevronDown, Coins,
+  HeartHandshake, User, Settings, Wallet, Layout
+} from "lucide-react";
 import { logout } from "@/lib/store/features/authSlice";
 import { brandName } from "../../../contants";
-// import { logout } from "@/app/lib/store/features/authSlice"; // make sure path is correct
 
-// menuItems can contain children for collapsible menus
 const menuItems = [
   { name: "Dashboard", icon: Home, href: "/admin/dashboard" },
-  // {
-  //   name: "Courses",
-  //   icon: Package,
-  //   children: [
-  //     { name: "My Courses", href: "/admin/dashboard/courses/my-courses" },
-  //     {
-  //       name: "Create Course",
-  //       href: "/admin/dashboard/courses/add-course",
-  //     },
-  //   ],
-  // },
-  // { name: "Total Sales", icon: Coins, href: "/admin/dashboard/earning" },
   {
     name: "Users",
     icon: Package,
     children: [
       { name: "All Users", href: "/admin/dashboard/users" },
-      {
-        name: "Create Users",
-        href: "/admin/dashboard/users/add-user",
-      },
+      { name: "Create Users", href: "/admin/dashboard/users/add-user" },
     ],
   },
-
   { name: "Student Details", icon: User, href: "/admin/dashboard/students_details" },
-   { name: "Class & Section Management",icon: Layout, href: "/admin/dashboard/class_section_management" },
+  { name: "Class & Section", icon: Layout, href: "/admin/dashboard/class_section_management" },
   {
     name: "Fee Management",
     icon: Wallet,
     children: [
-      {
-        name: "Fee structure",
-        href: "/admin/dashboard/fee_structure",
-      },
-      {
-        name: "Student Fee",
-        href: "/admin/dashboard/student_fee",
-      },      
+      { name: "Fee Structure", href: "/admin/dashboard/fee_structure" },
+      { name: "Student Fee", href: "/admin/dashboard/student_fee" },      
     ],
   },
-
   { name: "Support", icon: HeartHandshake, href: "/admin/dashboard/support" },
   { name: "Categories", icon: Coins, href: "/admin/dashboard/categories" },
   { name: "Settings", icon: Settings, href: "/admin/dashboard/settings" },
-
-  // {<HeartHandshake />
-  //   name: "Orders",
-  //   icon: ShoppingBag,
-  //   children: [
-  //     { name: "All Orders", href: "/admin/orders" },
-  //     { name: "Refunds", href: "/admin/orders/refunds" },
-  //   ],
-  // },
-  // { name: "Users", icon: Users, href: "/admin/users" },
-  {
-    name: "Logout",
-    icon: LogOut,
-    href: "/authentication/login",
-    isLogout: true,
-  },
 ];
 
 export default function AdminSidebar() {
   const [open, setOpen] = useState(true);
-  const [openMenus, setOpenMenus] = useState([]); // track collapsible menus
+  const [isMobile, setIsMobile] = useState(false);
+  const [openMenus, setOpenMenus] = useState([]); 
   const router = useRouter();
+  const pathname = usePathname();
   const dispatch = useDispatch();
-  const { settings } = useSelector((state) => state.appSettings);
 
-  // ✅ Logout handler
+  // Detect Mobile Screen & Auto-adjust Sidebar
+  useEffect(() => {
+    const handleResize = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      if (mobile) setOpen(false); // Default close on mobile
+      else setOpen(true); // Default open on desktop
+    };
+
+    handleResize(); // Check on initial load
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  // Auto-expand menus if a child route is active on load
+  useEffect(() => {
+    menuItems.forEach((item) => {
+      if (item.children) {
+        const isChildActive = item.children.some((child) => pathname?.startsWith(child.href));
+        if (isChildActive && !openMenus.includes(item.name)) {
+          setOpenMenus((prev) => [...prev, item.name]);
+        }
+      }
+    });
+  }, [pathname, openMenus]);
+
   const handleLogout = async () => {
     try {
       await dispatch(logout());
+      // router.push("/authentication/login")
     } catch (error) {
       console.error("Logout failed", error);
     }
   };
 
   const toggleMenu = (name) => {
+    if (!open) setOpen(true); 
     setOpenMenus((prev) =>
       prev.includes(name) ? prev.filter((m) => m !== name) : [...prev, name]
     );
   };
 
+  // STRICT active check so parent paths don't accidentally highlight
+  const isActive = (href) => {
+    if (!href) return false;
+    // Exact match required for the base dashboard to prevent it from always being active
+    if (href === "/admin/dashboard") {
+      return pathname === href;
+    }
+    return pathname === href || pathname?.startsWith(href + "/");
+  };
+
   return (
-    <aside className="flex h-screen  text-gray-100">
-      <div
-        className={`${
-          open ? "w-70" : "w-20"
-        } bg-cyan-900 p-4 pt-6 relative duration-300 hide-scrollbar overflow-y-auto h-full`}
-      >
-        {/* Toggle Sidebar */}
+    <>
+      {/* Mobile Overlay Background - Dimming effect */}
+      {isMobile && open && (
+        <div 
+          className="fixed inset-0 bg-black/60 z-40 transition-opacity"
+          onClick={() => setOpen(false)}
+        />
+      )}
+
+      {/* Mobile Floating Menu Button (When Sidebar is closed) */}
+      {isMobile && !open && (
         <button
-          onClick={() => setOpen(!open)}
-          className="absolute right-2 top-8 w-7 h-7 bg-gray-800 border border-gray-700 rounded-full flex items-center justify-center"
+          onClick={() => setOpen(true)}
+          className="fixed top-4 left-4 z-50 p-2.5 bg-slate-950 hover:bg-[#178F9E] text-white rounded-lg shadow-lg transition-colors"
         >
-          {open ? <X size={16} /> : <Menu size={16} />}
+          <Menu size={20} strokeWidth={2.5} />
         </button>
+      )}
 
-        {/* Logo */}
-        <h1
-          className={`text-l font-bold mb-8 text-center transition-all ${
-            !open && "scale-0"
-          }`}
-        >
-          {brandName} ADMIN
-        </h1>
+      <aside 
+        className={`fixed md:relative z-50 flex flex-col h-screen bg-slate-950 text-slate-300 transition-transform duration-300 ease-in-out border-r border-slate-800 shadow-2xl flex-shrink-0 
+          ${open ? "translate-x-0 w-[280px]" : "-translate-x-full md:translate-x-0 md:w-[80px]"}
+        `}
+      >
+        {/* Desktop Collapse Toggle Button (Hidden on Mobile) */}
+        {!isMobile && (
+          <button
+            onClick={() => setOpen(!open)}
+            className="absolute -right-3.5 top-8 w-7 h-7 bg-slate-800 hover:bg-[#178F9E] text-white border-2 border-slate-950 rounded-full flex items-center justify-center transition-colors z-50 shadow-sm"
+          >
+            {open ? <X size={14} strokeWidth={3} /> : <Menu size={14} strokeWidth={3} />}
+          </button>
+        )}
 
-        {/* Menu Items */}
-        <ul className="space-y-2 text-xl overflow-y-auto">
-          {menuItems.map((item, idx) => (
-            <li key={idx}>
-              {item.isLogout ? (
-                <button
-                  onClick={handleLogout}
-                  className="flex w-full items-center gap-3 p-4 rounded-md hover:bg-gray-800 transition text-left"
-                >
-                  <item.icon size={20} />
-                  <span
-                    className={`${!open && "hidden"} origin-left duration-200`}
-                  >
-                    {item.name}
-                  </span>
-                </button>
-              ) : item.children ? (
-                <div>
+        {/* Mobile Close Button (Inside Sidebar) */}
+        {isMobile && open && (
+          <button
+            onClick={() => setOpen(false)}
+            className="absolute right-4 top-6 p-1 text-slate-400 hover:text-white transition-colors"
+          >
+            <X size={24} />
+          </button>
+        )}
+
+        {/* App Logo Area */}
+        <div className="h-24 flex items-center justify-center border-b border-slate-800/50 px-6 flex-shrink-0">
+          <h1 className={`font-black text-white tracking-tight transition-all duration-300 truncate ${open ? "text-xl" : "text-sm"}`}>
+            {open ? `${brandName?.toUpperCase() || "APP"} ADMIN` : (brandName?.substring(0, 2).toUpperCase() || "AD")}
+          </h1>
+        </div>
+
+        {/* Navigation Links */}
+        <div className="flex-1 overflow-y-auto py-6 px-4 hide-scrollbar space-y-1.5">
+          {menuItems.map((item, idx) => {
+            const isItemActive = item.href 
+              ? isActive(item.href) 
+              : item.children?.some(child => isActive(child.href));
+
+            const isMenuOpen = openMenus.includes(item.name) && open;
+
+            return (
+              <div key={idx} className="flex flex-col">
+                {/* Parent Item */}
+                {item.children ? (
                   <button
                     onClick={() => toggleMenu(item.name)}
-                    className="flex w-full  items-center justify-between p-4 rounded-md hover:bg-gray-800 transition"
+                    className={`flex items-center justify-between px-3 py-3 rounded-xl transition-all duration-200 group ${
+                      isItemActive || isMenuOpen
+                        ? "bg-[#178F9E]/10 text-[#178F9E] font-semibold"
+                        : "hover:bg-slate-800/50 hover:text-white text-slate-400 font-medium"
+                    }`}
                   >
                     <div className="flex items-center gap-3">
-                      <item.icon size={20} />
-                      <span
-                        className={`${
-                          !open && "hidden"
-                        } origin-left duration-200`}
-                      >
+                      <item.icon className={`w-5 h-5 flex-shrink-0 ${isItemActive || isMenuOpen ? "text-[#178F9E]" : "text-slate-500 group-hover:text-slate-300"}`} />
+                      <span className={`truncate transition-opacity duration-200 ${!open && "opacity-0 w-0 hidden"}`}>
                         {item.name}
                       </span>
                     </div>
                     {open && (
                       <ChevronDown
-                        size={16}
-                        className={`transition-transform ${
-                          openMenus.includes(item.name) ? "rotate-180" : ""
-                        }`}
+                        className={`w-4 h-4 transition-transform duration-300 ${isMenuOpen ? "rotate-180 text-[#178F9E]" : "text-slate-500 group-hover:text-slate-300"}`}
                       />
                     )}
                   </button>
-                  {openMenus.includes(item.name) && open && (
-                    <ul className="ml-8 mt-1  space-y-1">
-                      {item.children.map((sub, subIdx) => (
-                        <li key={subIdx}>
-                          <Link
-                            href={sub.href}
-                            className="flex items-center  gap-2 p-4 rounded-md hover:bg-gray-800 transition text-base"
-                          >
-                            <span>{sub.name}</span>
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              ) : (
-                <Link
-                  href={item.href}
-                  className="flex items-center gap-3 p-4 rounded-md hover:bg-gray-800 transition"
-                >
-                  <item.icon size={20} />
-                  <span
-                    className={`${!open && "hidden"} origin-left duration-200`}
+                ) : (
+                  <Link
+                    href={item.href}
+                    onClick={() => isMobile && setOpen(false)} // Close on mobile after clicking
+                    className={`flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 group ${
+                      isItemActive
+                        ? "bg-[#178F9E] text-white shadow-md shadow-[#178F9E]/20 font-semibold"
+                        : "hover:bg-slate-800/50 hover:text-white text-slate-400 font-medium"
+                    }`}
                   >
-                    {item.name}
-                  </span>
-                </Link>
-              )}
-            </li>
-          ))}
-        </ul>
-      </div>
-    </aside>
+                    <item.icon className={`w-5 h-5 flex-shrink-0 ${isItemActive ? "text-white" : "text-slate-500 group-hover:text-slate-300"}`} />
+                    <span className={`truncate transition-opacity duration-200 ${!open && "opacity-0 w-0 hidden"}`}>
+                      {item.name}
+                    </span>
+                  </Link>
+                )}
+
+                {/* Collapsible Child Menu */}
+                <AnimatePresence>
+                  {item.children && isMenuOpen && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.2, ease: "easeInOut" }}
+                      className="overflow-hidden"
+                    >
+                      <ul className="mt-1 mb-2 ml-5 pl-4 border-l-2 border-slate-800/80 space-y-1">
+                        {item.children.map((sub, subIdx) => {
+                          const isChildActive = isActive(sub.href);
+                          return (
+                            <li key={subIdx}>
+                              <Link
+                                href={sub.href}
+                                onClick={() => isMobile && setOpen(false)} // Close on mobile after clicking
+                                className={`flex items-center py-2.5 px-3 rounded-lg transition-all duration-200 text-sm ${
+                                  isChildActive
+                                    ? "text-[#178F9E] font-bold bg-[#178F9E]/5"
+                                    : "text-slate-500 hover:text-slate-200 hover:bg-slate-800/30 font-medium"
+                                }`}
+                              >
+                                <span className="truncate">{sub.name}</span>
+                              </Link>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Bottom Pinned Logout Button */}
+        <div className="p-4 border-t border-slate-800/50 flex-shrink-0">
+          <button
+            onClick={handleLogout}
+            className={`flex items-center gap-3 w-full px-3 py-3 rounded-xl transition-all duration-200 group text-slate-400 hover:bg-rose-500/10 hover:text-rose-500 font-medium ${
+              !open && "justify-center"
+            }`}
+          >
+            <LogOut className="w-5 h-5 flex-shrink-0 text-slate-500 group-hover:text-rose-500 transition-colors" />
+            <span className={`truncate transition-opacity duration-200 ${!open && "opacity-0 w-0 hidden"}`}>
+              Sign Out
+            </span>
+          </button>
+        </div>
+      </aside>
+    </>
   );
 }
