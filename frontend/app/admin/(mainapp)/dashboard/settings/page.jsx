@@ -1,20 +1,18 @@
 "use client";
-import React, { useEffect, useMemo, useState } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import axiosInstance from "@/app/utils/axiosinterceptor";
 
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
+import React, { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+import { 
+  Building2, 
+  CreditCard, 
+  ShoppingBag, 
+  Eye, 
+  EyeOff, 
+  CheckCircle2,
+  Sparkles
+} from "lucide-react";
+
+import axiosInstance from "@/app/utils/axiosinterceptor";
 import { razorpayAdminService } from "@/services/admin/razorpay.service";
 import { settingsAdminService } from "@/services/admin/settings.service";
 import { getMediaUrl } from "@/app/utils/getAssetsUrl";
@@ -24,10 +22,13 @@ function Masked({ value, visible = false }) {
     () => (value ? "•".repeat(Math.max(6, Math.min(12, value.length))) : ""),
     [value]
   );
-  return <span className="font-mono text-sm">{visible ? value : masked}</span>;
+  return (
+    <span className="font-mono text-sm tracking-widest opacity-70">
+      {visible ? value : masked}
+    </span>
+  );
 }
 
-// Supported Currencies
 const supportedCurrencies = {
   USD: { symbol: "$", position: "prefix" },
   EUR: { symbol: "€", position: "prefix" },
@@ -35,17 +36,22 @@ const supportedCurrencies = {
 };
 
 const Settings = () => {
-  // Razorpay state
-  const [rzpLoading, setRzpLoading] = useState(false);
-  const [rzpSaving, setRzpSaving] = useState(false);
+  const [showSecrets, setShowSecrets] = useState(false);
+
   const [rzp, setRzp] = useState({
     keyId: "",
     keySecret: "",
     webhookSecret: "",
   });
 
-  const [logoFile, setLogoFile] = useState(null);
-  const [logoPreview, setLogoPreview] = useState("");
+  const [activeRzp, setActiveRzp] = useState(null);
+
+  const [settings, setSettings] = useState({
+    currency: { code: "USD", symbol: "$", position: "prefix" },
+    commissionPercent: 15,
+    taxPercent: 0,
+    payoutThreshold: 50,
+  });
 
   const [basicInfo, setBasicInfo] = useState({
     platformName: "",
@@ -53,58 +59,26 @@ const Settings = () => {
     contactEmail: "",
     supportPhone: "",
     address: "",
-    branding: {
-      logoUrl: "",
-      faviconUrl: "",
-    },
+    branding: { logoUrl: "" },
   });
 
-  const [activeRzp, setActiveRzp] = useState(null);
-  const [showSecrets, setShowSecrets] = useState(false);
-
-  // Feature toggles
-  const [features, setFeatures] = useState({
-    maintenanceMode: false,
-    allowRegistrations: true,
-    enableCoupons: true,
-  });
-
-  // Platform settings state
-  const [settingsLoading, setSettingsLoading] = useState(false);
-  const [settingsSaving, setSettingsSaving] = useState(false);
-  const [settings, setSettings] = useState({
-    currency: { code: "USD", symbol: "$", position: "prefix" },
-    commissionPercent: 15,
-    taxPercent: 0,
-    payoutThreshold: 50,
-    defaultLanguage: "en",
-  });
+  const [logoPreview, setLogoPreview] = useState("");
 
   useEffect(() => {
-    const loadActive = async () => {
-      setRzpLoading(true);
-      try {
-        const res = await razorpayAdminService.getActiveCredential();
-        if (res?.success && res?.credential) {
-          setActiveRzp(res.credential);
-          setRzp((prev) => ({
-            ...prev,
-            keyId: res.credential.keyId || "",
-            webhookSecret: res.credential.webhookSecret || "",
-          }));
-        }
-      } catch {
-        // no active creds
-      } finally {
-        setRzpLoading(false);
-      }
-    };
-    const loadSettings = async () => {
-      setSettingsLoading(true);
+    const loadData = async () => {
       try {
         const resp = await settingsAdminService.get();
         if (resp?.settings) {
           const s = resp.settings;
+          setBasicInfo({
+            platformName: s.platformName || "",
+            platformUrl: s.platformUrl || "",
+            contactEmail: s.contactEmail || "",
+            supportPhone: s.supportPhone || "",
+            address: s.address || "",
+            branding: { logoUrl: s.branding?.logoUrl || "" },
+          });
+
           setSettings({
             currency: {
               code: s.currency?.code || "USD",
@@ -114,562 +88,317 @@ const Settings = () => {
             commissionPercent: s.commissionPercent ?? 15,
             taxPercent: s.taxPercent ?? 0,
             payoutThreshold: s.payoutThreshold ?? 50,
-            defaultLanguage: s.defaultLanguage || "en",
           });
-          setBasicInfo({
-            platformName: s.platformName || "",
-            platformUrl: s.platformUrl || "",
-            contactEmail: s.contactEmail || "",
-            supportPhone: s.supportPhone || "",
-            address: s.address || "",
-            branding: {
-              logoUrl: s.branding?.logoUrl || "",
-              faviconUrl: s.branding?.faviconUrl || "",
-            },
-          });
-          if (s.branding?.logoUrl) {
-            setLogoPreview(s.branding.logoUrl);
-          }
+
+          if (s.branding?.logoUrl) setLogoPreview(s.branding.logoUrl);
         }
-      } finally {
-        setSettingsLoading(false);
+
+        const rzpResp = await razorpayAdminService.getActiveCredential();
+        if (rzpResp?.credential) {
+          setActiveRzp(rzpResp.credential);
+          setRzp({
+            keyId: rzpResp.credential.keyId || "",
+            keySecret: "",
+            webhookSecret: rzpResp.credential.webhookSecret || "",
+          });
+        }
+      } catch (error) {
+        toast.error("Failed to load settings data.");
       }
     };
-    loadActive();
-    loadSettings();
-  }, []);
-  const handleLogoChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setLogoFile(file);
 
-      // Create preview
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setLogoPreview(reader.result);
-      };
-      reader.readAsDataURL(file);
+    loadData();
+  }, []);
+
+  const onSaveSettings = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await settingsAdminService.update(settings);
+      if (res) toast.success("Commerce settings updated successfully! 🛍️");
+    } catch {
+      toast.error("Failed to update commerce settings.");
+    }
+  };
+
+  const onSaveBasicInfo = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await axiosInstance.put("/settings", basicInfo);
+      if (res.data?.settings) toast.success("Platform information updated! ✨");
+    } catch {
+      toast.error("Failed to update platform information.");
     }
   };
 
   const onSaveRazorpay = async (e) => {
     e.preventDefault();
     if (!rzp.keyId || !rzp.keySecret) {
-      toast.error("Please enter both Key ID and Key Secret");
+      toast.error("Please enter both Key ID and Key Secret.");
       return;
     }
-    setRzpSaving(true);
     try {
-      const payload = {
-        keyId: rzp.keyId.trim(),
-        keySecret: rzp.keySecret.trim(),
-        webhookSecret: rzp.webhookSecret?.trim() || undefined,
-      };
-      const res = await razorpayAdminService.addCredential(payload);
+      const res = await razorpayAdminService.addCredential(rzp);
       if (res?.success) {
         setActiveRzp(res.credential);
-        setRzp((prev) => ({ ...prev, keySecret: "" }));
-        toast.success("Razorpay credentials saved and activated");
-      } else {
-        toast.error(res?.error || "Failed to save credentials");
+        toast.success("Razorpay credentials activated! 💳");
       }
     } catch {
-      toast.error("Failed to save credentials");
-    } finally {
-      setRzpSaving(false);
-    }
-  };
-  const [basicSaving, setBasicSaving] = useState(false);
-
-  const onSaveBasicInfo = async (e) => {
-    e.preventDefault();
-    setBasicSaving(true);
-    try {
-      const formData = new FormData();
-
-      // Append all fields individually
-      formData.append("platformName", basicInfo.platformName);
-      formData.append("platformUrl", basicInfo.platformUrl);
-      formData.append("contactEmail", basicInfo.contactEmail);
-      formData.append("supportPhone", basicInfo.supportPhone);
-      formData.append("address", basicInfo.address);
-      formData.append("branding[logoUrl]", basicInfo.branding.logoUrl);
-      formData.append("branding[faviconUrl]", basicInfo.branding.faviconUrl);
-
-      if (logoFile) {
-        formData.append("logo", logoFile);
-      }
-
-      // Use axios directly
-      const res = await axiosInstance.put("/settings", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
-
-      if (res.data?.settings) {
-        // Update local state
-        const updatedSettings = res.data.settings;
-        setBasicInfo({
-          platformName: updatedSettings.platformName,
-          platformUrl: updatedSettings.platformUrl,
-          contactEmail: updatedSettings.contactEmail,
-          supportPhone: updatedSettings.supportPhone,
-          address: updatedSettings.address,
-          branding: {
-            logoUrl: updatedSettings.branding?.logoUrl || "",
-            faviconUrl: updatedSettings.branding?.faviconUrl || "",
-          },
-        });
-
-        if (updatedSettings.branding?.logoUrl) {
-          setLogoPreview(updatedSettings.branding.logoUrl);
-        }
-
-        setLogoFile(null);
-        toast.success("Basic Info updated!");
-      } else {
-        toast.error("Failed to update basic info");
-      }
-    } catch (error) {
-      console.error("Error saving basic info:", error);
-      toast.error("Error saving basic info");
-    } finally {
-      setBasicSaving(false);
-    }
-  };
-  const clearLogo = () => {
-    setLogoFile(null);
-    setLogoPreview(basicInfo.branding.logoUrl); // Revert to existing logo
-  };
-  const onSaveSettings = async (e) => {
-    e.preventDefault();
-    setSettingsSaving(true);
-    try {
-      // Create a new object with the settings, ensuring currency is a proper object
-      const payload = {
-        ...settings,
-        // Ensure currency is an object with the expected properties
-        currency: {
-          code: settings.currency?.code || "USD",
-          symbol: settings.currency?.symbol || "$",
-          position: settings.currency?.position || "prefix",
-        },
-        commissionPercent: Number(settings.commissionPercent),
-        taxPercent: Number(settings.taxPercent),
-        payoutThreshold: Number(settings.payoutThreshold),
-      };
-
-      const res = await settingsAdminService.update(payload);
-      if (res && (res.statusCode === 200 || res.message === 'Settings updated')) {
-        toast.success("Settings saved successfully");
-      } else {
-        toast.error(res?.error || res?.message || "Failed to save settings");
-      }
-    } catch {
-      toast.error("Failed to save settings");
-    } finally {
-      setSettingsSaving(false);
+      toast.error("Failed to save Razorpay credentials.");
     }
   };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Settings</h1>
-        <p className="text-sm text-muted-foreground">
-          Manage your platform configuration.
-        </p>
-      </div>
-
-      <Tabs defaultValue="basicInfo" className="w-full">
-        <TabsList>
-          {" "}
-          <TabsTrigger value="basicInfo">Basic Info</TabsTrigger>
-          <TabsTrigger value="payments">Payments</TabsTrigger>
-          {/* <TabsTrigger value="email">Email</TabsTrigger>
-          <TabsTrigger value="site">Site</TabsTrigger>
-          <TabsTrigger value="features">Features</TabsTrigger> */}
-        </TabsList>
-
-        {/* Payments Tab */}
-        <TabsContent value="payments" className="mt-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Razorpay Card */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Razorpay Credentials</CardTitle>
-                <CardDescription>Configure your Razorpay keys.</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={onSaveRazorpay} className="space-y-4">
-                  {/* Active Razorpay Info */}
-                  {activeRzp ? (
-                    <div className="rounded-md border p-3 text-sm">
-                      <div className="flex items-center justify-between gap-4">
-                        <div>
-                          <p className="font-medium">Active Credential</p>
-                          <p className="text-muted-foreground">
-                            Key ID:{" "}
-                            <Masked
-                              value={activeRzp.keyId}
-                              visible={showSecrets}
-                            />
-                          </p>
-                          {activeRzp.updatedAt && (
-                            <p className="text-muted-foreground">
-                              Updated:{" "}
-                              {new Date(activeRzp.updatedAt).toLocaleString()}
-                            </p>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Switch
-                            id="show-secrets"
-                            checked={showSecrets}
-                            onCheckedChange={setShowSecrets}
-                          />
-                          <Label htmlFor="show-secrets">Show</Label>
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="rounded-md border p-3 text-sm text-muted-foreground">
-                      {rzpLoading
-                        ? "Loading..."
-                        : "No active Razorpay credential configured yet."}
-                    </div>
-                  )}
-
-                  {/* Razorpay Inputs */}
-                  <div className="grid gap-3">
-                    <Label htmlFor="keyId">Key ID</Label>
-                    <Input
-                      id="keyId"
-                      placeholder="rzp_test_********"
-                      value={rzp.keyId}
-                      onChange={(e) =>
-                        setRzp((p) => ({ ...p, keyId: e.target.value }))
-                      }
-                    />
-                  </div>
-
-                  <div className="grid gap-3">
-                    <Label htmlFor="keySecret">Key Secret</Label>
-                    <Input
-                      id="keySecret"
-                      type="password"
-                      placeholder="Enter key secret"
-                      value={rzp.keySecret}
-                      onChange={(e) =>
-                        setRzp((p) => ({ ...p, keySecret: e.target.value }))
-                      }
-                    />
-                  </div>
-
-                  <div className="flex items-center gap-3 pt-2">
-                    <Button type="submit" disabled={rzpSaving}>
-                      {rzpSaving ? "Saving..." : "Save & Activate"}
-                    </Button>
-                    {activeRzp && (
-                      <p className="text-xs text-muted-foreground">
-                        Saving creates a new credential and deactivates old
-                        ones.
-                      </p>
-                    )}
-                  </div>
-                </form>
-              </CardContent>
-            </Card>
-
-            {/* Commerce Settings Card */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Commerce Settings</CardTitle>
-                <CardDescription>Currency and platform fees.</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={onSaveSettings} className="space-y-4">
-                  <div className="grid gap-3 sm:grid-cols-3">
-                    {/* Currency Code Dropdown */}
-                    <div className="grid gap-2">
-                      <Label htmlFor="currencyCode">Currency</Label>
-                      <select
-                        id="currencyCode"
-                        className="h-10 rounded-md border px-3 text-sm"
-                        value={settings.currency.code}
-                        onChange={(e) => {
-                          const code = e.target.value;
-                          const selected = supportedCurrencies[code];
-                          setSettings((s) => ({
-                            ...s,
-                            currency: {
-                              code,
-                              symbol: selected.symbol,
-                              position: selected.position,
-                            },
-                          }));
-                        }}
-                      >
-                        {Object.keys(supportedCurrencies).map((code) => (
-                          <option key={code} value={code}>
-                            {code}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    {/* Symbol - auto-filled but editable */}
-                    <div className="grid gap-2">
-                      <Label htmlFor="currencySymbol">Symbol</Label>
-                      <Input
-                        id="currencySymbol"
-                        value={settings.currency.symbol}
-                        onChange={(e) =>
-                          setSettings((s) => ({
-                            ...s,
-                            currency: { ...s.currency, symbol: e.target.value },
-                          }))
-                        }
-                      />
-                    </div>
-
-                    {/* Position */}
-                    <div className="grid gap-2">
-                      <Label htmlFor="currencyPosition">Position</Label>
-                      <select
-                        id="currencyPosition"
-                        className="h-10 rounded-md border px-3 text-sm"
-                        value={settings.currency.position}
-                        onChange={(e) =>
-                          setSettings((s) => ({
-                            ...s,
-                            currency: {
-                              ...s.currency,
-                              position: e.target.value,
-                            },
-                          }))
-                        }
-                      >
-                        <option value="prefix">Prefix</option>
-                        <option value="suffix">Suffix</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  {/* Fees */}
-                  <div className="grid gap-3 sm:grid-cols-3">
-                    <div className="grid gap-2">
-                      <Label htmlFor="commissionPercent">Commission %</Label>
-                      <Input
-                        id="commissionPercent"
-                        type="number"
-                        value={settings.commissionPercent}
-                        onChange={(e) =>
-                          setSettings((s) => ({
-                            ...s,
-                            commissionPercent: e.target.value,
-                          }))
-                        }
-                      />
-                    </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="taxPercent">Tax %</Label>
-                      <Input
-                        id="taxPercent"
-                        type="number"
-                        value={settings.taxPercent}
-                        onChange={(e) =>
-                          setSettings((s) => ({
-                            ...s,
-                            taxPercent: e.target.value,
-                          }))
-                        }
-                      />
-                    </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="payoutThreshold">Payout Threshold</Label>
-                      <Input
-                        id="payoutThreshold"
-                        type="number"
-                        value={settings.payoutThreshold}
-                        onChange={(e) =>
-                          setSettings((s) => ({
-                            ...s,
-                            payoutThreshold: e.target.value,
-                          }))
-                        }
-                      />
-                    </div>
-                  </div>
-
-                  <Button type="submit" disabled={settingsSaving}>
-                    {settingsSaving ? "Saving..." : "Save"}
-                  </Button>
-                </form>
-              </CardContent>
-            </Card>
+    <div className="min-h-screen bg-slate-50 p-6 md:p-12 font-sans text-slate-900">
+      <div className="max-w-7xl mx-auto space-y-10">
+        
+        {/* Playful Header */}
+        <header className="flex items-center gap-4">
+          <div className="p-4 bg-indigo-500 rounded-2xl text-white shadow-lg shadow-indigo-200">
+            <Sparkles className="w-8 h-8" />
           </div>
-        </TabsContent>
-        <TabsContent value="basicInfo" className="mt-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Platform Info</CardTitle>
-              <CardDescription>
-                Manage branding and contact details.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={onSaveBasicInfo} className="space-y-4">
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="grid gap-2">
-                    <Label htmlFor="platformName">Platform / Brand Name</Label>
-                    <Input
-                      id="platformName"
-                      value={basicInfo.platformName}
-                      onChange={(e) =>
-                        setBasicInfo((s) => ({
-                          ...s,
-                          platformName: e.target.value,
-                        }))
-                      }
-                      placeholder="e.g. vigyan academy"
-                    />
-                  </div>
+          <div>
+            <h1 className="text-4xl font-extrabold tracking-tight text-slate-900">
+              Platform Hub
+            </h1>
+            <p className="text-slate-500 text-lg mt-1 font-medium">
+              Tweak your colors, coins, and configs.
+            </p>
+          </div>
+        </header>
 
-                  <div className="grid gap-2">
-                    <Label htmlFor="platformUrl">Website URL</Label>
-                    <Input
-                      id="platformUrl"
-                      value={basicInfo.platformUrl}
-                      onChange={(e) =>
-                        setBasicInfo((s) => ({
-                          ...s,
-                          platformUrl: e.target.value,
-                        }))
-                      }
-                      placeholder="https://yourdomain.com"
-                    />
-                  </div>
-                </div>
+        {/* Bento Box Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          
+          {/* ==============================================
+              BASIC INFO (Left Column - Spans 7 cols)
+              Theme: Warm Sunset (Orange/Rose)
+          ============================================== */}
+          <div className="lg:col-span-7 bg-gradient-to-br from-orange-100 to-rose-100 rounded-[2.5rem] p-8 border border-white/50 shadow-sm relative overflow-hidden">
+            {/* Decorative blob */}
+            <div className="absolute -top-20 -right-20 w-64 h-64 bg-rose-300/30 rounded-full blur-3xl pointer-events-none"></div>
 
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="grid gap-2">
-                    <Label htmlFor="contactEmail">Contact Email</Label>
-                    <Input
-                      id="contactEmail"
-                      value={basicInfo.contactEmail}
-                      onChange={(e) =>
-                        setBasicInfo((s) => ({
-                          ...s,
-                          contactEmail: e.target.value,
-                        }))
-                      }
-                    />
-                  </div>
+            <div className="flex items-center gap-3 mb-8 relative z-10">
+              <Building2 className="w-7 h-7 text-orange-600" />
+              <h2 className="text-2xl font-bold text-orange-950">Brand & Contact</h2>
+            </div>
 
-                  <div className="grid gap-2">
-                    <Label htmlFor="supportPhone">Support Phone</Label>
-                    <Input
-                      id="supportPhone"
-                      value={basicInfo.supportPhone}
-                      onChange={(e) =>
-                        setBasicInfo((s) => ({
-                          ...s,
-                          supportPhone: e.target.value,
-                        }))
-                      }
-                    />
-                  </div>
-                </div>
-
-                <div className="grid gap-2">
-                  <Label htmlFor="address">Address</Label>
-                  <Input
-                    id="address"
-                    value={basicInfo.address}
-                    onChange={(e) =>
-                      setBasicInfo((s) => ({ ...s, address: e.target.value }))
-                    }
+            <form onSubmit={onSaveBasicInfo} className="space-y-6 relative z-10">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label className="text-sm font-bold text-orange-900/80 ml-1">Platform Name</label>
+                  <input
+                    placeholder="Acme Corp"
+                    className="w-full bg-white/60 border border-white focus:bg-white focus:ring-4 focus:ring-orange-200 rounded-2xl px-5 py-3.5 outline-none transition-all text-orange-950 placeholder:text-orange-950/30 shadow-sm"
+                    value={basicInfo.platformName}
+                    onChange={(e) => setBasicInfo({ ...basicInfo, platformName: e.target.value })}
                   />
                 </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-bold text-orange-900/80 ml-1">Website URL</label>
+                  <input
+                    placeholder="https://example.com"
+                    className="w-full bg-white/60 border border-white focus:bg-white focus:ring-4 focus:ring-orange-200 rounded-2xl px-5 py-3.5 outline-none transition-all text-orange-950 placeholder:text-orange-950/30 shadow-sm"
+                    value={basicInfo.platformUrl}
+                    onChange={(e) => setBasicInfo({ ...basicInfo, platformUrl: e.target.value })}
+                  />
+                </div>
+              </div>
 
-                {/* Updated Logo Upload Section */}
-                <div className="grid gap-2">
-                  <Label htmlFor="logo">Brand Logo</Label>
-                  <div className="flex items-center gap-4">
-                    <Input
-                      id="logo"
-                      type="file"
-                      accept="image/*"
-                      onChange={handleLogoChange}
-                      className="max-w-sm"
-                    />
-                    {logoFile && (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={clearLogo}
-                      >
-                        Clear
-                      </Button>
-                    )}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label className="text-sm font-bold text-orange-900/80 ml-1">Support Email</label>
+                  <input
+                    type="email"
+                    placeholder="hello@example.com"
+                    className="w-full bg-white/60 border border-white focus:bg-white focus:ring-4 focus:ring-orange-200 rounded-2xl px-5 py-3.5 outline-none transition-all text-orange-950 placeholder:text-orange-950/30 shadow-sm"
+                    value={basicInfo.contactEmail}
+                    onChange={(e) => setBasicInfo({ ...basicInfo, contactEmail: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-bold text-orange-900/80 ml-1">Phone Number</label>
+                  <input
+                    placeholder="+1 (555) 000-0000"
+                    className="w-full bg-white/60 border border-white focus:bg-white focus:ring-4 focus:ring-orange-200 rounded-2xl px-5 py-3.5 outline-none transition-all text-orange-950 placeholder:text-orange-950/30 shadow-sm"
+                    value={basicInfo.supportPhone}
+                    onChange={(e) => setBasicInfo({ ...basicInfo, supportPhone: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-orange-900/80 ml-1">HQ Address</label>
+                <input
+                  placeholder="123 Creativity Lane, Design City"
+                  className="w-full bg-white/60 border border-white focus:bg-white focus:ring-4 focus:ring-orange-200 rounded-2xl px-5 py-3.5 outline-none transition-all text-orange-950 placeholder:text-orange-950/30 shadow-sm"
+                  value={basicInfo.address}
+                  onChange={(e) => setBasicInfo({ ...basicInfo, address: e.target.value })}
+                />
+              </div>
+
+              {logoPreview && (
+                <div className="p-4 bg-white/40 border border-white rounded-2xl w-fit flex items-center gap-4">
+                  <img src={getMediaUrl(logoPreview)} alt="Logo" className="h-12 object-contain" />
+                  <span className="text-sm font-semibold text-orange-900/60">Current Logo</span>
+                </div>
+              )}
+
+              <div className="pt-2">
+                <button 
+                  type="submit" 
+                  className="bg-orange-500 hover:bg-orange-600 hover:-translate-y-0.5 transition-all text-white font-bold py-3.5 px-8 rounded-full shadow-lg shadow-orange-500/30"
+                >
+                  Save Brand Info
+                </button>
+              </div>
+            </form>
+          </div>
+
+          {/* Right Column Stacks */}
+          <div className="lg:col-span-5 space-y-8">
+            
+            {/* ==============================================
+                PAYMENTS (Top Right)
+                Theme: Cool Mint (Teal/Emerald)
+            ============================================== */}
+            <div className="bg-gradient-to-br from-teal-100 to-emerald-100 rounded-[2.5rem] p-8 border border-white/50 shadow-sm relative overflow-hidden">
+              <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-teal-300/20 rounded-full blur-3xl pointer-events-none"></div>
+
+              <div className="flex items-center justify-between mb-6 relative z-10">
+                <div className="flex items-center gap-3">
+                  <CreditCard className="w-7 h-7 text-teal-600" />
+                  <h2 className="text-2xl font-bold text-teal-950">Gateway</h2>
+                </div>
+                {activeRzp && (
+                  <span className="flex items-center gap-1.5 bg-emerald-400/20 text-emerald-800 py-1.5 px-3 rounded-full text-xs font-bold border border-emerald-400/30">
+                    <CheckCircle2 className="w-3.5 h-3.5" /> Active
+                  </span>
+                )}
+              </div>
+
+              {activeRzp && (
+                <div className="mb-6 p-4 bg-white/40 border border-white rounded-2xl flex items-center justify-between relative z-10">
+                  <div>
+                    <p className="text-xs font-bold text-teal-900/60 mb-1">Razorpay Key ID</p>
+                    <Masked value={activeRzp.keyId} visible={showSecrets} />
                   </div>
+                  <button 
+                    type="button"
+                    onClick={() => setShowSecrets(!showSecrets)}
+                    className="p-2 bg-white/60 hover:bg-white rounded-full text-teal-700 transition-colors"
+                  >
+                    {showSecrets ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              )}
 
-                  {/* Logo Preview */}
-                  {(logoPreview || basicInfo.branding.logoUrl) && (
-                    <div className="mt-2">
-                      <p className="text-sm text-muted-foreground mb-2">
-                        Logo Preview:
-                      </p>
-                      <img
-                        src={
-                          // If it's a data URL (local file preview), use it directly
-                          // Otherwise, use getMediaUrl for server URLs
-                          logoPreview && logoPreview.startsWith("data:")
-                            ? logoPreview
-                            : getMediaUrl(
-                                logoPreview || basicInfo.branding.logoUrl
-                              )
-                        }
-                        alt="Logo preview"
-                        className="h-16 rounded border object-contain"
-                      />
-                    </div>
-                  )}
-                  {/* Existing logo URL field (optional - you can remove this if you only want file upload) */}
-                  {/* <div className="mt-2 grid gap-2">
-                    <Label
-                      htmlFor="logoUrl"
-                      className="text-xs text-muted-foreground"
+              <form onSubmit={onSaveRazorpay} className="space-y-4 relative z-10">
+                <div className="space-y-2">
+                  <label className="text-sm font-bold text-teal-900/80 ml-1">New Key ID</label>
+                  <input
+                    placeholder="rzp_live_..."
+                    className="w-full bg-white/60 border border-white focus:bg-white focus:ring-4 focus:ring-teal-200 rounded-2xl px-5 py-3 outline-none transition-all text-teal-950 placeholder:text-teal-950/30"
+                    value={rzp.keyId}
+                    onChange={(e) => setRzp({ ...rzp, keyId: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-bold text-teal-900/80 ml-1">New Key Secret</label>
+                  <input
+                    type="password"
+                    placeholder="••••••••••••"
+                    className="w-full bg-white/60 border border-white focus:bg-white focus:ring-4 focus:ring-teal-200 rounded-2xl px-5 py-3 outline-none transition-all text-teal-950 placeholder:text-teal-950/30"
+                    value={rzp.keySecret}
+                    onChange={(e) => setRzp({ ...rzp, keySecret: e.target.value })}
+                  />
+                </div>
+                <div className="pt-2">
+                  <button 
+                    type="submit" 
+                    className="w-full bg-teal-500 hover:bg-teal-600 hover:-translate-y-0.5 transition-all text-white font-bold py-3.5 px-8 rounded-2xl shadow-lg shadow-teal-500/30"
+                  >
+                    Sync Credentials
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            {/* ==============================================
+                COMMERCE (Bottom Right)
+                Theme: Bubblegum (Fuchsia/Purple)
+            ============================================== */}
+            <div className="bg-gradient-to-br from-fuchsia-100 to-purple-100 rounded-[2.5rem] p-8 border border-white/50 shadow-sm relative overflow-hidden">
+               <div className="absolute top-0 right-0 w-48 h-48 bg-purple-300/20 rounded-full blur-3xl pointer-events-none"></div>
+
+              <div className="flex items-center gap-3 mb-6 relative z-10">
+                <ShoppingBag className="w-7 h-7 text-purple-600" />
+                <h2 className="text-2xl font-bold text-purple-950">Marketplace</h2>
+              </div>
+
+              <form onSubmit={onSaveSettings} className="space-y-4 relative z-10">
+                <div className="space-y-2">
+                  <label className="text-sm font-bold text-purple-900/80 ml-1">Primary Currency</label>
+                  <div className="relative">
+                    <select
+                      className="w-full bg-white/60 border border-white focus:bg-white focus:ring-4 focus:ring-purple-200 rounded-2xl px-5 py-3 outline-none transition-all text-purple-950 appearance-none font-medium cursor-pointer"
+                      value={settings.currency.code}
+                      onChange={(e) => {
+                        const code = e.target.value;
+                        const selected = supportedCurrencies[code];
+                        setSettings({
+                          ...settings,
+                          currency: { code, symbol: selected.symbol, position: selected.position },
+                        });
+                      }}
                     >
-                      Or enter logo URL:
-                    </Label>
-                    <Input
-                      id="logoUrl"
-                      placeholder="https://example.com/logo.png"
-                      value={basicInfo.branding.logoUrl}
-                      onChange={(e) =>
-                        setBasicInfo((s) => ({
-                          ...s,
-                          branding: { ...s.branding, logoUrl: e.target.value },
-                        }))
-                      }
-                      className="text-sm"
-                    />
-                  </div> */}
+                      {Object.keys(supportedCurrencies).map((code) => (
+                        <option key={code} value={code} className="text-slate-900">
+                          {code} ({supportedCurrencies[code].symbol})
+                        </option>
+                      ))}
+                    </select>
+                    {/* Custom Select Arrow */}
+                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-purple-600">
+                      ▼
+                    </div>
+                  </div>
                 </div>
 
-                <Button type="submit" disabled={basicSaving}>
-                  {basicSaving ? "Saving..." : "Save Basic Info"}
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
-        </TabsContent>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-bold text-purple-900/80 ml-1">Platform Cut %</label>
+                    <input
+                      type="number"
+                      className="w-full bg-white/60 border border-white focus:bg-white focus:ring-4 focus:ring-purple-200 rounded-2xl px-5 py-3 outline-none transition-all text-purple-950"
+                      value={settings.commissionPercent}
+                      onChange={(e) => setSettings({ ...settings, commissionPercent: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-bold text-purple-900/80 ml-1">Tax Rate %</label>
+                    <input
+                      type="number"
+                      className="w-full bg-white/60 border border-white focus:bg-white focus:ring-4 focus:ring-purple-200 rounded-2xl px-5 py-3 outline-none transition-all text-purple-950"
+                      value={settings.taxPercent}
+                      onChange={(e) => setSettings({ ...settings, taxPercent: e.target.value })}
+                    />
+                  </div>
+                </div>
 
-        {/* Email, Site, Features Tabs - unchanged */}
-      </Tabs>
+                <div className="pt-2">
+                  <button 
+                    type="submit" 
+                    className="w-full bg-purple-500 hover:bg-purple-600 hover:-translate-y-0.5 transition-all text-white font-bold py-3.5 px-8 rounded-2xl shadow-lg shadow-purple-500/30"
+                  >
+                    Save Rules
+                  </button>
+                </div>
+              </form>
+            </div>
+
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
