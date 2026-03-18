@@ -124,8 +124,16 @@ export const adminServices = {
     const response = await axiosInstance.post(`/studentfee/assign`, data);
     return response.data;
   },
-
+generateInvoicePDF: async (invoiceId) => {
+  const response = await axiosInstance.get(
+    `/invoice/${invoiceId}/pdf`,
+    {
+      responseType: "blob",
+    }
+  );
+  return response.data;
+},
+  
 };
 
  
-

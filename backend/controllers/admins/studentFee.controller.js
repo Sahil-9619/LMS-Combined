@@ -2,6 +2,7 @@ const StudentFee = require("../../models/studentFee.model");
 const Student = require("../../models/student.model");
 const FeeStructure = require("../../models/feeStructure.model");
 const Class = require("../../models/class.model");
+const Invoice = require("../../models/invoice.model");
 
 // ================================
 // HELPER: Get or Create Fee Structure by Class Name
@@ -150,8 +151,8 @@ exports.getFeeByAdmissionNumber = async (req, res) => {
 
     if (!student) {
       return res.status(404).json({
-        success:false,
-        message:"Student not found"
+        success: false,
+        message: "Student not found"
       });
     }
 
@@ -196,8 +197,8 @@ exports.getFeeByAdmissionNumber = async (req, res) => {
 
     if (!fee) {
       return res.status(200).json({
-        success:true,
-        message:"Unable to create fee structure and record for this class",
+        success: true,
+        message: "Unable to create fee structure and record for this class",
         student,
         fee: null
       });
@@ -240,11 +241,11 @@ exports.getFeeByAdmissionNumber = async (req, res) => {
       monthlyFees // 🔥 THIS FIXES FRONTEND
     });
 
-  } catch(error){
+  } catch (error) {
 
     res.status(500).json({
-      success:false,
-      message:error.message
+      success: false,
+      message: error.message
     });
 
   }
@@ -297,6 +298,11 @@ exports.updateStudentFee = async (req, res) => {
       studentFee.remainingAmount = 0;
       studentFee.status = "paid";
       await studentFee.save();
+
+      const fullStudent = await Student.findById(student._id).populate("classId");
+
+
+
 
       return res.status(400).json({
         success: false,
@@ -351,10 +357,24 @@ exports.updateStudentFee = async (req, res) => {
 
     await studentFee.save();
 
+    const fullStudent = await Student.findById(student._id).populate("classId");
+
+    const invoice = await Invoice.create({
+      invoiceNumber: `INV-${Date.now()}`,
+      studentId: student._id,
+      amount: payment,
+      month: month || "N/A",
+
+      studentName: `${fullStudent.firstName || ""} ${fullStudent.lastName || ""}`,
+      className: fullStudent.classId?.className || "N/A",
+      section: fullStudent.classId?.section || "N/A",
+    });
+
     res.json({
       success: true,
       message: "Payment updated successfully",
-      data: studentFee
+      data: studentFee,
+      invoiceId: invoice._id
     });
 
   } catch (error) {
@@ -378,7 +398,7 @@ exports.getFeesByStudent = async (req, res) => {
     res.status(200).json({
       success: true,
       data: fees
-    }); 
+    });
 
   } catch (error) {
 
@@ -527,13 +547,13 @@ exports.assignFeeToClass = async (req, res) => {
 
     // If no fee structure exists, create a default one
     if (!feeStructure) {
-        feeStructure = await getOrCreateFeeStructure(classData.className);
+      feeStructure = await getOrCreateFeeStructure(classData.className);
     }
 
     if (!feeStructure) {
       return res.status(404).json({
-        success:false,
-        message:"Fee structure not found and cannot be created"
+        success: false,
+        message: "Fee structure not found and cannot be created"
       });
     }
 
@@ -568,15 +588,15 @@ exports.assignFeeToClass = async (req, res) => {
     }
 
     res.json({
-      success:true,
-      message:"Fee assigned to all students of class"
+      success: true,
+      message: "Fee assigned to all students of class"
     });
 
   } catch (error) {
 
     res.status(500).json({
-      success:false,
-      message:error.message
+      success: false,
+      message: error.message
     });
 
   }
@@ -588,7 +608,7 @@ exports.assignFeeToClass = async (req, res) => {
 exports.createMissingFees = async (req, res) => {
   try {
     const students = await Student.find({ isDeleted: false }).populate("classId");
-    
+
     let created = 0;
     let failed = 0;
     const classesWithStructures = {};
@@ -601,7 +621,7 @@ exports.createMissingFees = async (req, res) => {
 
         if (!existingFee && student.classId) {
           let feeStructure = classesWithStructures[student.classId.className];
-          
+
           // Get or create fee structure for this class
           if (!feeStructure) {
             feeStructure = await FeeStructure.findOne({
@@ -613,7 +633,7 @@ exports.createMissingFees = async (req, res) => {
               // Create default fee structure for this class
               feeStructure = await getOrCreateFeeStructure(student.classId.className);
             }
-            classesWithStructures[student.classId.className] = feeStructure;    
+            classesWithStructures[student.classId.className] = feeStructure;
           }
 
           if (feeStructure) {
@@ -664,23 +684,23 @@ exports.cleanupAndConsolidateFeeStructures = async (req, res) => {
   try {
     // Get all fee structures
     const allFeeStructures = await FeeStructure.find();
-    
+
     const consolidationMap = {}; // className => primary FeeStructure
     const toDelete = [];
-    
+
     // Group by class name (e.g., "10" from "10-A", "10-B", "10")
     for (const feeStructure of allFeeStructures) {
       const classNumber = feeStructure.className.split('-')[0]; // Extract "10" from "10-A"
-      
+
       if (!consolidationMap[classNumber]) {
         // First occurrence - becomes primary
         consolidationMap[classNumber] = feeStructure;
       } else {
         const existing = consolidationMap[classNumber];
-        
+
         // If current has valid fees and existing has nulls, swap
         if ((feeStructure.tuitionFee || feeStructure.admissionFee || feeStructure.examFee) &&
-            (!existing.tuitionFee && !existing.admissionFee && !existing.examFee)) {
+          (!existing.tuitionFee && !existing.admissionFee && !existing.examFee)) {
           // Current has fees, existing doesn't - use current as primary
           toDelete.push(existing._id);
           consolidationMap[classNumber] = feeStructure;
@@ -690,25 +710,25 @@ exports.cleanupAndConsolidateFeeStructures = async (req, res) => {
         }
       }
     }
-    
+
     // Update all StudentFees that reference deleted FeeStructures
     for (const deleteFeeId of toDelete) {
       const oldFeeStructure = await FeeStructure.findById(deleteFeeId);
       const classNumber = oldFeeStructure.className.split('-')[0];
       const primaryFeeStructure = consolidationMap[classNumber];
-      
+
       // Update all StudentFees using the old fee structure
       await StudentFee.updateMany(
         { feeStructureId: deleteFeeId },
         { feeStructureId: primaryFeeStructure._id }
       );
     }
-    
+
     // Delete duplicate fee structures
     if (toDelete.length > 0) {
       await FeeStructure.deleteMany({ _id: { $in: toDelete } });
     }
-    
+
     // Update remaining fee structures to have clean className (e.g., "10" instead of "10-A")
     // And ensure they reference any class with that name (not a specific section)
     for (const [classNumber, feeStructure] of Object.entries(consolidationMap)) {
@@ -718,7 +738,7 @@ exports.cleanupAndConsolidateFeeStructures = async (req, res) => {
         classId: anyClass ? anyClass._id : feeStructure.classId
       });
     }
-    
+
     res.json({
       success: true,
       message: `Consolidated fee structures. Deleted ${toDelete.length} duplicates. All sections now share class-level fee structure.`,
@@ -787,3 +807,4 @@ exports.fixAllOverpayments = async (req, res) => {
     });
   }
 };
+

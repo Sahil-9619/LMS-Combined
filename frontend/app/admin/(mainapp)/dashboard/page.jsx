@@ -69,13 +69,13 @@ const AdminDashboard = () => {
   const { totals, revenue } = dashboardData;
 
   // Map enrollments per course for PieChart (items have title, count)
-  const enrollmentsPieData = (dashboardData.enrollmentsPerCourse || []).map(
-    (item, idx) => ({
-      name: item.title || "Course",
-      value: item.count || 0,
-      color: COLORS[idx % COLORS.length],
-    })
-  );
+ const enrollmentsPieData = (dashboardData.enrollmentsPerClass || []).map(
+  (item, idx) => ({
+    name: item.name,
+    value: item.count || 0,
+    color: COLORS[idx % COLORS.length],
+  })
+);
 
   // Map completion per course for BarChart
   const completionBarData = (dashboardData.completionPerCourse || []).map(
@@ -110,16 +110,16 @@ const AdminDashboard = () => {
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-lg font-medium opacity-90">
-                  Total Courses
+                  Total Classes
                 </CardTitle>
                 <BookOpen className="h-8 w-8 opacity-80" />
               </div>
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold mb-1">
-                {totals?.courses ?? 0}
+                {totals?.classes ?? 0}
               </div>
-              <p className="text-indigo-100 text-sm">Published: {totals?.publishedCourses ?? 0}</p>
+              
             </CardContent>
             <div className="absolute -bottom-2 -right-2 w-16 h-16 bg-white opacity-10 rounded-full"></div>
           </Card>
@@ -144,14 +144,14 @@ const AdminDashboard = () => {
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-lg font-medium opacity-90">Gross Revenue</CardTitle>
-                <DollarSign className="h-8 w-8 opacity-80" />
+              
               </div>
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold mb-1">
-                ${ (revenue?.grossRevenue || 0).toFixed(2) }
+                ₹{ (revenue?.grossRevenue || 0).toFixed(2) }
               </div>
-              <p className="text-orange-100 text-sm">Profit: ${(revenue?.platformProfit || 0).toFixed(2)} • Payout: ${(revenue?.netPayoutToInstructors || 0).toFixed(2)}</p>
+              <p className="text-orange-100 text-sm">Profit: ₹{(revenue?.platformProfit || 0).toFixed(2)} • Payout: ₹{(revenue?.netPayoutToInstructors || 0).toFixed(2)}</p>
             </CardContent>
             <div className="absolute -bottom-2 -right-2 w-16 h-16 bg-white opacity-10 rounded-full"></div>
           </Card>
@@ -279,10 +279,10 @@ const AdminDashboard = () => {
               <div className="flex items-center space-x-2">
                 <Award className="h-5 w-5 text-purple-600" />
                 <CardTitle className="text-xl text-gray-800">
-                  Enrollments per Course
+                  Enrollments per Class
                 </CardTitle>
               </div>
-            </CardHeader>
+            </CardHeader> 
             <CardContent className="pt-6">
               <ResponsiveContainer width="100%" height={280}>
                 <PieChart>

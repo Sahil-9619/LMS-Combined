@@ -253,7 +253,6 @@ export default function AdminFeeManagement() {
 
   /* ---------------- HANDLE PAYMENT ---------------- */
 const handlePayment = async () => {
-
   try {
 
     if (!selectedMonth) {
@@ -269,23 +268,36 @@ const handlePayment = async () => {
     const payload = {
       admissionNumber: admissionNo,
       payAmount: Number(payAmount),
-      month: selectedMonth // ✅ correct
+      month: selectedMonth
     };
 
-    console.log("Sending Payload:", payload); // 🔥 DEBUG
+    // 🔥 STEP 1: Payment update + invoiceId milega
+    const res = await adminServices.updateStudentFee(payload);
 
-    await adminServices.updateStudentFee(payload);
+    const invoiceId = res.invoiceId;
 
-    handleSearch();
+console.log("API RESPONSE:", res);
 
+    if (!invoiceId) {
+      toast.error("Invoice not generated");
+      return;
+    }
+
+    const blob = await adminServices.generateInvoicePDF(invoiceId);
+    const url = window.URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `invoice_${student.admissionNumber}.pdf`;
+    a.click();
+
+    await handleSearch();
     setPayAmount("");
 
   } catch (err) {
-
     console.log(err);
-
+    toast.error("Payment failed");
   }
-
 };
   const handleFeeStructureUpdate = async () => {
 

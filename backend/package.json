@@ -27,6 +27,7 @@
     "multer": "^2.1.0",
     "nodemailer": "^7.0.5",
     "nodemon": "^3.1.10",
+    "pdfkit": "^0.18.0",
     "puppeteer": "^24.23.0",
     "react-youtube": "^10.1.0",
     "redis": "^5.6.0",

@@ -5,6 +5,7 @@ const Role = require("../../models/role.model");
 const bcrypt = require("bcrypt");
 const Student = require("../../models/student.model");
 const StudentFee = require("../../models/studentFee.model");
+const Class = require("../../models/class.model");
 
 const getInstructorProfile = async (req, res) => {
   try {
@@ -202,17 +203,54 @@ const getAdminDashboardData = async (req, res) => {
   try {
     const [
       totalUsers,
-      totalCourses,
-      totalPublishedCourses,
+      totalClasses,
       totalEnrollments,
       activeEnrollments,
     ] = await Promise.all([
       User.countDocuments({}),
-      Course.countDocuments({}),
+      Class.countDocuments({}),
       Course.countDocuments({ isPublished: true }),
       Enrollment.countDocuments({}),
       Enrollment.countDocuments({ status: "active" }),
     ]);
+
+    // ===============================
+// 📊 ENROLLMENTS PER CLASS
+// ===============================
+const enrollmentsPerClass = await Student.aggregate([
+  {
+    $lookup: {
+      from: "classes",
+      localField: "classId",
+      foreignField: "_id",
+      as: "class",
+    },
+  },
+  { $unwind: "$class" },
+  {
+    $group: {
+      _id: {
+        className: "$class.className",
+        section: "$class.section",
+      },
+      count: { $sum: 1 },
+    },
+  },
+  {
+    $project: {
+      name: {
+        $concat: [
+          "Class ",
+          "$_id.className",
+          " - ",
+          "$_id.section",
+        ],
+      },
+      count: 1,
+    },
+  },
+  { $sort: { name: 1 } },
+]);
 
     // ===============================
     // 💰 STUDENT FEE REVENUE
@@ -287,7 +325,7 @@ const getAdminDashboardData = async (req, res) => {
 
   const expected = Math.round(item.expected);
   const collected = item.collected;
-  const pending = expected - collected;
+  const pending = Math.max(expected - collected, 0);
 
   return {
     month: date.toLocaleString("default", {
@@ -353,8 +391,11 @@ const getAdminDashboardData = async (req, res) => {
       return { month: label, gross: row.gross || 0, net, profit };
     });
 
-    const platformProfit = grossRevenue * COMMISSION_RATE;
-    const netPayoutToInstructors = grossRevenue - platformProfit;
+    const totalGrossRevenue =
+  grossRevenue + totalCollectedRevenue; //  add fees also
+
+const platformProfit = grossRevenue * COMMISSION_RATE; // only courses pe commission
+const netPayoutToInstructors = grossRevenue - platformProfit;
 
     // ===============================
     // FINAL RESPONSE
@@ -364,21 +405,22 @@ const getAdminDashboardData = async (req, res) => {
         users: totalUsers,
         instructors: totalInstructors,
         students: totalStudents,
-        courses: totalCourses,
-        publishedCourses: totalPublishedCourses,
+        classes: totalClasses,
         enrollments: totalEnrollments,
         activeEnrollments,
       },
       revenue: {
-        grossRevenue,
+        grossRevenue: totalGrossRevenue,
         netPayoutToInstructors,
         platformProfit,
         monthly, // course revenue
         totalCollectedRevenue,
         totalExpectedRevenue,
         totalPendingRevenue,
-        monthlyFeeRevenue, // ✅ FIXED
-      }
+        monthlyFeeRevenue, // 
+      },
+      enrollmentsPerClass,
+      
     });
 
   } catch (error) {

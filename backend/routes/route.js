@@ -14,6 +14,7 @@ router.use("/studentfee", require("./admins/studentFee.routes"));
 router.use("/students", require("./admins/student.route"));
 router.use("/contact", require("./contactUs.route"));
 router.use("/admission", require("./admission.route"));
+router.use("/invoice", require("./admins/invoice.route"));
 
 
 // router.use("/instructor", require("./instructor/auth.route")); // /api/instructor/login
