@@ -17,12 +17,15 @@ import {
 import { useRouter } from "next/navigation";
 import { admissionService } from "@/services/admission.service";
 import { useSelector } from "react-redux";
+import { adminServices } from "@/services/admin/admin.service";
 
 const App = () => {
   const router = useRouter();
   const [hasAdmission, setHasAdmission] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const { user } = useSelector((state) => state.auth);
+  const [studentData, setStudentData] = useState(null);
+  const [className, setClassName] = useState("");
 
   // Primary Theme Color constant
   const primaryColor = "#0E94A5";
@@ -79,6 +82,67 @@ const App = () => {
     return "Good Evening";
   };
 
+  useEffect(() => {
+  const fetchStudent = async () => {
+    try {
+      if (!user?.email) return;
+
+      const email = user.email;
+
+      console.log("USER EMAIL 👉", email);
+
+      // 🔥 STEP 1: get ALL classes
+      const classRes = await adminServices.getAllClasses();
+      const classes = classRes?.data || classRes;
+
+      console.log("ALL CLASSES 👉", classes);
+
+      let foundStudent = null;
+      // 🔥 GET CLASS NAME USING CLASS ID
+if (foundStudent?.classId?._id) {
+  const classRes = await adminServices.getClassById(foundStudent.classId._id);
+  const cls = classRes?.data || classRes;
+
+  console.log("CLASS DETAILS 👉", cls);
+
+  setClassName(cls?.name || cls?.className || "");
+}
+
+      // 🔥 STEP 2: loop each class and find student
+      for (let cls of classes) {
+        const res = await adminServices.getstudentsByClass(cls._id);
+        const students = res?.data || res;
+
+        if (!Array.isArray(students)) continue;
+
+        const match = students.find(
+          (stu) =>
+            stu.email?.toLowerCase() === email.toLowerCase() ||
+            stu?.user?.email?.toLowerCase() === email.toLowerCase()
+        );
+
+        if (match) {
+          foundStudent = { ...match, className: cls.name };
+          break;
+        }
+      }
+
+      console.log("FINAL MATCHED STUDENT 👉", foundStudent);
+      console.log("CLASS OBJECT 👉", studentData?.classId);
+
+      if (!foundStudent) return;
+
+      // ✅ save full student
+      setStudentData(foundStudent);
+
+    } catch (err) {
+      console.error("ERROR ❌", err);
+    }
+  };
+
+  fetchStudent();
+}, [user]);
+
   if (isLoading) {
     return (
       <div className="flex h-screen items-center justify-center bg-gray-50 font-sans">
@@ -113,7 +177,11 @@ const App = () => {
             </div>
             <div className="pr-4">
               <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Active Batch</p>
-              <p className="text-sm font-bold text-slate-700">{user.batch}</p>
+     <p className="text-sm font-bold text-slate-700">
+  {studentData
+    ? `Class ${studentData?.classId?.className || "N/A"} - ${studentData?.classId?.section || studentData?.section || "N/A"}`
+    : "Loading..."}
+</p>
             </div>
           </div>
         </header>
