@@ -77,6 +77,11 @@ export const adminServices = {
     return response.data;
   },
 
+  getStudentByEmail: async (email) => {
+    const res = await axiosInstance.get(`/students/email/${email}`);
+    return res.data;
+  },
+
   getUserWithStudentCheck: async (id) => {
     const response = await axiosInstance.get(`/admin/user-with-student/${id}`);
     return response.data;
