@@ -1,16 +1,16 @@
 "use client"
 import React, { useEffect, useState } from "react";
-import { 
-  User, 
-  MapPin, 
-  Globe, 
-  Camera, 
-  Save, 
-  Plus, 
-  Trash2, 
-  Facebook, 
-  Linkedin, 
-  Twitter, 
+import {
+  User,
+  MapPin,
+  Globe,
+  Camera,
+  Save,
+  Plus,
+  Trash2,
+  Facebook,
+  Linkedin,
+  Twitter,
   Instagram,
   CheckCircle2,
   GraduationCap,
@@ -62,70 +62,51 @@ const Page = () => {
   const [activeTab, setActiveTab] = useState("personal");
   const [isEditing, setIsEditing] = useState(false);
   const tabs = [
-               { id: "personal", label: "Basic Info", icon: User },
-               { id: "contact", label: "Contact Details", icon: Phone },
-               { id: "academic", label: "Academic Info", icon: GraduationCap },
-               { id: "location", label: "Address Info", icon: MapPin },
-               { id: "social", label: "Social Links", icon: Globe },
-            ]
+    { id: "personal", label: "Basic Info", icon: User },
+    { id: "contact", label: "Contact Details", icon: Phone },
+    { id: "academic", label: "Academic Info", icon: GraduationCap },
+    { id: "location", label: "Address Info", icon: MapPin },
+    { id: "social", label: "Social Links", icon: Globe },
+  ]
 
-useEffect(() => {
- 
-  const fetchStudent = async () => {
-    try {
+  useEffect(() => {
+    const fetchStudent = async () => {
+      try {
+        if (!user?.email) return;
 
-      const res = await adminServices.getStudentById(data);
-      
-       console.log("🚀 Fetching students by class:", res);
-      if (!user) return;
+        const res = await adminServices.getStudentByEmail(user.email);
 
-      console.log("USER 👉", user);
+        const student = res?.data;
 
-      const classId = user?.classId; // ⚠️ make sure this exists
-      const email = user?.email;
+        if (!student) return;
 
-      if (!classId || !email) {
-        console.log("⏳ Missing classId or email");
-        return;
+        setProfile((prev) => ({
+          ...prev,
+          firstName: student.firstName || "",
+          lastName: student.lastName || "",
+          fatherName: student.fatherName || "",
+          motherName: student.motherName || "",
+          dob: student.dob || "",
+          gender: student.gender || "",
+          email: student.email || "",
+          phone: student.phone || "",
+          parentPhone: student.parentPhone || "",
+          address: student.address || "",
+          city: student.city || "",
+          category: student.category || "",
+          course: student.course || student.class || "",
+        }));
+
+      } catch (err) {
+        console.error("ERROR ❌", err);
       }
+    };
 
-      console.log("🚀 Fetching students by class:", data);
-
-      
-
-      const students = res?.data || res; // depends on API structure
-
-      // 🔥 MATCH EMAIL
-      const matchedStudent = students.find(
-        (stu) => stu.email === email
-      );
-
-      console.log("MATCHED STUDENT 👉", matchedStudent);
-
-      if (!matchedStudent) return;
-
-      // ✅ SET ONLY BASIC INFO
-      setProfile((prev) => ({
-        ...prev,
-        firstName: matchedStudent.firstName || "",
-        lastName: matchedStudent.lastName || "",
-        fatherName: matchedStudent.fatherName || "",
-        motherName: matchedStudent.motherName || "",
-        dob: matchedStudent.dob || "",
-        gender: matchedStudent.gender || "",
-        email: matchedStudent.email || "",  
-      }));
-
-    } catch (err) {
-      console.error("ERROR FETCHING STUDENT ❌", err);
-    }
-  };
-
-  fetchStudent();
-}, [user]);
+    fetchStudent();
+  }, [user]);
 
   const handleChange = (field, value) => setProfile({ ...profile, [field]: value });
-  
+
   const handleSocialChange = (field, value) =>
     setProfile({ ...profile, social: { ...profile.social, [field]: value } });
 
@@ -136,46 +117,46 @@ useEffect(() => {
   };
 
   const addSkill = () => setProfile({ ...profile, skills: [...profile.skills, { name: "", expertise: 0 }] });
-  
+
   const removeSkill = (index) => {
     const newSkills = profile.skills.filter((_, i) => i !== index);
     setProfile({ ...profile, skills: newSkills.length ? newSkills : [{ name: "", expertise: 0 }] });
   };
 
-const handleToggleEdit = async () => {
-  if (isEditing) {
-    try {
-      const payload = {
-        firstName: profile.firstName,
-        lastName: profile.lastName,
-        fatherName: profile.fatherName,
-        motherName: profile.motherName,
-        dob: profile.dob,
-        gender: profile.gender,
-      };
+  const handleToggleEdit = async () => {
+    if (isEditing) {
+      try {
+        const payload = {
+          firstName: profile.firstName,
+          lastName: profile.lastName,
+          fatherName: profile.fatherName,
+          motherName: profile.motherName,
+          dob: profile.dob,
+          gender: profile.gender,
+        };
 
-      console.log("UPDATING 👉", payload);
+        console.log("UPDATING 👉", payload);
 
-      await adminServices.updateStudent(user._id, payload);
+        await adminServices.updateStudent(user._id, payload);
 
-      console.log("UPDATED ✅");
+        console.log("UPDATED ✅");
 
-    } catch (err) {
-      console.error("UPDATE ERROR ❌", err);
+      } catch (err) {
+        console.error("UPDATE ERROR ❌", err);
+      }
     }
-  }
 
-  setIsEditing(!isEditing);
-};
-
+    setIsEditing(!isEditing);
+  };
 
 
-const activeTabLabel = tabs.find(tab => tab.id === activeTab)?.label;
-console.log("COMPONENT RENDERED ✅");  
-return (
+
+  const activeTabLabel = tabs.find(tab => tab.id === activeTab)?.label;
+  console.log("COMPONENT RENDERED ✅");
+  return (
     <div className="min-h-screen mt-10 bg-[#FDFDFD] font-sans text-slate-900">
       <div className="max-w-7xl mx-auto flex flex-col lg:flex-row">
-        
+
         {/* Navigation Sidebar */}
         <aside className="w-full lg:w-72 lg:h-screen lg:sticky lg:top-0 border-r border-slate-100 p-6 lg:p-10 bg-white">
           <div className="mb-8 mt-2">
@@ -184,18 +165,17 @@ return (
           </div>
 
           <nav className="space-y-1.5">
-            
+
             {tabs.map((tab) => {
               const Icon = tab.icon;
               return (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl transition-all ${
-                    activeTab === tab.id 
-                    ? "bg-[#0E94A5]/10 text-[#0E94A5]" 
+                  className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl transition-all ${activeTab === tab.id
+                    ? "bg-[#0E94A5]/10 text-[#0E94A5]"
                     : "text-slate-400 hover:text-slate-900 hover:bg-slate-50"
-                  }`}
+                    }`}
                 >
                   <div className="flex items-center gap-3">
                     <Icon size={16} />
@@ -220,33 +200,32 @@ return (
 
         {/* Form Content Area */}
         <main className="flex-1 bg-[#F9FBFC] p-6 lg:p-12">
-          
+
           {/* Header Row */}
           <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-10 max-w-4xl">
             <div>
               <h1 className="text-2xl font-black text-slate-900 tracking-tight">
-  {activeTabLabel}
-</h1>
+                {activeTabLabel}
+              </h1>
               <p className="text-sm text-slate-400 font-medium">Manage your admission records and presence</p>
             </div>
-            
+
             <div className="flex items-center gap-2">
               {isEditing && (
-                <button 
+                <button
                   onClick={() => setIsEditing(false)}
                   className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 text-slate-500 rounded-lg text-[11px] font-bold hover:bg-slate-200 transition-all"
                 >
                   <X size={12} /> Cancel
                 </button>
               )}
-              <button 
-              type="button"
+              <button
+                type="button"
                 onClick={handleToggleEdit}
-                className={`flex items-center justify-center gap-2 px-5 py-2 rounded-lg text-[11px] font-black uppercase tracking-widest transition-all shadow-sm ${
-                  isEditing 
-                  ? "bg-[#0E94A5] text-white hover:bg-[#087a87]" 
+                className={`flex items-center justify-center gap-2 px-5 py-2 rounded-lg text-[11px] font-black uppercase tracking-widest transition-all shadow-sm ${isEditing
+                  ? "bg-[#0E94A5] text-white hover:bg-[#087a87]"
                   : "bg-white text-slate-700 border border-slate-200 hover:bg-slate-50"
-                }`}
+                  }`}
               >
                 {isEditing ? (
                   <> <Save size={14} /> Save Changes </>
@@ -258,48 +237,48 @@ return (
           </header>
 
           <form className="space-y-10 max-w-4xl" onSubmit={(e) => e.preventDefault()}>
-            
+
             {/* Profile Photo Section */}
             <section className="animate-in fade-in slide-in-from-bottom-2 duration-500">
               <div className="flex flex-col md:flex-row gap-8 items-center border-b border-slate-200/60 pb-8">
                 <div className="relative">
                   <div className="w-28 h-28 rounded-3xl bg-white border border-slate-200 overflow-hidden shadow-sm flex items-center justify-center">
                     {(profile.photo || profile.profileImage) ? (
-  <img 
-    src={
-      typeof (profile.photo || profile.profileImage) === "string"
-        ? getMediaUrl(profile.photo || profile.profileImage)
-        : URL.createObjectURL(profile.photo || profile.profileImage)
-    }
-    className="w-full h-full object-cover"
-    alt="Profile"
-  />
-) : (
-  <User size={32} className="text-slate-200" />
-)}
+                      <img
+                        src={
+                          typeof (profile.photo || profile.profileImage) === "string"
+                            ? getMediaUrl(profile.photo || profile.profileImage)
+                            : URL.createObjectURL(profile.photo || profile.profileImage)
+                        }
+                        className="w-full h-full object-cover"
+                        alt="Profile"
+                      />
+                    ) : (
+                      <User size={32} className="text-slate-200" />
+                    )}
                   </div>
                   {isEditing && (
                     <label className="absolute -bottom-1 -right-1 p-2 bg-[#0E94A5] rounded-xl shadow-lg cursor-pointer hover:bg-[#087a87] transition-all text-white">
                       <Camera size={14} />
-                      <input 
-                        type="file" 
-                        className="hidden" 
-                        accept="image/*" 
+                      <input
+                        type="file"
+                        className="hidden"
+                        accept="image/*"
                         onChange={(e) =>
-  handleChange("photo", e.target.files[0])
-}
+                          handleChange("photo", e.target.files[0])
+                        }
                       />
                     </label>
                   )}
                 </div>
-                
+
                 <div className="text-center md:text-left">
                   <h3 className="text-base font-bold text-slate-900">Your Photo</h3>
                   <p className="text-[11px] text-slate-400 mb-4 max-w-xs leading-relaxed">This photo will be used for your student ID card and official records.</p>
                   {isEditing && (
                     <div className="flex justify-center md:justify-start gap-4">
                       <button className="text-[10px] font-black text-[#0E94A5] uppercase tracking-[0.2em]">Upload New</button>
-                      <button 
+                      <button
                         onClick={() => handleChange("profileImage", null)}
                         className="text-[10px] font-black text-red-400 uppercase tracking-[0.2em]"
                       >
@@ -313,14 +292,14 @@ return (
 
             {/* Dynamic Content Sections */}
             <div className="grid grid-cols-1 md:grid-cols-1 gap-8">
-              
+
               {/* IDENTITY TAB */}
               {activeTab === "personal" && (
                 <div className="space-y-8 animate-in fade-in duration-300">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
                     <div className="space-y-2">
                       <label className="text-[9px] font-black uppercase tracking-[0.3em] text-[#0E94A5]">First Name</label>
-                      <input 
+                      <input
                         disabled={!isEditing}
                         className={`w-full py-2 bg-transparent border-b transition-all text-lg font-black text-slate-800 focus:outline-none ${isEditing ? "border-[#0E94A5]" : "border-transparent"}`}
                         value={profile.firstName}
@@ -329,7 +308,7 @@ return (
                     </div>
                     <div className="space-y-2">
                       <label className="text-[9px] font-black uppercase tracking-[0.3em] text-[#0E94A5]">Last Name</label>
-                      <input 
+                      <input
                         disabled={!isEditing}
                         className={`w-full py-2 bg-transparent border-b transition-all text-lg font-black text-slate-800 focus:outline-none ${isEditing ? "border-[#0E94A5]" : "border-transparent"}`}
                         value={profile.lastName}
@@ -338,7 +317,7 @@ return (
                     </div>
                     <div className="space-y-2">
                       <label className="text-[9px] font-black uppercase tracking-[0.3em] text-[#0E94A5]">Father's Name</label>
-                      <input 
+                      <input
                         disabled={!isEditing}
                         className={`w-full py-2 bg-transparent border-b transition-all font-bold text-sm text-slate-700 focus:outline-none ${isEditing ? "border-[#0E94A5]" : "border-slate-100"}`}
                         value={profile.fatherName}
@@ -347,7 +326,7 @@ return (
                     </div>
                     <div className="space-y-2">
                       <label className="text-[9px] font-black uppercase tracking-[0.3em] text-[#0E94A5]">Mother's Name</label>
-                      <input 
+                      <input
                         disabled={!isEditing}
                         className={`w-full py-2 bg-transparent border-b transition-all font-bold text-sm text-slate-700 focus:outline-none ${isEditing ? "border-[#0E94A5]" : "border-slate-100"}`}
                         value={profile.motherName}
@@ -356,7 +335,7 @@ return (
                     </div>
                     <div className="space-y-2">
                       <label className="text-[9px] font-black uppercase tracking-[0.3em] text-[#0E94A5]">Date of Birth</label>
-                      <input 
+                      <input
                         disabled={!isEditing}
                         type="date"
                         className={`w-full py-2 bg-transparent border-b transition-all font-bold text-sm text-slate-700 focus:outline-none ${isEditing ? "border-[#0E94A5]" : "border-slate-100"}`}
@@ -366,7 +345,7 @@ return (
                     </div>
                     <div className="space-y-2">
                       <label className="text-[9px] font-black uppercase tracking-[0.3em] text-[#0E94A5]">Gender</label>
-                      <select 
+                      <select
                         disabled={!isEditing}
                         className={`w-full py-2 bg-transparent border-b transition-all font-bold text-sm text-slate-700 focus:outline-none appearance-none ${isEditing ? "border-[#0E94A5]" : "border-slate-100"}`}
                         value={profile.gender}
@@ -384,12 +363,12 @@ return (
               {/* CONTACT TAB */}
               {activeTab === "contact" && (
                 <div className="space-y-8 animate-in fade-in duration-300">
-                   <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
                     <div className="space-y-2">
                       <label className="text-[9px] font-black uppercase tracking-[0.3em] text-[#0E94A5]">Student Phone</label>
                       <div className="flex items-center gap-2 border-b transition-all pb-1 focus-within:border-[#0E94A5]">
                         <Phone size={12} className="text-slate-300" />
-                        <input 
+                        <input
                           disabled={!isEditing}
                           className="w-full bg-transparent font-bold text-sm text-slate-700 focus:outline-none"
                           value={profile.phone}
@@ -401,7 +380,7 @@ return (
                       <label className="text-[9px] font-black uppercase tracking-[0.3em] text-[#0E94A5]">Parent Phone</label>
                       <div className="flex items-center gap-2 border-b transition-all pb-1 focus-within:border-[#0E94A5]">
                         <Users size={12} className="text-slate-300" />
-                        <input 
+                        <input
                           disabled={!isEditing}
                           className="w-full bg-transparent font-bold text-sm text-slate-700 focus:outline-none"
                           value={profile.parentPhone}
@@ -413,7 +392,7 @@ return (
                       <label className="text-[9px] font-black uppercase tracking-[0.3em] text-[#0E94A5]">Official Email</label>
                       <div className="flex items-center gap-2 border-b transition-all pb-1">
                         <Mail size={12} className="text-slate-300" />
-                        <input 
+                        <input
                           disabled={true}
                           className="w-full bg-transparent font-bold text-sm text-slate-400 cursor-not-allowed"
                           value={profile.email}
@@ -424,7 +403,7 @@ return (
                       <label className="text-[9px] font-black uppercase tracking-[0.3em] text-[#0E94A5]">Alternate Email</label>
                       <div className="flex items-center gap-2 border-b transition-all pb-1 focus-within:border-[#0E94A5]">
                         <Mail size={12} className="text-slate-300" />
-                        <input 
+                        <input
                           disabled={!isEditing}
                           className="w-full bg-transparent font-bold text-sm text-slate-700 focus:outline-none"
                           value={profile.altEmail}
@@ -442,19 +421,19 @@ return (
                   <div className="space-y-6">
                     <div className="space-y-2 max-w-sm">
                       <label className="text-[9px] font-black uppercase tracking-[0.3em] text-[#0E94A5]">Enrolled Class</label>
-                      <select 
+                      <select
                         disabled={!isEditing}
                         className={`w-full py-2 bg-transparent border-b transition-all text-lg font-black text-slate-800 focus:outline-none appearance-none ${isEditing ? "border-[#0E94A5]" : "border-transparent"}`}
                         value={profile.course}
                         onChange={(e) => handleChange("course", e.target.value)}
                       >
-                        {[6,7,8,9,10,11,12].map(c => <option key={c} value={c}>Class {c}</option>)}
+                        {[6, 7, 8, 9, 10, 11, 12].map(c => <option key={c} value={c}>Class {c}</option>)}
                       </select>
                     </div>
 
                     <div className="space-y-2">
                       <label className="text-[9px] font-black uppercase tracking-[0.3em] text-[#0E94A5]">Profile Bio</label>
-                      <textarea 
+                      <textarea
                         disabled={!isEditing}
                         rows={2}
                         className={`w-full px-4 py-3 rounded-2xl transition-all font-medium text-sm text-slate-700 leading-relaxed focus:outline-none ${isEditing ? "bg-white border border-[#0E94A5]/20 shadow-sm" : "bg-white/50 border border-transparent"}`}
@@ -476,14 +455,14 @@ return (
                       <div className="space-y-3">
                         {profile.skills.map((skill, index) => (
                           <div key={index} className="flex items-center gap-4">
-                            <input 
+                            <input
                               disabled={!isEditing}
                               className={`flex-1 py-1 bg-transparent border-b transition-all font-bold text-sm text-slate-700 focus:outline-none ${isEditing ? "border-[#0E94A5]" : "border-slate-100"}`}
                               placeholder="Subject"
                               value={skill.name}
                               onChange={(e) => handleSkillChange(index, "name", e.target.value)}
                             />
-                            <input 
+                            <input
                               disabled={!isEditing}
                               type="number"
                               className={`w-12 py-1 bg-transparent border-b transition-all text-right font-black text-sm text-[#0E94A5] focus:outline-none ${isEditing ? "border-[#0E94A5]" : "border-slate-100"}`}
@@ -507,7 +486,7 @@ return (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
                     <div className="space-y-2 md:col-span-2">
                       <label className="text-[9px] font-black uppercase tracking-[0.3em] text-[#0E94A5]">Residential Address</label>
-                      <input 
+                      <input
                         disabled={!isEditing}
                         className={`w-full py-2 bg-transparent border-b transition-all font-bold text-sm text-slate-700 focus:outline-none ${isEditing ? "border-[#0E94A5]" : "border-slate-100"}`}
                         value={profile.address}
@@ -516,7 +495,7 @@ return (
                     </div>
                     <div className="space-y-2">
                       <label className="text-[9px] font-black uppercase tracking-[0.3em] text-[#0E94A5]">Caste Category</label>
-                      <select 
+                      <select
                         disabled={!isEditing}
                         className={`w-full py-2 bg-transparent border-b transition-all font-bold text-sm text-slate-700 focus:outline-none appearance-none ${isEditing ? "border-[#0E94A5]" : "border-slate-100"}`}
                         value={profile.category}
@@ -527,9 +506,9 @@ return (
                     </div>
                     <div className="space-y-2">
                       <label className="text-[9px] font-black uppercase tracking-[0.3em] text-[#0E94A5]">City</label>
-                      <input 
+                      <input
                         onChange={(e) => handleChange("city", e.target.value)}
-disabled={!isEditing}
+                        disabled={!isEditing}
                         className="w-full py-2 bg-transparent border-b border-transparent font-bold text-sm text-slate-700 focus:outline-none"
                         value={profile.city || ""}
                       />
@@ -555,7 +534,7 @@ disabled={!isEditing}
                           </div>
                           <div className="flex-1 space-y-0.5">
                             <label className="text-[8px] font-black uppercase tracking-[0.3em] text-slate-400">{platform.label}</label>
-                            <input 
+                            <input
                               disabled={!isEditing}
                               className={`w-full py-1.5 bg-transparent border-b transition-all font-bold text-sm text-slate-700 focus:outline-none ${isEditing ? "border-[#0E94A5]" : "border-slate-100"}`}
                               placeholder="Profile Link..."
