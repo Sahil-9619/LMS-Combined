@@ -16,13 +16,13 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { admissionService } from "@/services/admission.service";
-
+import { useSelector } from "react-redux";
 
 const App = () => {
   const router = useRouter();
-  const [user, setUser] = useState({ name: "Sahil", batch: "Achievers 2024", target: "IIT-JEE" });
   const [hasAdmission, setHasAdmission] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const { user } = useSelector((state) => state.auth);
 
   // Primary Theme Color constant
   const primaryColor = "#0E94A5";
@@ -92,7 +92,7 @@ const App = () => {
 
   return (
     <div className="min-h-screen bg-[#F8FAFB] text-slate-900 font-sans pb-12">
-      <main className="pt-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+      <main className="pt-24 px-4 sm:px-6 lg:px-8 mx-auto">
 
         {/* Header Greeting */}
         <header className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
@@ -102,7 +102,7 @@ const App = () => {
               VIGYAN ACADEMY PORTAL
             </div>
             <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">
-              {getGreeting()}, {user.name}
+              {getGreeting()}, {user?.firstName || user?.name || "User"}
             </h1>
             <p className="text-slate-500 mt-2 font-medium">Empowering your journey with "विज्ञानं सर्वस्य मूलम्"</p>
           </div>
@@ -117,10 +117,10 @@ const App = () => {
             </div>
           </div>
         </header>
-
+      <hr className="py-3"></hr>
         {/* ADMISSION BANNER */}
         {!hasAdmission && (
-          <div className="mb-10 relative overflow-hidden rounded-3xl border border-cyan-100 bg-white shadow-xl shadow-[#0E94A5]/5">
+          <div className="mb-10 relative overflow-hidden rounded-3xl border border-cyan-100  bg-white shadow-xl shadow-[#0E94A5]/5">
             <div className="absolute -top-24 -right-24 w-64 h-64 bg-cyan-50 rounded-full opacity-40"></div>
 
             <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between p-8 gap-8">
@@ -145,10 +145,14 @@ const App = () => {
                 <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
               </button>
             </div>
+            
           </div>
+          
         )}
+        
 
         {/* Stats Grid */}
+        
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
           {stats.map((stat, idx) => (
             <div key={idx} className="bg-white p-6 rounded-3xl border border-cyan-50 shadow-sm hover:shadow-md transition-all">
@@ -271,4 +275,4 @@ const App = () => {
   );
 };
 
-export default App;
+export default App; 
