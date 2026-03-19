@@ -18,7 +18,8 @@ import { usePathname } from "next/navigation";
 import { adminServices } from "@/services/admin/admin.service";
 import { brandName } from "@/app/contants";
 import { useSelector } from "react-redux";
-
+import { useDispatch } from "react-redux";
+import { logout } from "@/lib/store/features/authSlice";
 
 
 const Navbar = () => {
@@ -27,6 +28,7 @@ const Navbar = () => {
   const [profileOpen, setProfileOpen] = useState(false);
   const pathname = usePathname();
   const { user } = useSelector((state) => state.auth);
+  const dispatch = useDispatch();
 
 
   const profileRef = useRef(null);
@@ -102,6 +104,11 @@ const getInitials = (name) => {
     { name: "Sign Out", icon: <LogOut size={16} />, color: "text-red-500" },
   ];
 
+  //handle logout
+  const handleLogout = () => {
+  dispatch(logout());
+};
+
   return (
     <nav className="fixed top-0 w-full z-50 bg-cyan-900 shadow-lg">
 
@@ -159,15 +166,19 @@ const getInitials = (name) => {
             {profileOpen && (
               <div className="absolute right-0 mt-2 w-52 bg-white rounded-xl shadow-lg py-2">
                 {profileItems.map((item) => (
-                  <button
-                    key={item.name}
-                    className={`w-full flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-100 ${item.color || ""
-                      }`}
-                  >
-                    {item.icon}
-                    {item.name}
-                  </button>
-                ))}
+  <button
+    key={item.name}
+    onClick={() => {
+      if (item.name === "Sign Out") {
+        handleLogout();
+      }
+    }}
+    className={`w-full flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-100 ${item.color || ""}`}
+  >
+    {item.icon}
+    {item.name}
+  </button>
+))}
               </div>
             )}
           </div>

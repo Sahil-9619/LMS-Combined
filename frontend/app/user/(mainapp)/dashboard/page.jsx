@@ -15,10 +15,9 @@ import {
   Award
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-/**
- * Professional Student Dashboard for Vigyan Academy
- * Theme Color: #0E94A5 (Extracted from Logo)
- */
+import { admissionService } from "@/services/admission.service";
+
+
 const App = () => {
   const router = useRouter();
   const [user, setUser] = useState({ name: "Sahil", batch: "Achievers 2024", target: "IIT-JEE" });
@@ -40,18 +39,32 @@ const App = () => {
     { subject: "Mathematics", topic: "Integration by Parts", time: "10:30 AM", room: "Hall A" },
     { subject: "Chemistry", topic: "Organic Synthesis", time: "01:15 PM", room: "Room 204" },
   ];
-useEffect(() => {
-  const checkAdmission = async () => {
-    try {
-      const res = await admissionService.checkAdmission();
-      setHasAdmission(res?.hasAdmission === true);
-    } catch (err) {
-      setHasAdmission(false);
-    }
-  };
 
-  checkAdmission();
-}, []);
+
+  useEffect(() => {
+    const checkAdmission = async () => {
+      try {
+        const res = await admissionService.checkAdmission();
+
+        console.log("ADMISSION RESPONSE 👉", res);
+
+        const admitted =
+          res?.hasAdmission === true ||
+          res?.data?.hasAdmission === true ||
+          !!res?.student ||
+          !!res?.data?.student;
+
+        setHasAdmission(admitted);
+      } catch (err) {
+        console.error("ERROR ❌", err);
+        setHasAdmission(false);
+      }
+    };
+
+    checkAdmission();
+  }, []);
+
+
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsLoading(false);
@@ -125,12 +138,12 @@ useEffect(() => {
                 </div>
               </div>
               <button
-  onClick={() => router.push("/admission")}
-  className="group flex items-center gap-3 whitespace-nowrap bg-[#0E94A5] hover:bg-[#087a87] text-white px-8 py-4 rounded-2xl font-bold transition-all shadow-lg shadow-cyan-100"
->
-  Get Admission Now
-  <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
-</button>
+                onClick={() => router.push("/admission")}
+                className="group flex items-center gap-3 whitespace-nowrap bg-[#0E94A5] hover:bg-[#087a87] text-white px-8 py-4 rounded-2xl font-bold transition-all shadow-lg shadow-cyan-100"
+              >
+                Get Admission Now
+                <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
+              </button>
             </div>
           </div>
         )}
