@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { adminServices } from "@/services/admin/admin.service";
 import { toast } from "sonner";
-import { 
+import {
   Search, Banknote, Receipt, Lock, Unlock,
   GraduationCap, Building, Bus, FileText, Clock, Pencil, Save,
   CheckCircle2
@@ -105,7 +105,7 @@ export default function ClassFeeManagement() {
           throw err;
         }
       }
-      
+
       toast.success("Fee ledger updated successfully.");
       setEditing(false);
     } catch (err) {
@@ -114,27 +114,26 @@ export default function ClassFeeManagement() {
   };
 
   // Calculations
-  const totalFee = 
-    (Number(tuitionFee) || 0) + 
-    (Number(admissionFee) || 0) + 
-    (Number(examFee) || 0) + 
-    (Number(hostelFee) || 0) + 
+  const totalFee =
+    (Number(tuitionFee) || 0) +
+    (Number(admissionFee) || 0) +
+    (Number(examFee) || 0) +
+    (Number(hostelFee) || 0) +
     (Number(transportFee) || 0);
 
   const sortedClasses = [...classes]
-    .filter(c => c.className.toLowerCase().includes(searchQuery.toLowerCase()))
+    .filter((c) =>
+      String(c.className).toLowerCase().includes(searchQuery.toLowerCase())
+    )
     .sort((a, b) => Number(a.className) - Number(b.className));
-
-  const activeClassObject = classes.find(c => c._id === classId);
-
   return (
     <div className="min-h-[calc(100vh-4rem)] bg-white flex flex-col md:flex-row font-sans border-t border-slate-100 overflow-hidden">
-      
+
       {/* ====================================================
           LEFT PANE: DIRECTORY
           ==================================================== */}
       <div className={`w-full md:w-[320px] lg:w-[380px] flex-shrink-0 flex flex-col border-r border-slate-200 bg-slate-50/50 ${classId ? 'hidden md:flex' : 'flex'}`}>
-        
+
         {/* Header & Search */}
         <div className="p-6 md:p-8 pb-4">
           <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 mb-6 flex items-center gap-3">
@@ -156,7 +155,7 @@ export default function ClassFeeManagement() {
         {/* Flat List */}
         <div className="flex-1 overflow-y-auto px-4 pb-8 space-y-1">
           <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3 px-4">Select Class Ledger</h3>
-          
+
           {sortedClasses.length === 0 ? (
             <div className="text-center p-6 text-slate-400 text-sm font-medium">
               No classes found.
@@ -168,11 +167,10 @@ export default function ClassFeeManagement() {
                 <button
                   key={cls._id}
                   onClick={() => setClassId(cls._id)}
-                  className={`w-full text-left flex items-center justify-between px-5 py-3.5 rounded-xl transition-all relative ${
-                    isActive 
-                      ? "bg-[#178F9E] text-white shadow-md shadow-[#178F9E]/20" 
-                      : "hover:bg-slate-200/50 text-slate-600 hover:text-slate-900"
-                  }`}
+                  className={`w-full text-left flex items-center justify-between px-5 py-3.5 rounded-xl transition-all relative ${isActive
+                    ? "bg-[#178F9E] text-white shadow-md shadow-[#178F9E]/20"
+                    : "hover:bg-slate-200/50 text-slate-600 hover:text-slate-900"
+                    }`}
                 >
                   <span className="text-base font-bold">
                     Class {cls.className}
@@ -191,12 +189,12 @@ export default function ClassFeeManagement() {
           RIGHT PANE: INVOICE/LEDGER VIEW
           ==================================================== */}
       <div className={`flex-1 flex flex-col bg-white relative min-w-0 ${!classId ? 'hidden md:flex' : 'flex'}`}>
-        
+
         {classId ? (
           <>
             {/* Mobile Back Button */}
             <div className="md:hidden p-4 border-b border-slate-100 flex items-center flex-shrink-0">
-              <button 
+              <button
                 onClick={() => setClassId("")}
                 className="text-sm bg-cyan-800 text-white p-2 rounded-xl font-bold text-slate-500 hover:text-slate-900 flex items-center gap-2 mt-5"
               >
@@ -211,7 +209,7 @@ export default function ClassFeeManagement() {
               </div>
             ) : (
               <div className="flex-1 flex flex-col h-full overflow-hidden">
-                
+
                 {/* Ledger Header */}
                 <div className="px-8 md:px-16 pt-12 pb-8 border-b border-slate-100 flex-shrink-0 flex items-end justify-between">
                   <div className="min-w-0">
@@ -223,10 +221,10 @@ export default function ClassFeeManagement() {
                     </div>
                     {/* Academic Session has been removed, only showing the Class Name */}
                     <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight truncate">
-                      Class {activeClassObject?.className}
+                      Class {String(classes.find((c) => c._id === classId)?.className ?? "")}
                     </h1>
                   </div>
-                  
+
                   {!editing && (
                     <button
                       onClick={() => setEditing(true)}
@@ -240,41 +238,41 @@ export default function ClassFeeManagement() {
                 {/* Ledger Rows (Scrollable) */}
                 <div className="flex-1 overflow-y-auto px-8 md:px-16 py-8">
                   <div className="max-w-2xl mx-auto space-y-2">
-                    
-                    <LedgerRow 
-                      icon={GraduationCap} 
-                      label="Annual Tuition Fee" 
-                      value={tuitionFee} 
-                      setValue={setTuitionFee} 
-                      disabled={!editing} 
+
+                    <LedgerRow
+                      icon={GraduationCap}
+                      label="Annual Tuition Fee"
+                      value={tuitionFee}
+                      setValue={setTuitionFee}
+                      disabled={!editing}
                     />
-                    <LedgerRow 
-                      icon={CheckCircle2} 
-                      label="Admission / Registration Fee" 
-                      value={admissionFee} 
-                      setValue={setAdmissionFee} 
-                      disabled={!editing} 
+                    <LedgerRow
+                      icon={CheckCircle2}
+                      label="Admission / Registration Fee"
+                      value={admissionFee}
+                      setValue={setAdmissionFee}
+                      disabled={!editing}
                     />
-                    <LedgerRow 
-                      icon={FileText} 
-                      label="Examination & Lab Fees" 
-                      value={examFee} 
-                      setValue={setExamFee} 
-                      disabled={!editing} 
+                    <LedgerRow
+                      icon={FileText}
+                      label="Examination & Lab Fees"
+                      value={examFee}
+                      setValue={setExamFee}
+                      disabled={!editing}
                     />
-                    <LedgerRow 
-                      icon={Building} 
-                      label="Hostel & Boarding Fee" 
-                      value={hostelFee} 
-                      setValue={setHostelFee} 
-                      disabled={!editing} 
+                    <LedgerRow
+                      icon={Building}
+                      label="Hostel & Boarding Fee"
+                      value={hostelFee}
+                      setValue={setHostelFee}
+                      disabled={!editing}
                     />
-                    <LedgerRow 
-                      icon={Bus} 
-                      label="Transport & Bus Fee" 
-                      value={transportFee} 
-                      setValue={setTransportFee} 
-                      disabled={!editing} 
+                    <LedgerRow
+                      icon={Bus}
+                      label="Transport & Bus Fee"
+                      value={transportFee}
+                      setValue={setTransportFee}
+                      disabled={!editing}
                     />
 
                     {/* Separator */}
@@ -282,13 +280,13 @@ export default function ClassFeeManagement() {
                       <div className="w-full h-px bg-slate-200 border-b border-dashed border-slate-300"></div>
                     </div>
 
-                    <LedgerRow 
-                      icon={Clock} 
-                      label="Late Payment Penalty (Per Day)" 
-                      value={lateFeePerDay} 
-                      setValue={setLateFeePerDay} 
-                      disabled={!editing} 
-                      isPenalty 
+                    <LedgerRow
+                      icon={Clock}
+                      label="Late Payment Penalty (Per Day)"
+                      value={lateFeePerDay}
+                      setValue={setLateFeePerDay}
+                      disabled={!editing}
+                      isPenalty
                     />
 
                   </div>
@@ -306,7 +304,7 @@ export default function ClassFeeManagement() {
                       </p>
                       <div className="flex items-baseline min-w-0">
                         <span className="text-3xl font-black text-white tracking-tight mr-1">₹</span>
-                        <p 
+                        <p
                           className="text-3xl font-black text-white tracking-tight truncate max-w-[180px] md:max-w-[250px]"
                           title={totalFee.toLocaleString('en-IN')}
                         >
@@ -370,12 +368,11 @@ export default function ClassFeeManagement() {
 function LedgerRow({ icon: Icon, label, value, setValue, disabled, isPenalty = false }) {
   return (
     <div className="group flex flex-col sm:flex-row sm:items-center justify-between py-3 sm:py-2 gap-2 sm:gap-6 rounded-xl transition-colors hover:bg-slate-50 focus-within:bg-slate-50 px-2 sm:px-4 -mx-2 sm:-mx-4">
-      
+
       {/* Label Side */}
       <div className="flex items-center gap-4 flex-1 min-w-0">
-        <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors ${
-          disabled ? 'bg-slate-100 text-slate-400' : isPenalty ? 'bg-rose-50 text-rose-500' : 'bg-[#178F9E]/10 text-[#178F9E]'
-        }`}>
+        <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors ${disabled ? 'bg-slate-100 text-slate-400' : isPenalty ? 'bg-rose-50 text-rose-500' : 'bg-[#178F9E]/10 text-[#178F9E]'
+          }`}>
           <Icon className="w-5 h-5" />
         </div>
         {/* FIX: Removed 'truncate' so long text fully displays and wraps normally */}
@@ -391,7 +388,7 @@ function LedgerRow({ icon: Icon, label, value, setValue, disabled, isPenalty = f
         <span className={`absolute left-4 font-black text-lg ${disabled ? 'text-slate-400' : isPenalty ? 'text-rose-500' : 'text-slate-900'}`}>
           ₹
         </span>
-        
+
         {/* INPUT FIXES:
             1. No arrows: [appearance:textfield] & webkit-outer-spin-button hides browser arrows.
             2. No scrolling: onWheel={(e) => e.target.blur()} prevents mouse scroll changing values.
@@ -404,7 +401,7 @@ function LedgerRow({ icon: Icon, label, value, setValue, disabled, isPenalty = f
           value={value}
           disabled={disabled}
           placeholder="0"
-          onWheel={(e) => e.target.blur()} 
+          onWheel={(e) => e.target.blur()}
           onKeyDown={(e) => {
             if (['-', '+', 'e', 'E'].includes(e.key)) {
               e.preventDefault();
@@ -417,11 +414,10 @@ function LedgerRow({ icon: Icon, label, value, setValue, disabled, isPenalty = f
               setValue(val);
             }
           }}
-          className={`w-full min-w-0 pl-9 pr-4 py-2.5 text-right text-xl font-black font-mono rounded-xl outline-none transition-all [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${
-            disabled 
-              ? 'bg-transparent text-slate-500 cursor-not-allowed' 
-              : `bg-white border-2 shadow-sm ${isPenalty ? 'border-rose-200 focus:border-rose-500 focus:ring-4 focus:ring-rose-500/10 text-rose-700' : 'border-slate-200 focus:border-[#178F9E] focus:ring-4 focus:ring-[#178F9E]/10 text-[#178F9E] hover:border-slate-300'}`
-          }`}
+          className={`w-full min-w-0 pl-9 pr-4 py-2.5 text-right text-xl font-black font-mono rounded-xl outline-none transition-all [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${disabled
+            ? 'bg-transparent text-slate-500 cursor-not-allowed'
+            : `bg-white border-2 shadow-sm ${isPenalty ? 'border-rose-200 focus:border-rose-500 focus:ring-4 focus:ring-rose-500/10 text-rose-700' : 'border-slate-200 focus:border-[#178F9E] focus:ring-4 focus:ring-[#178F9E]/10 text-[#178F9E] hover:border-slate-300'}`
+            }`}
         />
       </div>
     </div>

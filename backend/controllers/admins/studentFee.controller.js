@@ -333,8 +333,9 @@ exports.updateStudentFee = async (req, res) => {
     let paymentDate = new Date();
 
     if (month) {
-      const monthIndex = new Date(`${month} 1, 2026`).getMonth();
-      paymentDate = new Date(2026, monthIndex, 1);
+      const currentYear = new Date().getFullYear();
+      const monthIndex = new Date(`${month} 1, ${currentYear}`).getMonth();
+      paymentDate = new Date(currentYear, monthIndex, 1);
     }
 
     // ==============================
