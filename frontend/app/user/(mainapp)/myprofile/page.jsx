@@ -128,14 +128,7 @@ const MyProfile = () => {
           ) : null}
         </div>
 
-        {/* <div>
-          <Label>Experience (years)</Label>
-          <Input
-            type="number"
-            value={profile.experience}
-            onChange={(e) => handleChange("experience", e.target.value)}
-          />
-        </div> */}
+        
       </div>
 
       {/* Short Bio */}
