@@ -4,8 +4,8 @@ import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { adminServices } from "@/services/admin/admin.service";
 import { toast } from "sonner";
-import { 
-  Trash2, Plus, Users, Search, 
+import {
+  Trash2, Plus, Users, Search,
   ArrowRight, FolderOpen, Layers
 } from "lucide-react";
 
@@ -97,7 +97,7 @@ export default function ClassSectionManagement() {
 
       await Promise.all(docs.map((d) => adminServices.deleteClass(d._id)));
       toast.success(`Class ${selected.className} deleted.`);
-      
+
       if (selectedClass === id) {
         setSelectedClass("");
         setSections([]);
@@ -157,19 +157,25 @@ export default function ClassSectionManagement() {
      HELPERS & SORTING
      ========================================================= */
   const sortedClasses = [...classes]
-    .filter((c) => c.className.toLowerCase().includes(searchQuery.toLowerCase()))
-    .sort((a, b) => a.className.localeCompare(b.className, undefined, { numeric: true }));
+    .filter((c) =>
+      String(c.className).toLowerCase().includes(searchQuery.toLowerCase())
+    )
+    .sort((a, b) =>
+      String(a.className).localeCompare(String(b.className), undefined, {
+        numeric: true,
+      })
+    );
 
   const activeClassObject = classes.find((c) => c._id === selectedClass);
 
   return (
     <div className="min-h-[calc(100vh-4rem)] flex flex-col md:flex-row bg-background text-foreground font-sans">
-      
+
       {/* ====================================================
           LEFT PANE: CLASSES DIRECTORY
           ==================================================== */}
       <div className={`w-full md:w-[320px] lg:w-[380px] flex-shrink-0 flex flex-col border-r border-border bg-muted/10 ${selectedClass ? 'hidden md:flex' : 'flex'}`}>
-        
+
         {/* Header & Search */}
         <div className="p-6 pb-4">
           <h1 className="text-xl font-semibold tracking-tight mb-4 flex items-center gap-2">
@@ -198,8 +204,8 @@ export default function ClassSectionManagement() {
               disabled={loading}
               className="flex-1 bg-background border border-border focus:border-primary rounded-md py-2.5 px-3 text-sm outline-none transition-colors shadow-sm disabled:opacity-50"
             />
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               disabled={loading || !newClass.trim()}
               className="flex items-center gap-1.5 bg-primary hover:bg-primary/90 text-primary-foreground font-medium py-2.5 px-4 rounded-md transition-colors shadow-sm disabled:opacity-50"
             >
@@ -222,27 +228,25 @@ export default function ClassSectionManagement() {
                 <button
                   key={cls._id}
                   onClick={() => setSelectedClass(cls._id)}
-                  className={`w-full text-left flex items-center justify-between px-4 py-3 rounded-md transition-colors group ${
-                    isActive 
-                      ? "bg-primary/10 text-primary font-medium" 
-                      : "hover:bg-muted text-muted-foreground hover:text-foreground"
-                  }`}
+                  className={`w-full text-left flex items-center justify-between px-4 py-3 rounded-md transition-colors group ${isActive
+                    ? "bg-primary/10 text-primary font-medium"
+                    : "hover:bg-muted text-muted-foreground hover:text-foreground"
+                    }`}
                 >
                   <span className="text-sm truncate">
                     Class {cls.className}
                   </span>
 
-                  <div 
+                  <div
                     onClick={(e) => {
                       e.stopPropagation();
                       setDeleteType("class");
                       setDeleteId(cls._id);
                     }}
-                    className={`p-1.5 rounded-md transition-colors ${
-                      isActive 
-                        ? "text-primary/60 hover:text-destructive hover:bg-destructive/10" 
-                        : "opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                    }`}
+                    className={`p-1.5 rounded-md transition-colors ${isActive
+                      ? "text-primary/60 hover:text-destructive hover:bg-destructive/10"
+                      : "opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                      }`}
                     title="Delete Class"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -258,10 +262,10 @@ export default function ClassSectionManagement() {
           RIGHT PANE: SECTIONS VIEW
           ==================================================== */}
       <div className={`flex-1 flex flex-col bg-background relative ${!selectedClass ? 'hidden md:flex' : 'flex'}`}>
-        
+
         {selectedClass ? (
           <>
-            
+
 
             {/* Detail Header */}
             <div className="px-8 pt-10 pb-6 flex-shrink-0">
@@ -284,7 +288,7 @@ export default function ClassSectionManagement() {
                 maxLength={5}
                 className="w-[240px] bg-background border border-border focus:border-primary rounded-md py-2.5 px-4 text-sm font-medium outline-none transition-colors shadow-sm uppercase placeholder:font-normal placeholder:normal-case"
               />
-              <button 
+              <button
                 type="submit"
                 disabled={!sectionName.trim() || isAddingSection}
                 className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-medium py-2.5 px-5 rounded-md transition-colors shadow-sm disabled:opacity-50"
@@ -296,7 +300,7 @@ export default function ClassSectionManagement() {
             {/* Sections Flat List */}
             <div className="flex-1 overflow-y-auto px-8 py-6">
               <div className="flex flex-col max-w-3xl">
-                
+
                 {/* List Header */}
                 <div className="flex items-center justify-between py-2 border-b border-border text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
                   <span>Section Name</span>
@@ -308,7 +312,7 @@ export default function ClassSectionManagement() {
                     No sections available. Add one above.
                   </div>
                 )}
-                
+
 
                 <AnimatePresence>
                   {sections.map((sec) => (
@@ -323,7 +327,7 @@ export default function ClassSectionManagement() {
                       <span className="text-sm font-medium text-foreground">
                         Section {sec.section}
                       </span>
-                      
+
                       <button
                         onClick={() => {
                           setDeleteType("section");
@@ -339,14 +343,14 @@ export default function ClassSectionManagement() {
                 </AnimatePresence>
               </div>
               {/* Toolbar (Mobile Back Button) */}
-            <div className="md:hidden h-14 flex items-center px-4 border-b border-border flex-shrink-0">
-              <button 
-                onClick={() => setSelectedClass("")}
-                className="flex bg-cyan-800 rounded-xl text-white p-2 items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
-              >
-                <ArrowRight className="w-4 h-4 rotate-180" /> Back to Class List
-              </button>
-            </div>
+              <div className="md:hidden h-14 flex items-center px-4 border-b border-border flex-shrink-0">
+                <button
+                  onClick={() => setSelectedClass("")}
+                  className="flex bg-cyan-800 rounded-xl text-white p-2 items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <ArrowRight className="w-4 h-4 rotate-180" /> Back to Class List
+                </button>
+              </div>
             </div>
           </>
         ) : (
@@ -362,7 +366,7 @@ export default function ClassSectionManagement() {
           </div>
         )}
       </div>
-      
+
 
       {/* ====================================================
           THEMED DELETE MODAL
@@ -392,8 +396,8 @@ export default function ClassSectionManagement() {
                   Delete {deleteType === "class" ? "Class" : "Section"}?
                 </h2>
                 <p className="text-muted-foreground text-sm leading-relaxed">
-                  {deleteType === "class" 
-                    ? "This will permanently delete this class and all associated sections. This action cannot be undone." 
+                  {deleteType === "class"
+                    ? "This will permanently delete this class and all associated sections. This action cannot be undone."
                     : "This section will be permanently removed. This action cannot be undone."}
                 </p>
               </div>

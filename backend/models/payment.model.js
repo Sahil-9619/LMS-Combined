@@ -20,10 +20,7 @@ const paymentSchema = new mongoose.Schema(
       required: true,
     },
 
-    academicYear: {
-      type: String,
-      required: true, // 2025-2026
-    },
+    
 
     installmentName: {
       type: String, // First Term, Second Term
