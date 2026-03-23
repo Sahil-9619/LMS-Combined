@@ -90,10 +90,10 @@ export const adminServices = {
   // ================= FEE MODULE =================
 
   // Get class fee by class name
-  getClassFeeByClass: async (classId) => {
-    const response = await axiosInstance.get(`/feestructure/${classId}`);
-    return response.data;
-  },
+ getClassFeeByClass: async (classId) => {
+  const response = await axiosInstance.get(`/feestructure/class/${classId}`);
+  return response.data;
+},
 
   // Update class fee
   updateClassFee: async (classId, data) => {

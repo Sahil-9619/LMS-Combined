@@ -15,6 +15,8 @@ export default function ClassFeeManagement() {
   const [classes, setClasses] = useState([]);
   const [classId, setClassId] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
+  const [extraComponents, setExtraComponents] = useState([]);
+  const [existingComponents, setExistingComponents] = useState([]);
 
   const [tuitionFee, setTuitionFee] = useState("");
   const [admissionFee, setAdmissionFee] = useState("");
@@ -46,7 +48,7 @@ export default function ClassFeeManagement() {
   useEffect(() => {
     if (!classId) return;
 
-    const fetchCurrentFee = async () => {
+    const fetchCurrentFee = async () => { 
       setError("");
       setLoading(true);
       setDataFetched(false);
@@ -55,12 +57,27 @@ export default function ClassFeeManagement() {
         const res = await adminServices.getClassFeeByClass(classId);
         const data = res?.data || res;
 
-        setTuitionFee(data.tuitionFee || 0);
-        setAdmissionFee(data.admissionFee || 0);
-        setExamFee(data.examFee || 0);
-        setHostelFee(data.hostelFee || 0);
-        setTransportFee(data.transportFee || 0);
-        setLateFeePerDay(data.lateFeePerDay || 0);
+       const components = data.feeComponents || [];
+       const getAmount = (name) =>
+  components.find((f) => f.name === name)?.amount || "";
+
+setTuitionFee(getAmount("tuition"));
+setAdmissionFee(getAmount("admission"));
+setExamFee(getAmount("exam"));
+setHostelFee(getAmount("hostel"));
+setTransportFee(getAmount("transport"));
+setLateFeePerDay(data.lateFeePerDay || "");
+
+// 🔥 store existing
+setExistingComponents(components);
+
+// 🔥 extras
+const extras = components.filter(
+  (c) =>
+    !["tuition", "admission", "exam", "hostel", "transport"].includes(c.name)
+);
+
+setExtraComponents(extras);
 
         setEditing(false);
         setDataFetched(true);
@@ -82,21 +99,49 @@ export default function ClassFeeManagement() {
     fetchCurrentFee();
   }, [classId]);
 
+  const mergeComponent = (name, newValue, type) => {
+  const existing = existingComponents.find(c => c.name === name);
+
+  return {
+    name,
+    amount:
+      newValue !== "" && newValue !== null && newValue !== undefined
+        ? Number(newValue)
+        : existing?.amount || 0,
+    type
+  };
+};
+
   /* UPDATE FEE */
   const updateFee = async () => {
     if (!classId) return;
     try {
-      const payload = {
-        classId,
-        tuitionFee: Number(tuitionFee) || 0,
-        admissionFee: Number(admissionFee) || 0,
-        examFee: Number(examFee) || 0,
-        hostelFee: Number(hostelFee) || 0,
-        transportFee: Number(transportFee) || 0,
-        lateFeePerDay: Number(lateFeePerDay) || 0
-      };
+    let feeComponents = [
+  mergeComponent("tuition", tuitionFee, "monthly"),
+  mergeComponent("admission", admissionFee, "one-time"),
+  mergeComponent("exam", examFee, "one-time"),
+  mergeComponent("hostel", hostelFee, "monthly"),
+  mergeComponent("transport", transportFee, "monthly"),
 
-      try {
+  ...extraComponents
+    .filter(c => c.name)
+    .map(c => ({
+      name: c.name.trim().toLowerCase(),
+      amount: Number(c.amount) || 0,
+      type: c.type || "one-time"
+    }))
+];
+
+// remove duplicates
+const map = new Map();
+feeComponents.forEach(f => map.set(f.name, f));
+
+const payload = {
+  classId,
+  feeComponents: Array.from(map.values()),
+  lateFeePerDay: Number(lateFeePerDay) || 0
+};
+      try {   
         await adminServices.updateClassFee(classId, payload);
       } catch (err) {
         if (err?.response?.data?.message === "Fee structure not found") {
@@ -114,18 +159,43 @@ export default function ClassFeeManagement() {
   };
 
   // Calculations
-  const totalFee =
-    (Number(tuitionFee) || 0) +
-    (Number(admissionFee) || 0) +
-    (Number(examFee) || 0) +
-    (Number(hostelFee) || 0) +
-    (Number(transportFee) || 0);
+  const extraTotal = extraComponents.reduce(
+  (sum, c) => sum + Number(c.amount || 0),
+  0
+);
+
+const totalFee =
+  ((Number(tuitionFee) || 0) ) +
+  ((Number(hostelFee) || 0) ) +
+  ((Number(transportFee) || 0) ) +
+  (Number(admissionFee) || 0) +
+  (Number(examFee) || 0) +
+  extraTotal;
 
   const sortedClasses = [...classes]
     .filter((c) =>
       String(c.className).toLowerCase().includes(searchQuery.toLowerCase())
     )
     .sort((a, b) => Number(a.className) - Number(b.className));
+
+    const addComponent = () => {
+  setExtraComponents([
+    ...extraComponents,
+    { name: "", amount: 0, type: "one-time" }
+  ]);
+};
+
+const removeComponent = (index) => {
+  const updated = [...extraComponents];
+  updated.splice(index, 1);
+  setExtraComponents(updated);
+};
+
+const updateComponent = (index, field, value) => {
+  const updated = [...extraComponents];
+  updated[index][field] = value;
+  setExtraComponents(updated);
+};
   return (
     <div className="min-h-[calc(100vh-4rem)] bg-white flex flex-col md:flex-row font-sans border-t border-slate-100 overflow-hidden">
 
@@ -291,6 +361,49 @@ export default function ClassFeeManagement() {
 
                   </div>
                 </div>
+                {/* 🔥 EXTRA COMPONENTS */}
+{extraComponents.map((comp, index) => (
+  <div key={index} className="flex gap-2 items-center mt-2">
+    
+    <input
+      placeholder="Name"
+      value={comp.name}
+      disabled={!editing}
+      onChange={(e) =>
+        updateComponent(index, "name", e.target.value)
+      }
+      className="border p-2 rounded w-32"
+    />
+
+    <input
+      type="number"
+      value={comp.amount}
+      disabled={!editing}
+      onChange={(e) =>
+        updateComponent(index, "amount", e.target.value)
+      }
+      className="border p-2 rounded w-32"
+    />
+
+    {editing && (
+      <button
+        onClick={() => removeComponent(index)}
+        className="text-red-500 font-bold"
+      >
+        ✕
+      </button>
+    )}
+  </div>
+))}
+
+{editing && (
+  <button
+    onClick={addComponent}
+    className="mt-3 text-sm text-blue-600 font-bold"
+  >
+    + Add Fee Component
+  </button>
+)}
 
                 {/* Sticky Summary & Save Footer */}
                 <div className="bg-slate-900 border-t border-slate-200 px-8 md:px-16 py-6 flex flex-col sm:flex-row items-center justify-between gap-6 flex-shrink-0 min-w-0">

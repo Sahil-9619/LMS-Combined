@@ -130,7 +130,7 @@ exports.createStudent = async (req, res) => {
     const selectedSection = section || "A";
 
     const classData = await Class.findOne({
-      className: course,
+      className: { $in: [course, Number(course)] },
       section: selectedSection,
       status: "active",
     });

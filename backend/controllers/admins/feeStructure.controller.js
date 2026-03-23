@@ -1,21 +1,17 @@
 const FeeStructure = require("../../models/feeStructure.model");
 const Class = require("../../models/class.model");
 const StudentFee = require("../../models/studentFee.model");
-
+const Student = require("../../models/student.model");
+const mongoose = require("mongoose");
 
 // ================================
 // CREATE FEE STRUCTURE
 // ================================
 exports.createFeeStructure = async (req, res) => {
   try {
-
     const {
       classId,
-      tuitionFee = 0,
-      admissionFee = 0,
-      examFee = 0,
-      hostelFee = 0,
-      transportFee = 0,
+      feeComponents = [],   // 🔥 NEW
       installments = [],
       lateFeePerDay = 0,
     } = req.body;
@@ -37,70 +33,56 @@ exports.createFeeStructure = async (req, res) => {
     }
 
     const existing = await FeeStructure.findOne({
-      className: classData.className
+      className: classData.className,
+      status: "active"
     });
 
     if (existing) {
       return res.status(400).json({
         success: false,
-        message: "Fee structure already exists for this class",
+        message: "Active fee structure already exists",
       });
     }
 
-    const totalFee =
-      Number(tuitionFee) +
-      Number(admissionFee) +
-      Number(examFee) +
-      Number(hostelFee) +
-      Number(transportFee);
+    // 🔥 CALCULATE TOTAL
+    const totalFee = feeComponents.reduce(
+      (sum, fee) => sum + Number(fee.amount || 0),
+      0
+    );
 
     const fee = await FeeStructure.create({
       classId,
       className: classData.className,
-      tuitionFee,
-      admissionFee,
-      examFee,
-      hostelFee,
-      transportFee,
+      feeComponents,
       installments,
       lateFeePerDay,
-      totalFee
+      totalFee,
     });
+
     // ================================
-    // AUTO ASSIGN FEE TO ALL STUDENTS
+    // AUTO ASSIGN FEE TO STUDENTS
     // ================================
-    const students = await require("../../models/student.model").find({
-      classId
-    });
+    const students = await Student.find({ classId });
 
     for (const student of students) {
-
       const exists = await StudentFee.findOne({
         studentId: student._id
       });
 
       if (!exists) {
-
         await StudentFee.create({
-
           studentId: student._id,
           feeStructureId: fee._id,
 
-          tuitionFee: fee.tuitionFee,
-          admissionFee: fee.admissionFee,
-          examFee: fee.examFee,
-          hostelFee: fee.hostelFee,
-          transportFee: fee.transportFee,
+          // 🔥 store dynamic fees
+          feeComponents: fee.feeComponents,
 
           totalAssignedFee: fee.totalFee,
           remainingAmount: fee.totalFee,
           totalPaid: 0,
           status: "due"
-
         });
-
       }
-
     }
 
     res.status(201).json({
@@ -110,22 +92,20 @@ exports.createFeeStructure = async (req, res) => {
     });
 
   } catch (error) {
-
     res.status(500).json({
       success: false,
       message: error.message
     });
-
   }
 };
 
 
+
 // ================================
-// GET ALL FEE STRUCTURES
+// GET ALL
 // ================================
 exports.getAllFeeStructures = async (req, res) => {
   try {
-
     const fees = await FeeStructure.find()
       .populate("classId")
       .sort({ createdAt: -1 });
@@ -137,36 +117,27 @@ exports.getAllFeeStructures = async (req, res) => {
     });
 
   } catch (error) {
-
     res.status(500).json({
       success: false,
       message: error.message
     });
-
   }
 };
 
 
+
 // ================================
-// GET SINGLE FEE STRUCTURE
+// GET SINGLE
 // ================================
-exports.getSingleFeeStructure = async (req, res) => {
+exports.getFeeByClassId = async (req, res) => {
   try {
+    const { classId } = req.params;
 
-    const { id } = req.params;
-
-    const classData = await Class.findById(id);
-
-    if (!classData) {
-      return res.status(404).json({
-        success: false,
-        message: "Class not found"
-      });
-    }
-
+    // 🔥 convert string → ObjectId
     const fee = await FeeStructure.findOne({
-      className: classData.className
-    }).populate("classId");
+      classId: new mongoose.Types.ObjectId(classId),
+      status: "active"
+    });
 
     if (!fee) {
       return res.status(404).json({
@@ -181,58 +152,30 @@ exports.getSingleFeeStructure = async (req, res) => {
     });
 
   } catch (error) {
-
     res.status(500).json({
       success: false,
       message: error.message
     });
-
   }
 };
 
 
 // ================================
-// UPDATE FEE STRUCTURE
+// UPDATE
 // ================================
 exports.updateFeeStructure = async (req, res) => {
   try {
+    const { classId, feeComponents = [], installments = [], lateFeePerDay = 0 } = req.body;
 
-    const { id } = req.params;
-
-    const classData = await Class.findById(id);
-
-    if (!classData) {
-      return res.status(404).json({
-        success: false,
-        message: "Class not found"
-      });
-    }
-
-    const {
-      tuitionFee = 0,
-      admissionFee = 0,
-      examFee = 0,
-      hostelFee = 0,
-      transportFee = 0,
-      installments = [],
-      lateFeePerDay = 0
-    } = req.body;
-
-    const totalFee =
-      Number(tuitionFee) +
-      Number(admissionFee) +
-      Number(examFee) +
-      Number(hostelFee) +
-      Number(transportFee);
+    const totalFee = feeComponents.reduce(
+      (sum, fee) => sum + Number(fee.amount || 0),
+      0
+    );
 
     const updated = await FeeStructure.findOneAndUpdate(
-      { className: classData.className },
+      { classId, status: "active" },
       {
-        tuitionFee,
-        admissionFee,
-        examFee,
-        hostelFee,
-        transportFee,
+        feeComponents,
         installments,
         lateFeePerDay,
         totalFee
@@ -247,12 +190,12 @@ exports.updateFeeStructure = async (req, res) => {
       });
     }
 
-    // sync student fees
     await StudentFee.updateMany(
       { feeStructureId: updated._id },
       [
         {
           $set: {
+            feeComponents: updated.feeComponents,
             totalAssignedFee: totalFee,
             remainingAmount: {
               $subtract: [totalFee, "$totalPaid"]
@@ -269,22 +212,19 @@ exports.updateFeeStructure = async (req, res) => {
     });
 
   } catch (error) {
-
     res.status(500).json({
       success: false,
       message: error.message
     });
-
   }
 };
 
 
 // ================================
-// DELETE FEE STRUCTURE
+// DELETE
 // ================================
 exports.deleteFeeStructure = async (req, res) => {
   try {
-
     const { id } = req.params;
 
     const deleted = await FeeStructure.findByIdAndDelete(id);
@@ -302,11 +242,9 @@ exports.deleteFeeStructure = async (req, res) => {
     });
 
   } catch (error) {
-
     res.status(500).json({
       success: false,
       message: error.message
     });
-
   }
 };
