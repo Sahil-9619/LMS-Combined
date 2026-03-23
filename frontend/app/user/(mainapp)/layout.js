@@ -1,3 +1,4 @@
+import Footer from "@/app/sections/Footer";
 import UserNavbar from "@/components/UsersNavbar";
 import { Geist, Geist_Mono } from "next/font/google";
 
@@ -22,6 +23,7 @@ export default function RootLayout({ children }) {
       {" "}
       <UserNavbar />
       {children}
+      <Footer/>
     </main>
   );
 }

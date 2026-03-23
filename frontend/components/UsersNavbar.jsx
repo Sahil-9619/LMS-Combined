@@ -56,7 +56,9 @@ const Navbar = () => {
         setLinks([
           ...mapped,
           { name: "Dashboard", path: "/user/dashboard", icon: <LayoutDashboard size={18} /> },
+          { name: "My Courses", path: "/user/myprofile", icon: <User size={18} /> },
           { name: "Fee Payment", path: "/user/fee_payment", icon: <CreditCard size={18} /> },
+          { name: "Attendance", path: "/user/myprofile", icon: <User size={18} /> },
           { name: "My Profile", path: "/user/myprofile", icon: <User size={18} /> },
         ]);
       } catch (err) {
@@ -64,7 +66,9 @@ const Navbar = () => {
 
         setLinks([
           { name: "Dashboard", path: "/user/dashboard", icon: <LayoutDashboard size={18} /> },
+          { name: "My Courses", path: "/user/myprofile", icon: <User size={18} /> },
           { name: "Fee Payment", path: "/user/fee_payment", icon: <CreditCard size={18} /> },
+          { name: "Attendance", path: "/user/myprofile", icon: <User size={18} /> },
           { name: "My Profile", path: "/user/myprofile", icon: <User size={18} /> },
         ]);
       }
@@ -110,9 +114,11 @@ const getInitials = (name) => {
 };
 
   return (
-    <nav className="fixed top-0 w-full z-50 bg-cyan-900 shadow-lg">
+  <nav className="fixed top-0 w-full z-50 
+bg-gradient-to-r from-[#063F46] via-[#0A6B78] to-[#063F46]
+backdrop-blur-lg shadow-md">
 
-      <div className="w-full px-6 py-3 flex justify-between items-center">
+     <div className="w-full px-6 py-1 flex justify-between items-center border-b border-white/10">
 
         {/* LEFT - Logo */}
         <div className="flex items-center gap-3">
@@ -121,13 +127,15 @@ const getInitials = (name) => {
         </div>
 
         {/* CENTER - Menu */}
-        <div className="hidden lg:flex items-center gap-2 bg-white/10 p-1 rounded-2xl">
+      <div className="hidden lg:flex items-center gap-2 
+bg-white/10 backdrop-blur-md border border-white/10 
+p-1.5 rounded-2xl">
           {links.map((item) => (
             <Link
               key={item.name}
               href={item.path}
               className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm transition ${pathname === item.path
-                  ? "bg-white text-cyan-900"
+                  ? "bg-white text-[#0E94A5] shadow-sm"
                   : "text-white hover:bg-white/10"
                 }`}
             >
@@ -152,7 +160,11 @@ const getInitials = (name) => {
   onClick={() => setProfileOpen(!profileOpen)}
   className="flex items-center gap-2 p-1 pr-2 hover:bg-white/10 rounded-full"
 >
-  <div className="w-8 h-8 bg-white text-cyan-900 font-bold flex items-center justify-center rounded-full">
+ <div className="w-8 h-8 
+bg-gradient-to-br from-white to-cyan-100 
+text-[#0E94A5] font-bold 
+flex items-center justify-center 
+rounded-full shadow-sm">
     {getInitials(user?.name)}
   </div>
 
@@ -195,7 +207,9 @@ const getInitials = (name) => {
 
       {/* Mobile Menu */}
       {open && (
-        <div className="lg:hidden bg-cyan-800 px-6 py-4 space-y-2">
+       <div className="lg:hidden 
+bg-gradient-to-b from-[#0E94A5] to-[#063F46] 
+px-6 py-4 space-y-2">
           {links.map((item) => (
             <Link
               key={item.name}

@@ -12,7 +12,9 @@ import {
   ArrowRight,
   MapPin,
   TrendingUp,
-  Award
+  Award,
+  GraduationCap,
+  Calendar1
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { admissionService } from "@/services/admission.service";
@@ -31,12 +33,6 @@ const App = () => {
   const primaryColor = "#0E94A5";
 
   // Stats Data - Updated to match the Vigyan Academy Teal palette
-  const stats = [
-    { label: "Attendance", value: "88%", icon: CheckCircle, color: "text-[#0E94A5]", bg: "bg-[#0E94A5]/10" },
-    { label: "Tests Taken", value: "14", icon: Award, color: "text-[#0E94A5]", bg: "bg-[#0E94A5]/10" },
-    { label: "Pending Fees", value: "₹2,500", icon: CreditCard, color: "text-[#0E94A5]", bg: "bg-[#0E94A5]/10" },
-    { label: "Class Rank", value: "12th", icon: TrendingUp, color: "text-[#0E94A5]", bg: "bg-[#0E94A5]/10" },
-  ];
 
   const upcomingClasses = [
     { subject: "Mathematics", topic: "Integration by Parts", time: "10:30 AM", room: "Hall A" },
@@ -83,65 +79,65 @@ const App = () => {
   };
 
   useEffect(() => {
-  const fetchStudent = async () => {
-    try {
-      if (!user?.email) return;
+    const fetchStudent = async () => {
+      try {
+        if (!user?.email) return;
 
-      const email = user.email;
+        const email = user.email;
 
-      console.log("USER EMAIL 👉", email);
+        console.log("USER EMAIL 👉", email);
 
-      // 🔥 STEP 1: get ALL classes
-      const classRes = await adminServices.getAllClasses();
-      const classes = classRes?.data || classRes;
+        // 🔥 STEP 1: get ALL classes
+        const classRes = await adminServices.getAllClasses();
+        const classes = classRes?.data || classRes;
 
-      console.log("ALL CLASSES 👉", classes);
+        console.log("ALL CLASSES 👉", classes);
 
-      let foundStudent = null;
-      // 🔥 GET CLASS NAME USING CLASS ID
-if (foundStudent?.classId?._id) {
-  const classRes = await adminServices.getClassById(foundStudent.classId._id);
-  const cls = classRes?.data || classRes;
+        let foundStudent = null;
+        // 🔥 GET CLASS NAME USING CLASS ID
+        if (foundStudent?.classId?._id) {
+          const classRes = await adminServices.getClassById(foundStudent.classId._id);
+          const cls = classRes?.data || classRes;
 
-  console.log("CLASS DETAILS 👉", cls);
+          console.log("CLASS DETAILS 👉", cls);
 
-  setClassName(cls?.name || cls?.className || "");
-}
-
-      // 🔥 STEP 2: loop each class and find student
-      for (let cls of classes) {
-        const res = await adminServices.getstudentsByClass(cls._id);
-        const students = res?.data || res;
-
-        if (!Array.isArray(students)) continue;
-
-        const match = students.find(
-          (stu) =>
-            stu.email?.toLowerCase() === email.toLowerCase() ||
-            stu?.user?.email?.toLowerCase() === email.toLowerCase()
-        );
-
-        if (match) {
-          foundStudent = { ...match, className: cls.name };
-          break;
+          setClassName(cls?.name || cls?.className || "");
         }
+
+        // 🔥 STEP 2: loop each class and find student
+        for (let cls of classes) {
+          const res = await adminServices.getstudentsByClass(cls._id);
+          const students = res?.data || res;
+
+          if (!Array.isArray(students)) continue;
+
+          const match = students.find(
+            (stu) =>
+              stu.email?.toLowerCase() === email.toLowerCase() ||
+              stu?.user?.email?.toLowerCase() === email.toLowerCase()
+          );
+
+          if (match) {
+            foundStudent = { ...match, className: cls.name };
+            break;
+          }
+        }
+
+        console.log("FINAL MATCHED STUDENT 👉", foundStudent);
+        console.log("CLASS OBJECT 👉", studentData?.classId);
+
+        if (!foundStudent) return;
+
+        // ✅ save full student
+        setStudentData(foundStudent);
+
+      } catch (err) {
+        console.error("ERROR ❌", err);
       }
+    };
 
-      console.log("FINAL MATCHED STUDENT 👉", foundStudent);
-      console.log("CLASS OBJECT 👉", studentData?.classId);
-
-      if (!foundStudent) return;
-
-      // ✅ save full student
-      setStudentData(foundStudent);
-
-    } catch (err) {
-      console.error("ERROR ❌", err);
-    }
-  };
-
-  fetchStudent();
-}, [user]);
+    fetchStudent();
+  }, [user]);
 
   if (isLoading) {
     return (
@@ -155,40 +151,134 @@ if (foundStudent?.classId?._id) {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8FAFB] text-slate-900 font-sans pb-12">
-      <main className="pt-24 px-4 sm:px-6 lg:px-8 mx-auto">
-
+    <div className="min-h-screen bg-[#F8FAFB] bg-cyan-100/20 text-slate-900 font-sans pb-12">
+      <div className="mt-10  md:mt-14">
         {/* Header Greeting */}
-        <header className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <header className=" flex flex-col md:flex-row md:items-end justify-between gap-4 px-6 py-6 bg-gradient-to-r from-[#0A6B78] via-[#0E94A5] to-[#0A6B78] text-white shadow-sm">
           <div>
-            <div className="flex items-center gap-2 text-[#0E94A5] font-semibold text-sm mb-1">
-              <span className="w-8 h-[2px] bg-[#0E94A5]"></span>
-              VIGYAN ACADEMY PORTAL
-            </div>
-            <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">
+            <h1 className="text-3xl px-5 font-extrabold tracking-tight text-white sm:text-4xl">
               {getGreeting()}, {user?.firstName || user?.name || "User"}
             </h1>
-            <p className="text-slate-500 mt-2 font-medium">Empowering your journey with "विज्ञानं सर्वस्य मूलम्"</p>
+            <p className="text-white/80 mt-2 font-medium px-8">- Empowering your journey with "विज्ञानं सर्वस्य मूलम्"</p>
           </div>
 
-          <div className="flex items-center gap-3 bg-white p-2 rounded-2xl shadow-sm border border-cyan-100">
-            <div className="h-12 w-12 bg-[#0E94A5] rounded-xl flex items-center justify-center text-white shadow-md">
-              <User size={24} />
+          <div className="flex items-center gap-3 bg-white p-2 rounded-2xl shadow-lg border border-cyan-100">
+            <div className="h-10 w-10 bg-cyan-600 rounded-xl flex items-center justify-center text-white shadow-md">
+              <Calendar1 />
             </div>
-            <div className="pr-4">
-              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Active Batch</p>
-     <p className="text-sm font-bold text-slate-700">
-  {studentData
-    ? `Class ${studentData?.classId?.className || "N/A"} - ${studentData?.classId?.section || studentData?.section || "N/A"}`
-    : "Loading..."}
-</p>
-            </div>
+          <div className="pr-4">
+  <p className="text-[8px] text-black font-bold uppercase tracking-wider">
+    Today
+  </p>
+
+  <p className="text-sm font-bold text-cyan-700">
+    {new Date().toLocaleDateString("en-IN", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    })}
+  </p>
+</div>
           </div>
         </header>
-      <hr className="py-3"></hr>
+      </div>
+        {/* Stats Grid */}
+
+<div className="mb-12 ">
+
+  {/* 🔥 OUTER CONTAINER */}
+  <div className="relative w-full  py-10 
+  bg-white/60 backdrop-blur-sm border border-gray-100 shadow-sm">
+
+    {/* 🔥 TOP FADE BORDER */}
+    <div className="absolute top-0 left-0 w-full h-[1px] 
+    bg-gradient-to-r from-transparent via-[#0E94A5] to-transparent opacity-40"></div>
+
+    {/* 🔥 BOTTOM FADE BORDER */}
+    <div className="absolute bottom-0 left-0 w-full h-[1px] 
+    bg-gradient-to-r from-transparent via-[#0E94A5] to-transparent opacity-40"></div>
+
+    {/* GRID */}
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+
+      {/* ================= ITEM 1 ================= */}
+      <div className="relative flex items-center gap-4 px-4 py-4">
+
+        {/* LEFT ICON */}
+        <div className="h-11 w-11 rounded-full bg-[#0E94A5]/10 flex items-center justify-center shrink-0">
+          <GraduationCap className="text-[#0E94A5]" size={18} />
+        </div>
+
+        {/* TEXT */}
+        <div>
+          <p className="text-[11px] text-gray-400 font-bold uppercase tracking-widest ">
+            Class & Section
+          </p>
+
+          <h4 className="text-sm font-semibold text-[#0E94A5] mt-1">
+            {studentData
+              ? `Class ${studentData?.classId?.className || "N/A"} - ${studentData?.classId?.section || studentData?.section || "N/A"}`
+              : "Loading..."}
+          </h4>
+        </div>
+
+        {/* 🔥 DIVIDER RIGHT */}
+        <div className="hidden lg:block absolute right-0 top-0 h-full w-[1px] 
+        bg-gradient-to-b from-transparent via-gray-200 to-transparent"></div>
+      </div>
+
+
+      {/* ================= ITEM 2 ================= */}
+      <div className="relative flex items-center gap-4 px-4 py-4">
+
+        <div className="h-11 w-11 rounded-full bg-green-100 flex items-center justify-center shrink-0">
+          <CheckCircle className="text-green-600" size={18} />
+        </div>
+
+        <div>
+          <p className="text-[11px] text-gray-400 font-bold uppercase tracking-widest">
+            Attendance
+          </p>
+
+          <h4 className="text-2xl font-bold text-gray-800 mt-1">
+            78%
+          </h4>
+        </div>
+
+        {/* 🔥 DIVIDER RIGHT */}
+        <div className="hidden lg:block absolute right-0 top-0 h-full w-[1px] 
+        bg-gradient-to-b from-transparent via-gray-200 to-transparent"></div>
+      </div>
+
+
+      {/* ================= ITEM 3 ================= */}
+      <div className="flex items-center gap-4 px-4 py-4">
+
+        <div className="h-11 w-11 rounded-full bg-red-100 flex items-center justify-center shrink-0">
+          <CreditCard className="text-red-500" size={18} />
+        </div>
+
+        <div>
+          <p className="text-[11px] text-gray-400 font-bold uppercase tracking-widest">
+            Pending Fees
+          </p>
+
+          <h4 className="text-2xl font-bold text-gray-800 mt-1">
+            ₹47,634
+          </h4>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+        <hr className="py-3"></hr>
         {/* ADMISSION BANNER */}
         {!hasAdmission && (
-          <div className="mb-10 relative overflow-hidden rounded-3xl border border-cyan-100  bg-white shadow-xl shadow-[#0E94A5]/5">
+          <div className="mb-10 px-10 relative overflow-hidden rounded-3xl border border-cyan-100  bg-white shadow-xl shadow-[#0E94A5]/5">
             <div className="absolute -top-24 -right-24 w-64 h-64 bg-cyan-50 rounded-full opacity-40"></div>
 
             <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between p-8 gap-8">
@@ -213,70 +303,47 @@ if (foundStudent?.classId?._id) {
                 <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
               </button>
             </div>
-            
+
           </div>
-          
+
         )}
-        
 
-        {/* Stats Grid */}
-        
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-          {stats.map((stat, idx) => (
-            <div key={idx} className="bg-white p-6 rounded-3xl border border-cyan-50 shadow-sm hover:shadow-md transition-all">
-              <div className="flex items-center justify-between mb-4">
-                <div className={`p-3 rounded-2xl ${stat.bg} ${stat.color}`}>
-                  <stat.icon size={24} />
-                </div>
-                <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Current</span>
-              </div>
-              <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">{stat.label}</p>
-              <h4 className="text-3xl font-black text-slate-800 mt-1">{stat.value}</h4>
-            </div>
-          ))}
-        </div>
 
+
+
+<hr className="mb-12 border-cyan-500" />
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
           <div className="lg:col-span-2 space-y-8">
             {/* Schedule Card */}
-            <section className="bg-white rounded-3xl border border-cyan-50 shadow-sm overflow-hidden">
-              <div className="px-8 py-6 border-b border-cyan-50 flex items-center justify-between bg-cyan-50/20">
-                <h2 className="font-bold text-slate-800 flex items-center gap-3">
-                  <div className="w-2 h-6 bg-[#0E94A5] rounded-full"></div>
-                  Today's Schedule
-                </h2>
-                <button className="text-xs font-bold text-[#0E94A5] uppercase tracking-wider">
+            <section className="bg-white rounded-3xl border border-cyan-50 shadow-sm overflow-hidden p-6">
+              <div className="flex items-center justify-between mb-6 pb-2 border-b-2 border-gray-100">
+                <h2 className="text-xl font-bold text-gray-800">Today's Schedule</h2>
+                <button className="text-sm font-semibold text-[#0E94A5] hover:underline">
                   Full Calendar
                 </button>
               </div>
-              <div className="divide-y divide-cyan-50">
+              <div className="space-y-6">
                 {upcomingClasses.map((item, idx) => (
-                  <div key={idx} className="p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-6 hover:bg-cyan-50/10 transition-colors">
-                    <div className="flex items-start gap-6">
-                      <div className="flex flex-col items-center justify-center bg-white border border-cyan-100 rounded-2xl p-4 min-w-[90px]">
-                        <Clock size={18} className="text-[#0E94A5] mb-1 opacity-70" />
-                        <span className="text-sm font-black text-slate-800">{item.time}</span>
-                      </div>
-                      <div>
-                        <h4 className="text-lg font-bold text-slate-900 mb-1">{item.subject}</h4>
-                        <p className="text-sm font-medium text-slate-500 flex items-center gap-1.5">
-                          <BookOpen size={14} className="text-[#0E94A5]" />
-                          {item.topic}
-                        </p>
-                      </div>
+                  <div key={idx} className="flex items-start">
+
+                    <div className="min-w-[100px] pr-6 border-r border-gray-100">
+                      <p className="text-sm font-bold text-gray-800">{item.time}</p>
+                      <p className="text-xs text-gray-400">{item.room}</p>
                     </div>
-                    <div className="flex items-center gap-2 text-xs font-bold text-[#0E94A5] bg-cyan-50 px-4 py-2 rounded-xl border border-cyan-100">
-                      <MapPin size={14} />
-                      {item.room}
+
+                    <div className="pl-6">
+                      <h4 className="font-semibold text-gray-800">{item.subject}</h4>
+                      <p className="text-sm text-gray-500">{item.topic}</p>
                     </div>
+
                   </div>
                 ))}
               </div>
             </section>
 
             {/* Performance Card */}
-            <section className="bg-white rounded-3xl border border-cyan-50 shadow-sm p-8">
+            <section>
               <div className="flex items-center justify-between mb-8">
                 <h2 className="font-bold text-slate-800 flex items-center gap-3">
                   <div className="w-2 h-6 bg-[#0E94A5] rounded-full"></div>
@@ -338,7 +405,6 @@ if (foundStudent?.classId?._id) {
           </div>
 
         </div>
-      </main>
     </div>
   );
 };
