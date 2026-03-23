@@ -14,37 +14,26 @@ const studentFeeSchema = new mongoose.Schema(
       required: true,
     },
 
-    tuitionFee: {
-      type: Number,
+    // 🔥 DYNAMIC FEES (MAIN CHANGE)
+    feeComponents: [
+      {
+        name: String,     // tuition, exam, library etc.
+        amount: Number,
+        type: {
+          type: String,
+          enum: ["monthly", "one-time"],
+          default: "one-time"
+        }
+      }
+    ],
 
-    },
-
-    admissionFee: {
-      type: Number,
-
-    },
-
+    // 💰 Payments
     payments: [
       {
         amount: Number,
         date: { type: Date, default: Date.now }
       }
     ],
-
-    examFee: {
-      type: Number,
-
-    },
-
-    hostelFee: {
-      type: Number,
-
-    },
-
-    transportFee: {
-      type: Number,
-
-    },
 
     lateFeePerDay: { type: Number, default: 0 },
 
