@@ -31,7 +31,16 @@ import { adminServices } from "@/services/admin/admin.service";
 /**
  * MOCK COMPONENTS & UTILS 
  */
-const getMediaUrl = (path) => path;
+const getMediaUrl = (path) => {
+  if (!path) return "";
+
+  if (path.startsWith("http")) return path;
+
+  // 🔥 remove starting slash if exists
+  const cleanPath = path.startsWith("/") ? path.slice(1) : path;
+
+  return `http://localhost:5000/${cleanPath}`;
+};
 
 const Page = () => {
   // Mocking Redux behavior - Initial data including Admission fields
@@ -96,6 +105,7 @@ const Page = () => {
           city: student.city || "",
           category: student.category || "",
           course: student.course || student.class || "",
+          profileImage:student.profileImage,
         }));
 
       } catch (err) {
@@ -244,16 +254,20 @@ const Page = () => {
               <div className="flex flex-col md:flex-row gap-8 items-center border-b border-slate-200/60 pb-8">
                 <div className="relative">
                   <div className="w-28 h-28 rounded-3xl bg-white border border-slate-200 overflow-hidden shadow-sm flex items-center justify-center">
-                    {(profile.photo || profile.profileImage) ? (
+                    {(profile.profileImage) ? (
                       <img
-                        src={
-                          typeof (profile.photo || profile.profileImage) === "string"
-                            ? getMediaUrl(profile.photo || profile.profileImage)
-                            : URL.createObjectURL(profile.photo || profile.profileImage)
-                        }
-                        className="w-full h-full object-cover"
-                        alt="Profile"
-                      />
+  src={
+    profile.photo
+      ? URL.createObjectURL(profile.photo)
+      : getMediaUrl(profile.profileImage)
+  }
+  onError={(e) => {
+    console.log("❌ IMAGE LOAD FAILED:", e.target.src);
+    e.target.style.display = "none";
+  }}
+  className="w-full h-full object-cover"
+  alt="Profile image"
+/>
                     ) : (
                       <User size={32} className="text-slate-200" />
                     )}
