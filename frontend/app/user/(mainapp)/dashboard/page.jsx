@@ -182,6 +182,41 @@ const App = () => {
           </div>
         </header>
       </div>
+
+
+        <hr className="py-3"></hr>
+        {/* ADMISSION BANNER */}
+        {!hasAdmission && (
+          <div className="mb-10 px-10 relative overflow-hidden rounded-3xl border border-cyan-100  bg-white shadow-xl shadow-[#0E94A5]/5">
+            <div className="absolute -top-24 -right-24 w-64 h-64 bg-cyan-50 rounded-full opacity-40"></div>
+
+            <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between p-8 gap-8">
+              <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
+                <div className="flex-shrink-0 p-4 bg-cyan-100 rounded-2xl text-[#0E94A5]">
+                  <AlertCircle size={32} />
+                </div>
+                <div className="text-center md:text-left">
+                  <h3 className="text-xl font-bold text-slate-900">Admission Process Pending</h3>
+                  <p className="text-slate-600 mt-2 max-w-xl leading-relaxed">
+                    Finalize your enrollment to access
+                    <span className="font-bold text-[#0E94A5]"> digital study materials, attendance reports, </span> and
+                    <span className="font-bold text-[#0E94A5]"> detailed test analytics.</span>
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => router.push("/admission")}
+                className="group flex items-center gap-3 whitespace-nowrap bg-[#0E94A5] hover:bg-[#087a87] text-white px-8 py-4 rounded-2xl font-bold transition-all shadow-lg shadow-cyan-100"
+              >
+                Get Admission Now
+                <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
+              </button>
+            </div>
+
+          </div>
+
+        )}
+
         {/* Stats Grid */}
 
 <div className="mb-12 ">
@@ -274,41 +309,6 @@ const App = () => {
   </div>
 
 </div>
-
-        <hr className="py-3"></hr>
-        {/* ADMISSION BANNER */}
-        {!hasAdmission && (
-          <div className="mb-10 px-10 relative overflow-hidden rounded-3xl border border-cyan-100  bg-white shadow-xl shadow-[#0E94A5]/5">
-            <div className="absolute -top-24 -right-24 w-64 h-64 bg-cyan-50 rounded-full opacity-40"></div>
-
-            <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between p-8 gap-8">
-              <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
-                <div className="flex-shrink-0 p-4 bg-cyan-100 rounded-2xl text-[#0E94A5]">
-                  <AlertCircle size={32} />
-                </div>
-                <div className="text-center md:text-left">
-                  <h3 className="text-xl font-bold text-slate-900">Admission Process Pending</h3>
-                  <p className="text-slate-600 mt-2 max-w-xl leading-relaxed">
-                    Finalize your enrollment to access
-                    <span className="font-bold text-[#0E94A5]"> digital study materials, attendance reports, </span> and
-                    <span className="font-bold text-[#0E94A5]"> detailed test analytics.</span>
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={() => router.push("/admission")}
-                className="group flex items-center gap-3 whitespace-nowrap bg-[#0E94A5] hover:bg-[#087a87] text-white px-8 py-4 rounded-2xl font-bold transition-all shadow-lg shadow-cyan-100"
-              >
-                Get Admission Now
-                <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
-              </button>
-            </div>
-
-          </div>
-
-        )}
-
-
 
 
 <hr className="mb-12 border-cyan-500" />
