@@ -337,7 +337,49 @@ exports.updateStudentFee = async (req, res) => {
       const monthIndex = new Date(`${month} 1, ${currentYear}`).getMonth();
       paymentDate = new Date(currentYear, monthIndex, 1);
     }
+const MAX_MONTHS = 12;
 
+// check duplicate month
+const alreadyPaidMonth = studentFee.payments.find(p => {
+  const paidMonth = new Date(p.date).toLocaleString("default", {
+    month: "long"
+  });
+  return paidMonth === month;
+});
+
+if (alreadyPaidMonth) {
+  return res.status(400).json({
+    success: false,
+    message: `${month} already paid`,
+  });
+}
+
+// check max months
+if (studentFee.payments.length >= MAX_MONTHS) {
+  return res.status(400).json({
+    success: false,
+    message: "All months already paid",
+  });
+}
+
+// optional strict monthly fee
+const baseMonthlyFee = Math.floor(studentFee.totalAssignedFee / MAX_MONTHS);
+const totalBase = baseMonthlyFee * MAX_MONTHS;
+const remainingExtra = studentFee.totalAssignedFee - totalBase;
+
+let MONTHLY_FEE = baseMonthlyFee;
+
+// last month adjustment
+if (studentFee.payments.length === MAX_MONTHS - 1) {
+  MONTHLY_FEE = baseMonthlyFee + remainingExtra;
+}
+
+if (payment !== MONTHLY_FEE) {
+  return res.status(400).json({
+    success: false,
+    message: `Pay exact monthly fee: ${MONTHLY_FEE}`,
+  });
+}
     // ==============================
     // UPDATE PAYMENT
     // ==============================

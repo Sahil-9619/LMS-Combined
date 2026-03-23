@@ -77,6 +77,7 @@ const Page = () => {
         const res = await adminServices.getStudentByEmail(user.email);
 
         const student = res?.data;
+        console.log("FETCHED STUDENT 👉", student);
 
         if (!student) return;
 
