@@ -108,7 +108,7 @@ const verifyPhoneOtp = async (req, res) => {
         sessions: [],
         maxDevices: 5,
       });
-    } else {
+    } else { 
       user.isVerified = true;
     }
 
@@ -120,14 +120,20 @@ const verifyPhoneOtp = async (req, res) => {
     const refreshToken = generateRefreshToken(user);
     const accessToken = generateAccessToken(user);
 
-    user.sessions.push({
-      refreshToken,
-      userAgent: req.headers["user-agent"] || "Unknown",
-      ip: req.ip || req.connection.remoteAddress || "Unknown",
-      createdAt: new Date(),
-    });
+   const newSession = {
+  refreshToken,
+  userAgent: req.headers["user-agent"] || "Unknown",
+  ip: req.ip || req.connection.remoteAddress || "Unknown",
+  createdAt: new Date(),
+};
 
-    await user.save();
+await User.updateOne(
+  { _id: user._id },
+  {
+    $set: { isVerified: true },
+    $push: { sessions: newSession }
+  }
+);
 
     // Set HTTP-only cookies
     const cookieOptions = {
@@ -197,14 +203,17 @@ const emailloginController = async (req, res) => {
     const refreshToken = generateRefreshToken(user);
     const accessToken = generateAccessToken(user);
 
-    user.sessions.push({
-      refreshToken,
-      userAgent: req.headers["user-agent"] || "Unknown",
-      ip: req.ip || req.connection.remoteAddress || "Unknown",
-      createdAt: new Date(),
-    });
+   const newSession = {
+  refreshToken,
+  userAgent: req.headers["user-agent"] || "Unknown",
+  ip: req.ip || req.connection.remoteAddress || "Unknown",
+  createdAt: new Date(),
+};
 
-    await user.save();
+await User.updateOne(
+  { _id: user._id },
+  { $push: { sessions: newSession } }
+);
 
     res.cookie("accessToken", accessToken, {
       httpOnly: true,
