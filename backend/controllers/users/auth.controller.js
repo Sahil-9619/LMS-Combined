@@ -233,15 +233,22 @@ const emailsignup = async (req, res) => {
     const { name, email, password, phone, parent, city, class: userClass } = req.body;
 
     // Validate input
-    if (!name || !email || !password) {
+    if (!name || !email || !password || !phone) {
       return res.status(400).json({ message: "All fields are required" });
     }
+    if (phone && !/^[0-9]{10}$/.test(phone)) {
+  return res.status(400).json({ message: "Invalid phone number" });
+}
 
     // Check for existing email
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ message: "Email already registered" });
     }
+    const existingPhone = await User.findOne({ phone });
+if (existingPhone) {
+  return res.status(400).json({ message: "Phone already registered" });
+}
 
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);

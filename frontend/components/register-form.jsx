@@ -65,6 +65,12 @@ export function RegisterForm({ className, ...props }) {
         error = "Invalid email format";
       }
     }
+    // 🔥 block numbers in name, parent, city
+if (["name", "parent", "city"].includes(name) && value) {
+  if (/[0-9]/.test(value)) {
+    error = "Numbers are not allowed";
+  }
+}
 
     if (name === "phone" && value) {
       if (!/^[0-9]*$/.test(value)) {
@@ -101,6 +107,7 @@ export function RegisterForm({ className, ...props }) {
     const userClass = selectedClass;
 
     const newErrors = {};
+    
 
     if (!name) newErrors.name = "Name is required";
     if (!email) newErrors.email = "Email is required";
@@ -110,6 +117,18 @@ export function RegisterForm({ className, ...props }) {
     if (!city) newErrors.city = "City is required";
     if (!userClass) newErrors.class = "Class is required";
 
+    // 🔥 block numbers in name, parent, city
+if (name && /[0-9]/.test(name)) {
+  newErrors.name = "Numbers are not allowed";
+}
+
+if (parent && /[0-9]/.test(parent)) {
+  newErrors.parent = "Numbers are not allowed";
+}
+
+if (city && /[0-9]/.test(city)) {
+  newErrors.city = "Numbers are not allowed";
+}
     // 🔥 extra validation
     if (phone && !/^[0-9]{10}$/.test(phone)) {
       newErrors.phone = "Enter valid 10-digit number";
@@ -145,8 +164,24 @@ export function RegisterForm({ className, ...props }) {
       setSignupEmail(email);
       setShowOtp(true);
     } catch (error) {
-      toast.error(error.response?.data?.message || "Signup failed");
-    }
+  const message = error.response?.data?.message;
+
+  if (message === "Phone already registered") {
+    setErrors((prev) => ({
+      ...prev,
+      phone: message,
+    }));
+  }
+
+  if (message === "Email already registered") {
+    setErrors((prev) => ({
+      ...prev,
+      email: message,
+    }));
+  }
+
+  toast.error(message || "Signup failed");
+}
   };
 
   const handleVerifyOtp = async () => {
