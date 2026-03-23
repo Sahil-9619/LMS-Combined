@@ -60,7 +60,7 @@ instance.interceptors.response.use(
         return instance(originalRequest);
       } catch (refreshError) {
         console.error("Token refresh failed:", refreshError);
-        window.location.href = "/user/login";
+        window.location.href = "/user/register";
       }
     }
 

@@ -42,8 +42,8 @@ export default function AuthProvider({ children }) {
 
     // If authentication check failed, redirect to login
     if (status === "failed" || (!isAuthenticated && status === "succeeded")) {
-      console.log("---> Authentication failed, redirecting to login");
-      router.push("/user/login");
+      console.log("---> Authentication failed, redirecting to signup");
+      router.push("/user/register");
       return;
     }
 
