@@ -230,7 +230,7 @@ const emailloginController = async (req, res) => {
 // Email Signup
 const emailsignup = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, phone, parent, city, class: userClass } = req.body;
 
     // Validate input
     if (!name || !email || !password) {
@@ -251,6 +251,12 @@ const emailsignup = async (req, res) => {
       name,
       email,
       password: hashedPassword,
+      phone,
+      parent,
+      class: userClass,
+      location: {
+        city: city,
+      },
       isVerified: false,
       sessions: [],
       maxDevices: 5,
@@ -265,7 +271,7 @@ const emailsignup = async (req, res) => {
       expiresAt: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes
     });
     console.log(otp);
-    
+
     // Generate email verification token
     // const verifyToken = jwt.sign(
     //   { id: newUser._id },
@@ -283,7 +289,7 @@ const emailsignup = async (req, res) => {
       //   otp: otp,
       // });
     } catch (mailError) {
-        res.status(500).json('sorry some error occured')
+      res.status(500).json('sorry some error occured')
       console.log("Email sending failed:", mailError);
       // Don't fail registration if email fails
     }
