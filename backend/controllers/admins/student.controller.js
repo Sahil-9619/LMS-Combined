@@ -177,11 +177,8 @@ exports.createStudent = async (req, res) => {
           studentId: student._id,
           feeStructureId: feeStructure._id,
 
-          tuitionFee: feeStructure.tuitionFee,
-          admissionFee: feeStructure.admissionFee,
-          examFee: feeStructure.examFee,
-          hostelFee: feeStructure.hostelFee,
-          transportFee: feeStructure.transportFee,
+          // ✅ feeComponents must be saved so monthlyExpected calculates correctly
+          feeComponents: feeStructure.feeComponents || [],
 
           totalAssignedFee: feeStructure.totalFee,
           remainingAmount: feeStructure.totalFee,

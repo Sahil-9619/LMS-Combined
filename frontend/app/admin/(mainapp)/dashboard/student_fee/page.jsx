@@ -35,6 +35,8 @@ export default function AdminFeeManagement() {
   const [summary, setSummary] = useState({});
   const [monthlyFees, setMonthlyFees] = useState({});
   const [payAmount, setPayAmount] = useState("");
+  const [monthlyExpected, setMonthlyExpected] = useState(0);
+  const [paymentMode, setPaymentMode] = useState("monthly"); // "monthly" | "onetime"
   const searchParams = useSearchParams();
   const admissionParam = searchParams.get("admission");
   const [selectedClass, setSelectedClass] = useState("");
@@ -217,9 +219,42 @@ export default function AdminFeeManagement() {
         }
 
         setStudent(data.student);
-        setFeeStructure(data.fee || {});
-        setSummary(data.fee || {});
+
+        // Map feeComponents array → named fields for the UI
+        const fee = data.fee || {};
+        const componentsMap = {};
+        console.log("🔍 feeComponents from API:", fee.feeComponents);
+        (fee.feeComponents || []).forEach(f => {
+          const key = f.name?.toLowerCase();
+          console.log("  component:", key, "->", f.amount);
+          if (key === "tuition") componentsMap.tuitionFee = f.amount;
+          if (key === "admission") componentsMap.admissionFee = f.amount;
+          if (key === "exam") componentsMap.examFee = f.amount;
+          if (key === "hostel") componentsMap.hostelFee = f.amount;
+          if (key === "transport") componentsMap.transportFee = f.amount;
+          if (key === "late fee" || key === "latefee") componentsMap.lateFeePerDay = f.amount;
+        });
+        componentsMap.lateFeePerDay = componentsMap.lateFeePerDay ?? (fee.lateFeePerDay || 0);
+        console.log("🗺️ mapped:", componentsMap);
+
+        setFeeStructure({ ...fee, ...componentsMap });
+        setSummary(fee);
         setMonthlyFees(data.monthlyFees || {});
+
+        const apiMonthlyExpected = data.monthlyExpected || 0;
+        let fallbackSum = 0;
+        (fee.feeComponents || []).forEach(f => {
+          const name = String(f.name || "").toLowerCase().trim();
+          const type = String(f.type || "").toLowerCase().trim();
+
+          const isRecurring = type === "monthly" || ["tuition", "hostel", "transport"].includes(name);
+
+          if (isRecurring) {
+            const amt = Number(f.amount || 0);
+            fallbackSum += Number(f.amount || 0) / 12;
+          }
+        });
+        setMonthlyExpected(apiMonthlyExpected || Math.round(fallbackSum));
 
         return;
       }
@@ -252,28 +287,73 @@ export default function AdminFeeManagement() {
   };
 
   /* ---------------- HANDLE PAYMENT ---------------- */
-  const handlePayment = async () => {
+  const handlePayment = async (overrideAmount, overrideType, overrideComponentName) => {
     try {
+      const isOnetime = overrideType === "onetime" || paymentMode === "onetime";
 
-      if (!selectedMonth) {
+      // Block all payments if fully paid
+      if (summary.remainingAmount <= 0) {
+        toast.error("All fees are already fully paid");
+        return;
+      }
+
+      if (!isOnetime && !selectedMonth) {
         toast.error("Please select a month first");
         return;
       }
 
-      if (!payAmount || Number(payAmount) <= 0) {
+      // Block re-payment of an already fully paid month
+      if (!isOnetime && selectedMonth) {
+        const alreadyPaid = (summary.payments || []).some(
+          p => p.month && p.month.toLowerCase() === selectedMonth.toLowerCase()
+        );
+        if (alreadyPaid) {
+          toast.error(`${selectedMonth} fee is already paid`);
+          return;
+        }
+
+        // 🔒 Sequential check: all previous months must be paid first
+        const monthIndex = months.indexOf(selectedMonth);
+        for (let i = 0; i < monthIndex; i++) {
+          const prevMonth = months[i];
+          const isPrevPaid = (summary.payments || []).some(
+            p => p.month && p.month.toLowerCase() === prevMonth.toLowerCase()
+          );
+          if (!isPrevPaid) {
+            toast.error(`Please pay ${prevMonth} fee first`);
+            return;
+          }
+        }
+      }
+
+      const amount = overrideAmount || Number(payAmount);
+
+      if (!amount || amount <= 0) {
         toast.error("Enter valid amount");
         return;
       }
 
+      // Max allowed for monthly
+      if (!isOnetime) {
+        let maxAllowed = monthlyExpected > 0 ? monthlyExpected : (summary.remainingAmount || 0);
+        if (monthlyExpected > 0 && summary.remainingAmount > 0 && summary.remainingAmount <= monthlyExpected * 1.5) {
+          maxAllowed = summary.remainingAmount;
+        }
+        if (maxAllowed > 0 && amount > maxAllowed) {
+          toast.error(`Amount cannot exceed ₹${maxAllowed}`);
+          return;
+        }
+      }
+
       const payload = {
         admissionNumber: admissionNo,
-        payAmount: Number(payAmount),
-        month: selectedMonth
+        payAmount: amount,
+        month: isOnetime ? undefined : selectedMonth,
+        paymentType: isOnetime ? "onetime" : "monthly",
+        componentName: overrideComponentName || undefined,
       };
 
-      // 🔥 STEP 1: Payment update + invoiceId milega
       const res = await adminServices.updateStudentFee(payload);
-
       const invoiceId = res.invoiceId;
 
       console.log("API RESPONSE:", res);
@@ -285,7 +365,6 @@ export default function AdminFeeManagement() {
 
       const blob = await adminServices.generateInvoicePDF(invoiceId);
       const url = window.URL.createObjectURL(blob);
-
       const a = document.createElement("a");
       a.href = url;
       a.download = `invoice_${student.admissionNumber}.pdf`;
@@ -300,35 +379,55 @@ export default function AdminFeeManagement() {
     }
   };
   const handleFeeStructureUpdate = async () => {
-
     try {
+      // Use the live feeComponents array directly from summary state
+      const feeComponents = (summary.feeComponents || []).map(f => ({
+        name: f.name,
+        amount: Number(f.amount || 0),
+        type: f.type || "one-time"
+      }));
 
-      await adminServices.updateStudentFeeStructure(
-        admissionNo,
-        feeStructure
-      );
+      if (feeComponents.length === 0) {
+        toast.error("No fee components to save");
+        return;
+      }
 
+      await adminServices.updateStudentFeeStructure(admissionNo, { feeComponents });
+
+      toast.success("Fee structure updated");
       handleSearch();
 
     } catch (err) {
-
       console.log(err);
-
+      toast.error("Failed to update fee structure");
     }
-
   };
   const getMonthStatus = (month) => {
+
     const paid = monthlyFees[month] || 0;
-    const monthlyExpected =
-      (summary.tuitionFee || 0) / 12 +
-      (summary.hostelFee || 0) / 12 +
-      (summary.transportFee || 0) / 12;
-    const pending = Math.max(monthlyExpected - paid, 0);
+
+    const hasMonthlyComponents = (summary.feeComponents || []).some(
+      f =>
+        String(f.type).toLowerCase().trim() === "monthly" ||
+        ["tuition", "hostel", "transport"].includes(f.name?.toLowerCase())
+    );
+
+    const isFullyPaid =
+      summary.status === "paid" || Number(summary.remainingAmount) <= 0;
+
+    if (isFullyPaid || (paid === 0 && monthlyExpected <= 0)) return "full";
 
     if (paid === 0) return "none";
-    if (paid < monthlyExpected) return "partial";
+
+    if (monthlyExpected > 0 && paid < monthlyExpected) return "partial";
+
     return "full";
   };
+
+  // Set of one-time component names that have been paid
+  const paidOneTimeComponents = new Set(
+    (summary.payments || []).filter(p => p.componentName).map(p => p.componentName.toLowerCase())
+  );
   const totalPages = Math.ceil(classStudents.length / rowsPerPage)
 
   const startIndex = (currentPage - 1) * rowsPerPage
@@ -459,6 +558,9 @@ export default function AdminFeeManagement() {
     }
 
   }
+
+  // Monthly expected comes directly from API (sum of monthly-type fee components)
+  // Do NOT compute it as remainingAmount/12 — that changes after one-time payments are made.
 
   return (
 
@@ -600,9 +702,20 @@ export default function AdminFeeManagement() {
           >
             <option value="">Select Month</option>
 
-            {months.map((m) => (
-              <option key={m} value={m}>{m}</option>
-            ))}
+            {months.map((m) => {
+
+              const isPaidMonth = !!(monthlyFees[m] && monthlyFees[m] > 0);
+              return (
+                <option
+                  key={m}
+                  value={m}
+                  disabled={isPaidMonth}
+                  style={isPaidMonth ? { color: '#9ca3af', background: '#f3f4f6' } : {}}
+                >
+                  {m}{isPaidMonth ? ' ✓ Paid' : ''}
+                </option>
+              );
+            })}
 
           </select>
 
@@ -750,21 +863,55 @@ hover:bg-[#ECFAFC] transition
                       </td>
 
                       <td className="p-3 border border-[#D9F1F4]">
+                        {selectedMonth ? (() => {
+                          const studentMonthlyFees = {};
+                          (s.fee?.payments || []).forEach(p => {
+                            if (p.month && p.month.toLowerCase() === selectedMonth.toLowerCase()) {
+                              studentMonthlyFees[selectedMonth] = (studentMonthlyFees[selectedMonth] || 0) + Number(p.amount || 0);
+                            }
+                          });
 
-                        {remaining === 0 ? (
+                          let studentMonthlyExpected = 0;
+                          (s.fee?.feeComponents || []).forEach(f => {
+                            const name = String(f.name || "").toLowerCase().trim();
+                            const type = String(f.type || "").toLowerCase().trim();
 
-                          <span className="text-green-600 font-semibold flex items-center gap-1">
-                            ✓ Paid
-                          </span>
+                            const isRecurring = type === "monthly" || ["tuition", "hostel", "transport"].includes(name);
 
-                        ) : (
+                            if (isRecurring) {
+                              const amt = Number(f.amount || 0);
+                              studentMonthlyExpected += amt / 12;
+                            }
+                          });
+                          studentMonthlyExpected = Math.round(studentMonthlyExpected);
 
-                          <span className="text-red-600 font-semibold">
-                            ₹{remaining} Due
-                          </span>
+                          const paid = studentMonthlyFees[selectedMonth] || 0;
 
+                          if (s.fee?.status === "paid" || (s.fee?.remainingAmount || 0) <= 0) {
+                            return <span className="text-green-600 font-semibold flex items-center gap-1">✓ Paid</span>;
+                          }
+
+                          if (studentMonthlyExpected <= 0) {
+                            return <span className="text-gray-400 font-medium italic">N/A</span>;
+                          }
+
+                          if (paid === 0) return <span className="text-red-500 font-semibold">Unpaid</span>;
+
+                          if (paid < studentMonthlyExpected) {
+                            return <span className="text-yellow-600 font-semibold">Partial (₹{paid})</span>;
+                          }
+                          return <span className="text-green-600 font-semibold flex items-center gap-1">✓ Paid</span>;
+                        })() : (
+                          remaining === 0 ? (
+                            <span className="text-green-600 font-semibold flex items-center gap-1">
+                              ✓ Paid
+                            </span>
+                          ) : (
+                            <span className="text-red-600 font-semibold">
+                              ₹{remaining} Due
+                            </span>
+                          )
                         )}
-
                       </td>
 
 
@@ -898,40 +1045,35 @@ hover:bg-[#ECFAFC] transition
               Fee Structure
             </h2>
 
+            {(summary.feeComponents && summary.feeComponents.length > 0) ? (
+              <div className="grid grid-cols-3 gap-6">
 
-            <div className="grid grid-cols-3 gap-6">
+                {summary.feeComponents.map((component, index) => (
+                  <div key={index}>
+                    <label className="text-sm text-gray-500 capitalize flex items-center gap-1 mb-1">
+                      <span>✏️</span>
+                      {component.name.charAt(0).toUpperCase() + component.name.slice(1)} Fee
+                      <span className="text-xs text-gray-400 ml-1">({component.type})</span>
+                    </label>
+                    <input
+                      type="number"
+                      value={component.amount}
+                      onChange={(e) => {
+                        const updated = [...summary.feeComponents];
+                        updated[index] = { ...updated[index], amount: Number(e.target.value) };
+                        setSummary(prev => ({ ...prev, feeComponents: updated }));
+                        setFeeStructure(prev => ({ ...prev, feeComponents: updated }));
+                      }}
+                      className="border border-gray-300 rounded-lg p-2 w-full text-sm"
+                    />
+                  </div>
+                ))}
 
-              <EditableInput label="Tuition Fee"
-                value={feeStructure.tuitionFee || 0}
-                onChange={(v) => handleChange("tuitionFee", v)}
-              />
+              </div>
+            ) : (
+              <p className="text-gray-400 text-sm">No fee components found. Please assign a fee structure to this student first.</p>
+            )}
 
-              <EditableInput label="Admission Fee"
-                value={feeStructure.admissionFee || 0}
-                onChange={(v) => handleChange("admissionFee", v)}
-              />
-
-              <EditableInput label="Exam Fee"
-                value={feeStructure.examFee || 0}
-                onChange={(v) => handleChange("examFee", v)}
-              />
-
-              <EditableInput label="Hostel Fee"
-                value={feeStructure.hostelFee || 0}
-                onChange={(v) => handleChange("hostelFee", v)}
-              />
-
-              <EditableInput label="Transport Fee"
-                value={feeStructure.transportFee || 0}
-                onChange={(v) => handleChange("transportFee", v)}
-              />
-
-              <EditableInput label="Late Fee / Day"
-                value={feeStructure.lateFeePerDay || 0}
-                onChange={(v) => handleChange("lateFeePerDay", v)}
-              />
-
-            </div>
             <button
               onClick={handleFeeStructureUpdate}
               className="bg-[#178F9E] text-white px-4 py-2 rounded-lg mt-6"
@@ -986,6 +1128,83 @@ ${summary.status === "paid"
 
             </div>
 
+            {/* ── Breakdown: One-time vs Monthly ── */}
+            {(() => {
+              const oneTimeComponents = (summary.feeComponents || []).filter(
+                f => f.type === "one-time" && !["tuition", "hostel", "transport"].includes(f.name?.toLowerCase())
+              );
+              const monthlyComponents = (summary.feeComponents || []).filter(
+                f => String(f.type).toLowerCase().trim() === "monthly" || ["tuition", "hostel", "transport"].includes(f.name?.toLowerCase())
+              );
+
+              const oneTimeTotal = oneTimeComponents.reduce((s, f) => s + Number(f.amount || 0), 0);
+              // For monthly components, if they are explicitly "monthly", they store per-month amount so we do *12.
+              // If they are annualized like "tuition", they already contain the annual amount.
+              const monthlyTotal = monthlyComponents.reduce((s, f) => {
+                if (String(f.type).toLowerCase().trim() === "monthly") {
+                  return s + Number(f.amount || 0);
+                }
+                return s + Number(f.amount || 0); // already annual
+              }, 0);
+
+              const oneTimePaid = (summary.payments || [])
+                .filter(p => p.componentName)
+                .reduce((s, p) => s + Number(p.amount || 0), 0);
+
+              const monthlyPaid = (summary.payments || [])
+                .filter(p => p.month && !p.componentName)
+                .reduce((s, p) => s + Number(p.amount || 0), 0);
+
+              const oneTimeRemaining = Math.max(oneTimeTotal - oneTimePaid, 0);
+              const monthlyRemaining = Math.max(monthlyTotal - monthlyPaid, 0);
+
+              if (oneTimeTotal === 0 && monthlyTotal === 0) return null;
+
+              return (
+                <div className="mt-6 grid grid-cols-2 gap-4 max-w-2xl">
+
+                  {/* One-time block */}
+                  {oneTimeTotal > 0 && (
+                    <div className="rounded-xl border border-[#D9F1F4] bg-white p-4 flex flex-col gap-1">
+                      <p className="text-sm font-semibold text-[#0F6F7C]">🧾 One-Time Fees</p>
+                      <div className="flex justify-between text-xs text-gray-500 mt-1">
+                        <span>Total</span><span className="font-medium text-gray-700">₹{oneTimeTotal}</span>
+                      </div>
+                      <div className="flex justify-between text-xs text-gray-500">
+                        <span>Paid</span><span className="font-medium text-green-600">₹{oneTimePaid}</span>
+                      </div>
+                      <div className="flex justify-between text-xs text-gray-500">
+                        <span>Remaining</span>
+                        <span className={`font-medium ${oneTimeRemaining === 0 ? "text-green-600" : "text-red-500"}`}>
+                          {oneTimeRemaining === 0 ? "✓ Fully Paid" : `₹${oneTimeRemaining}`}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Monthly block */}
+                  {monthlyTotal > 0 && (
+                    <div className="rounded-xl border border-[#D9F1F4] bg-white p-4 flex flex-col gap-1">
+                      <p className="text-sm font-semibold text-[#0F6F7C]">📅 Monthly Fees (Annual)</p>
+                      <div className="flex justify-between text-xs text-gray-500 mt-1">
+                        <span>Total (12 months)</span><span className="font-medium text-gray-700">₹{monthlyTotal}</span>
+                      </div>
+                      <div className="flex justify-between text-xs text-gray-500">
+                        <span>Paid</span><span className="font-medium text-green-600">₹{monthlyPaid}</span>
+                      </div>
+                      <div className="flex justify-between text-xs text-gray-500">
+                        <span>Remaining</span>
+                        <span className={`font-medium ${monthlyRemaining === 0 ? "text-green-600" : "text-red-500"}`}>
+                          {monthlyRemaining === 0 ? "✓ Fully Paid" : `₹${monthlyRemaining}`}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                </div>
+              );
+            })()}
+
           </section>
 
 
@@ -993,28 +1212,179 @@ ${summary.status === "paid"
 
           <section>
 
-            <h2 className="text-xl font-bold  mb-6">
-              Update Payment
-            </h2>
+            <h2 className="text-xl font-bold mb-4">Update Payment</h2>
 
-            <div className="flex gap-4">
-
-              <input
-                type="number"
-                placeholder="Enter Payment Amount"
-                value={payAmount}
-                onChange={(e) => setPayAmount(e.target.value)}
-                className="border rounded-lg p-3 w-72 appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-              />
-
+            {/* Tab buttons */}
+            <div className="flex gap-2 mb-6">
               <button
-                onClick={handlePayment}
-                className="bg-[#178F9E] text-white px-6 rounded-lg"
+                onClick={() => setPaymentMode("monthly")}
+                className={`px-5 py-2 rounded-lg text-sm font-medium transition ${paymentMode === "monthly"
+                  ? "bg-[#178F9E] text-white shadow"
+                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  }`}
               >
-                Update Payment
+                📅 Monthly Fee
               </button>
-
+              <button
+                onClick={() => setPaymentMode("onetime")}
+                className={`px-5 py-2 rounded-lg text-sm font-medium transition ${paymentMode === "onetime"
+                  ? "bg-[#178F9E] text-white shadow"
+                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  }`}
+              >
+                🧾 One-Time Fees
+              </button>
             </div>
+
+            {/* ── MONTHLY PAYMENT ── */}
+            {paymentMode === "monthly" && (
+              <div className="flex flex-col gap-3">
+
+                {summary.status === "paid" || Number(summary.remainingAmount) <= 0 ? (
+                  <div className="inline-flex items-center gap-2 bg-green-50 border border-green-400 text-green-700 text-sm font-semibold px-4 py-3 rounded-lg w-fit">
+                    ✓ All fees fully paid — no payment due
+                  </div>
+                ) : (
+                  <>
+                    {monthlyExpected > 0 && (
+
+                      <div className="inline-flex items-center gap-2 bg-[#E8F9FB] border border-[#178F9E] text-[#0F6F7C] text-sm font-medium px-4 py-2 rounded-lg w-fit">
+                        <span>📅 Monthly Fee Required:</span>
+                        <span className="font-bold text-base">₹{monthlyExpected / 12}</span>
+                      </div>
+                    )}
+
+                    {/* Month selector with sequential enforcement */}
+                    <div className="flex flex-col gap-1">
+                      <label className="text-sm text-gray-500 font-medium">Select Month</label>
+                      <select
+                        value={selectedMonth}
+                        onChange={(e) => setSelectedMonth(e.target.value)}
+                        className="border border-gray-300 px-4 py-2 rounded-lg text-sm w-72 focus:ring-2 focus:ring-[#178F9E]"
+                      >
+                        <option value="">-- Select Month --</option>
+                        {months.map((m, idx) => {
+                          const isPaid = (summary.payments || []).some(
+                            p => p.month && p.month.toLowerCase() === m.toLowerCase()
+                          );
+                          // Disable if any previous month is unpaid
+                          const isPrevUnpaid = months.slice(0, idx).some(prev =>
+                            !(summary.payments || []).some(
+                              p => p.month && p.month.toLowerCase() === prev.toLowerCase()
+                            )
+                          );
+                          const isDisabled = isPaid || isPrevUnpaid;
+                          return (
+                            <option key={m} value={m} disabled={isDisabled}
+                              style={isDisabled ? { color: '#9ca3af', background: '#f3f4f6' } : {}}>
+                              {isPaid ? `✓ ${m} (Paid)` : isPrevUnpaid ? `🔒 ${m}` : m}
+                            </option>
+                          );
+                        })}
+                      </select>
+                      {selectedMonth && (() => {
+                        const firstUnpaidIdx = months.findIndex(m =>
+                          !(summary.payments || []).some(p => p.month && p.month.toLowerCase() === m.toLowerCase())
+                        );
+                        const selIdx = months.indexOf(selectedMonth);
+                        if (firstUnpaidIdx >= 0 && selIdx > firstUnpaidIdx) {
+                          return (
+                            <span className="text-xs text-red-500">
+                              ⚠ Pay {months[firstUnpaidIdx]} first before paying {selectedMonth}
+                            </span>
+                          );
+                        }
+                        return null;
+                      })()}
+                    </div>
+
+                    <div className="flex gap-4 items-start">
+                      <div className="flex flex-col gap-1">
+                        <input
+                          type="number"
+                          placeholder={monthlyExpected > 0 ? `Enter ₹${monthlyExpected / 12}` : "Enter Payment Amount"}
+                          value={payAmount}
+                          min={1}
+                          max={
+                            (monthlyExpected > 0 && summary.remainingAmount <= (monthlyExpected / 12) * 1.5)
+                              ? summary.remainingAmount
+                              : (monthlyExpected > 0 ? (monthlyExpected / 12) : (summary.remainingAmount || undefined))
+                          }
+                          onChange={(e) => {
+                            const val = Number(e.target.value);
+
+                            let maxAllowed = monthlyExpected > 0
+                              ? (monthlyExpected / 12)
+                              : (summary.remainingAmount || Infinity);
+
+                            if (
+                              monthlyExpected > 0 &&
+                              summary.remainingAmount > 0 &&
+                              summary.remainingAmount <= (monthlyExpected / 12) * 1.5
+                            ) {
+                              maxAllowed = summary.remainingAmount;
+                            }
+
+                            setPayAmount(val > maxAllowed ? String(maxAllowed) : e.target.value);
+                          }}
+                          className="border rounded-lg p-3 w-72 appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                        />
+                        {monthlyExpected > 0 && (
+                          <span className="text-xs text-gray-500">
+                            Enter exact amount: <strong>₹{monthlyExpected / 12}</strong>
+                          </span>
+                        )}
+                      </div>
+
+                      <button
+                        onClick={() => handlePayment()}
+                        className="bg-[#178F9E] text-white px-6 py-3 rounded-lg"
+                      >
+                        Pay Monthly Fee
+                      </button>
+                    </div>
+                  </>
+                )}
+
+              </div>
+            )}
+
+            {/* ── ONE-TIME PAYMENTS ── */}
+            {paymentMode === "onetime" && (
+              <div className="flex flex-col gap-4">
+
+                {(summary.feeComponents || []).filter(f => f.type === "one-time" && !["tuition", "hostel", "transport"].includes(f.name?.toLowerCase())).length === 0 && (
+                  <p className="text-gray-400 text-sm">No one-time fee components found in fee structure.</p>
+                )}
+
+                <div className="grid grid-cols-2 gap-4 max-w-xl">
+                  {(summary.feeComponents || [])
+                    .filter(f => f.type === "one-time" && !["tuition", "hostel", "transport"].includes(f.name?.toLowerCase()))
+                    .map((comp, idx) => (
+                      <div key={idx} className="border border-[#D9F1F4] rounded-xl p-4 bg-[#F4FDFE] flex flex-col gap-2">
+                        <div className="flex justify-between items-center">
+                          <span className="font-semibold text-[#0F6F7C] capitalize">{comp.name} Fee</span>
+                          <span className="text-lg font-bold text-gray-800">₹{comp.amount}</span>
+                        </div>
+                        <span className="text-xs text-gray-400">One-time payment</span>
+                        {paidOneTimeComponents.has(comp.name.toLowerCase()) ? (
+                          <div className="bg-green-100 text-green-700 text-sm py-2 rounded-lg mt-1 text-center font-medium">
+                            ✓ Paid
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => handlePayment(comp.amount, "onetime", comp.name)}
+                            className="bg-[#178F9E] text-white text-sm py-2 rounded-lg mt-1 hover:bg-[#0F6F7C] transition"
+                          >
+                            Pay ₹{comp.amount}
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                </div>
+
+              </div>
+            )}
 
           </section>
 
@@ -1031,11 +1401,9 @@ ${summary.status === "paid"
 
               {months.map((month, index) => {
 
-                const paid = monthlyFees[month] || 0;
-                const monthlyExpected = (summary.tuitionFee || 0) / 12 +
-                  (summary.hostelFee || 0) / 12 +
-                  (summary.transportFee || 0) / 12;
-                const pending = Math.max(monthlyExpected - paid, 0);
+                const paid = Math.min(monthlyFees[month] || 0, monthlyExpected);
+                const pending = Math.max((monthlyExpected / 12) - paid, 0);
+
 
                 const status = getMonthStatus(month);
 
@@ -1056,14 +1424,21 @@ ${summary.status === "paid"
 
                     <p className="text-lg">{month.slice(0, 3)}</p>
                     <p className="text-xs font-semibold">
-                      {paid > 0 && (
-                        <span className="text-white">₹{paid} Paid</span>
-                      )}
-
-                      {pending > 0 && (
-                        <span className="text-red-200 block">
-                          ₹{pending} Pending
-                        </span>
+                      {status === "full" ? (
+                        paid > 0
+                          ? <span className="text-white">₹{paid} Paid</span>
+                          : <span className="text-white">✓ Paid</span>
+                      ) : (
+                        <>
+                          {paid > 0 && (
+                            <span className="text-white">₹{paid} Paid</span>
+                          )}
+                          {pending > 0 && (
+                            <span className="text-red-200 block">
+                              ₹{pending} Pending
+                            </span>
+                          )}
+                        </>
                       )}
                     </p>
 

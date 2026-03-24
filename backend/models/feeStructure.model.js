@@ -23,6 +23,11 @@ const feeStructureSchema = new mongoose.Schema({
     {
       name: String,   // tuition, library, sports
       amount: Number,
+      type: {
+        type: String,
+        enum: ["monthly", "one-time"],
+        default: "one-time"
+      }
     }
   ],
 
@@ -44,11 +49,8 @@ feeStructureSchema.pre("save", function (next) {
   let total = 0;
 
   this.feeComponents.forEach(fee => {
-    if (fee.type === "monthly") {
-      total += fee.amount * 12; // yearly
-    } else {
-      total += fee.amount;
-    }
+    // yearly already hai
+    total += Number(fee.amount || 0);
   });
 
   this.totalFee = total;

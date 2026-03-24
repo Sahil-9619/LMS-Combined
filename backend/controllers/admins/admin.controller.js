@@ -241,9 +241,9 @@ const getAdminDashboardData = async (req, res) => {
           name: {
             $concat: [
               "Class ",
-              "$_id.className",
+              { $toString: "$_id.className" },  // 👈 FIX
               " - ",
-              "$_id.section",
+              { $toString: "$_id.section" }     // 👈 FIX
             ],
           },
           count: 1,

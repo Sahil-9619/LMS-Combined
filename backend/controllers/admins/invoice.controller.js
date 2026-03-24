@@ -243,187 +243,262 @@ exports.downloadInvoice = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Fetch invoice with populated data
     const invoice = await Invoice.findById(id).populate("studentId");
 
     if (!invoice) {
-      return res.status(404).json({
-        success: false,
-        message: "Invoice not found",
-      });
+      return res.status(404).json({ success: false, message: "Invoice not found" });
     }
 
-    // --- CONFIGURATION & STYLING ---
-    const BRAND_YELLOW = "#7bcff0"; // Yellow from the image
-    const DARK_COLOR = "#1C1C1E"; // Near black for bold elements
-    const GRAY_COLOR = "#666666"; // Gray for secondary text
-    const LIGHT_BG = "#EAEAEA"; // Light gray for banner
-    const CURRENCY = "INR "; // Can be changed as per requirement
+    // ─── COLORS ───────────────────────────────────────────────
+    const TEAL        = "#0B7A87";   // primary brand
+    const TEAL_LIGHT  = "#E6F4F6";   // light teal bg
+    const DARK        = "#1A1A2E";   // near-black
+    const GRAY        = "#6B7280";   // muted text
+    const BORDER      = "#CBD5E1";   // table borders
+    const WHITE       = "#FFFFFF";
+    const ACCENT      = "#F0FAFB";   // row alternating
 
-    // Initialize Document
-    const doc = new PDFDocument({ size: "A4", margin: 40 });
+    const CURRENCY    = "INR ";
 
-    // Set Response Headers
+    const doc = new PDFDocument({ size: "A4", margin: 0, autoFirstPage: true });
+
     res.setHeader("Content-Type", "application/pdf");
-    res.setHeader(
-      "Content-Disposition",
-      `attachment; filename=INV-${invoice.invoiceNumber}.pdf`
-    );
-
+    res.setHeader("Content-Disposition", `attachment; filename=INV-${invoice.invoiceNumber}.pdf`);
     doc.pipe(res);
+    doc.on("error", (err) => console.error("PDF stream error:", err));
 
-    // ==========================================
-    // 1. HEADER HERO SECTION
-    // ==========================================
+    const PW = 595.28;   // A4 width
+    const PH = 841.89;   // A4 height
+    const M  = 40;       // margin
 
-    // Draw Top Yellow Box
-    doc.rect(40, 40, 270, 95).fill(BRAND_YELLOW);
+    // ═══════════════════════════════════════════════
+    // 1.  HEADER  – solid dark bar
+    // ═══════════════════════════════════════════════
+    doc.rect(0, 0, PW, 110).fill(DARK);
 
-    // Draw Mock Logo inside Yellow Box (matching the image)
-    doc.fillColor(DARK_COLOR).fontSize(7).font("Helvetica-Bold");
-    doc.text("10101010", 48, 58);
-    doc.text("00100010", 48, 66);
-    doc.text("00110000", 48, 74);
+    // decorative teal accent strip on right
+    doc.rect(PW - 8, 0, 8, 110).fill(TEAL);
 
-    // Magnifying glass icon
-    doc.circle(75, 75, 10).lineWidth(3).stroke(DARK_COLOR);
-    doc.moveTo(82, 82).lineTo(90, 90).lineWidth(4).stroke(DARK_COLOR);
+    // School name
+    doc.fillColor(WHITE)
+       .font("Helvetica-Bold")
+       .fontSize(22)
+       .text("VIGYAN ACADEMY", M, 30, { width: 320 });
 
-    // School Name & Tagline
-    doc.fillColor(DARK_COLOR).fontSize(20).font("Times-Bold").text("VIGYAN ACADEMY", 100, 55, { letterSpacing: 1 });
-    doc.fontSize(8).font("Helvetica-Bold").text("E D U C A T I O N   F O R   E X C E L L E N C E", 102, 85, { letterSpacing: 1.5 });
+    doc.fillColor(TEAL)
+       .font("Helvetica")
+       .fontSize(9)
+       .text("E D U C A T I O N   F O R   E X C E L L E N C E", M, 58, { width: 320, characterSpacing: 1 });
 
-    // Header Right (Contact Info)
-    doc.fillColor(GRAY_COLOR).fontSize(9).font("Helvetica");
-    doc.text("+91 98765 43210", 350, 45, { width: 200, align: 'right' });
-    doc.text("info@vigyanacademy.com", 350, 60, { width: 200, align: 'right' });
-    doc.text("www.vigyanacademy.com", 350, 75, { width: 200, align: 'right' });
-    doc.text("Patna, Bihar 800001", 350, 90, { width: 200, align: 'right' });
+    // Contact block (right side of header)
+    doc.fillColor("#94A3B8")
+       .font("Helvetica")
+       .fontSize(8)
+       .text("+91 98765 43210", 360, 28, { width: 195, align: "right" })
+       .text("info@vigyanacademy.com", 360, 42, { width: 195, align: "right" })
+       .text("www.vigyanacademy.com", 360, 56, { width: 195, align: "right" })
+       .text("Patna, Bihar — 800001", 360, 70, { width: 195, align: "right" });
 
-    // ==========================================
-    // 2. INVOICE BANNER
-    // ==========================================
+    // Thin separator line under header
+    doc.moveTo(0, 110).lineTo(PW, 110).lineWidth(3).stroke(TEAL);
 
-    // Dark "INVOICE" Box
-    doc.rect(40, 155, 140, 32).fill(DARK_COLOR);
-    doc.fillColor('#ffffff').fontSize(16).font("Helvetica").text("INVOICE", 40, 164, { width: 140, align: 'center', letterSpacing: 4 });
+    // ═══════════════════════════════════════════════
+    // 2.  INVOICE TITLE TAG
+    // ═══════════════════════════════════════════════
+    let y = 130;
 
-    // Light Gray "Invoice No" Box
-    doc.rect(180, 155, 370, 32).fill(LIGHT_BG);
-    doc.fillColor(DARK_COLOR).fontSize(10).font("Helvetica").text(`Invoice No. ${invoice.invoiceNumber}`, 200, 167);
+    // "INVOICE" label pill
+    doc.rect(M, y, 110, 26).fill(TEAL);
+    doc.fillColor(WHITE)
+       .font("Helvetica-Bold")
+       .fontSize(12)
+       .text("INVOICE", M, y + 7, { width: 110, align: "center" });
 
-    // ==========================================
-    // 3. INVOICE DETAILS SECTION (3 Columns)
-    // ==========================================
+    // Invoice number
+    doc.fillColor(DARK)
+       .font("Helvetica-Bold")
+       .fontSize(11)
+       .text(`# ${invoice.invoiceNumber}`, M + 120, y + 7);
 
-    const detailsY = 230;
+    // Date (right-aligned)
+    const dateStr = new Date(invoice.createdAt).toLocaleDateString("en-IN", {
+      day: "2-digit", month: "long", year: "numeric"
+    });
+    doc.fillColor(GRAY)
+       .font("Helvetica")
+       .fontSize(9)
+       .text(`Date: ${dateStr}`, 350, y + 8, { width: 205, align: "right" });
 
-    // --- Column 1: Bill To ---
-    doc.fillColor(DARK_COLOR).fontSize(8).font("Helvetica-Bold").text("INVOICE TO", 40, detailsY);
-    doc.fontSize(11).text(`Name - ${invoice.studentName.toUpperCase()}`, 40, detailsY + 15);
+    y += 50;
 
-    // Student Info layout (replacing address icons with structural details)
-    doc.fontSize(9).font("Helvetica").fillColor(DARK_COLOR);
-    // Bullet 1: Admission Number
-    doc.circle(44, detailsY + 41, 1.5).fill(DARK_COLOR);
-    doc.text(`Adm No: ${invoice.studentId?.admissionNumber || 'N/A'}`, 52, detailsY + 38);
-    // Bullet 2: Class
-    doc.circle(44, detailsY + 56, 1.5).fill(DARK_COLOR);
-    doc.text(`Class: ${invoice.className}`, 52, detailsY + 53);
-    // Bullet 3: Section
-    doc.circle(44, detailsY + 71, 1.5).fill(DARK_COLOR);
-    doc.text(`Section: ${invoice.section}`, 52, detailsY + 68);
+    // ═══════════════════════════════════════════════
+    // 3.  TWO-COLUMN INFO SECTION
+    // ═══════════════════════════════════════════════
+    // Left card  – Student details
+    doc.rect(M, y, 240, 115).fill(TEAL_LIGHT);
+    doc.rect(M, y, 4, 115).fill(TEAL);   // accent left bar
 
-    // --- Column 2: Dates ---
-    doc.fontSize(8).font("Helvetica-Bold").text("INVOICE DATE", 250, detailsY);
-    doc.fontSize(9).font("Helvetica").fillColor(GRAY_COLOR).text(new Date(invoice.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }), 250, detailsY + 15);
+    doc.fillColor(TEAL)
+       .font("Helvetica-Bold")
+       .fontSize(8)
+       .text("BILLED TO", M + 14, y + 12);
 
-    doc.fillColor(DARK_COLOR).fontSize(8).font("Helvetica-Bold").text("ISSUED DATE", 250, detailsY + 45);
-    doc.fontSize(9).font("Helvetica").fillColor(GRAY_COLOR).text(new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }), 250, detailsY + 60);
+    doc.fillColor(DARK)
+       .font("Helvetica-Bold")
+       .fontSize(12)
+       .text((invoice.studentName || "Student").toUpperCase(), M + 14, y + 26, { width: 218 });
 
-    // --- Column 3: Amount Due ---
-    doc.fillColor(DARK_COLOR).fontSize(8).font("Helvetica-Bold").text("AMOUNT DUE", 420, detailsY);
+    const infoRows = [
+      ["Admission No.", invoice.studentId?.admissionNumber || "N/A"],
+      ["Class",         invoice.className || "N/A"],
+      ["Section",       invoice.section   || "N/A"],
+    ];
 
-    // Amount Yellow Highlight Box
-    doc.rect(420, detailsY + 15, 130, 35).fill(BRAND_YELLOW);
-    doc.fillColor(DARK_COLOR).fontSize(16).font("Helvetica-Bold").text(`${CURRENCY}${parseFloat(invoice.amount).toFixed(2)}`, 420, detailsY + 25, { width: 130, align: 'center' });
+    let infoY = y + 52;
+    infoRows.forEach(([label, value]) => {
+      doc.fillColor(GRAY).font("Helvetica").fontSize(8).text(label + ":", M + 14, infoY);
+      doc.fillColor(DARK).font("Helvetica-Bold").fontSize(8).text(value, M + 90, infoY);
+      infoY += 16;
+    });
 
-    // ==========================================
-    // 4. TABLE SECTION
-    // ==========================================
+    // Right card – Amount due
+    const rightCardX = PW - M - 200;
+    doc.rect(rightCardX, y, 200, 115).fill(DARK);
+    doc.rect(rightCardX, y, 4, 115).fill(TEAL);
 
-    let tableTop = 350;
+    doc.fillColor(TEAL)
+       .font("Helvetica-Bold")
+       .fontSize(8)
+       .text("AMOUNT DUE", rightCardX + 14, y + 12);
 
-    // Top Thick Border
-    doc.moveTo(40, tableTop).lineTo(550, tableTop).lineWidth(2).stroke(DARK_COLOR);
+    doc.fillColor(WHITE)
+       .font("Helvetica-Bold")
+       .fontSize(28)
+       .text(`${CURRENCY}${parseFloat(invoice.amount).toFixed(2)}`, rightCardX + 14, y + 32, { width: 182, align: "center" });
 
-    // Headers
-    doc.fontSize(9).font("Helvetica-Bold").fillColor(DARK_COLOR);
-    doc.text("DESCRIPTION", 40, tableTop + 10);
-    doc.text("QTY", 330, tableTop + 10, { width: 30, align: 'center' });
-    doc.text("PRICE", 400, tableTop + 10, { width: 60, align: 'right' });
-    doc.text("TOTAL", 490, tableTop + 10, { width: 60, align: 'right' });
+    doc.fillColor("#94A3B8")
+       .font("Helvetica")
+       .fontSize(8)
+       .text(`Month: ${invoice.month}`, rightCardX + 14, y + 76, { width: 182, align: "center" })
+       .text(`Status: PAID`, rightCardX + 14, y + 90, { width: 182, align: "center" });
 
-    // Header Bottom Border
-    doc.moveTo(40, tableTop + 25).lineTo(550, tableTop + 25).lineWidth(2).stroke(DARK_COLOR);
+    y += 135;
 
-    // Main Row
-    doc.fontSize(9).font("Helvetica").fillColor(DARK_COLOR);
-    doc.text("School Tuition Fee", 40, tableTop + 45);
-    doc.fillColor(GRAY_COLOR).fontSize(8).text(`Fee for the month of ${invoice.month}`, 40, tableTop + 58);
+    // ═══════════════════════════════════════════════
+    // 4.  ITEMS TABLE
+    // ═══════════════════════════════════════════════
+    const colDesc  = M;
+    const colMonth = 350;
+    const colQty   = 430;
+    const colAmt   = 490;
+    const tableW   = PW - M - M;   // 515
 
-    doc.fillColor(DARK_COLOR).fontSize(9);
-    doc.text("1", 330, tableTop + 45, { width: 30, align: 'center' });
-    doc.text(parseFloat(invoice.amount).toFixed(2), 400, tableTop + 45, { width: 60, align: 'right' });
-    doc.text(parseFloat(invoice.amount).toFixed(2), 490, tableTop + 45, { width: 60, align: 'right' });
+    // Table header row
+    doc.rect(M, y, tableW, 24).fill(DARK);
+    doc.fillColor(WHITE).font("Helvetica-Bold").fontSize(8);
+    doc.text("DESCRIPTION",  colDesc  + 6, y + 8);
+    doc.text("MONTH",        colMonth + 6, y + 8);
+    doc.text("QTY",          colQty   + 6, y + 8, { width: 40, align: "center" });
+    doc.text("AMOUNT",       colAmt,        y + 8, { width: 65, align: "right" });
 
-    // Spacing for table to make it look prominent
-    let tableBottom = tableTop + 150;
+    y += 24;
 
-    // Bottom Thick Border
-    doc.moveTo(40, tableBottom).lineTo(550, tableBottom).lineWidth(2).stroke(DARK_COLOR);
+    // Single item row
+    doc.rect(M, y, tableW, 44).fill(ACCENT);
+    doc.rect(M, y, tableW, 44).lineWidth(0.5).stroke(BORDER);
 
-    // ==========================================
-    // 5. TOTAL
-    // ==========================================
+    doc.fillColor(DARK).font("Helvetica-Bold").fontSize(9)
+       .text("School Tuition Fee", colDesc + 6, y + 10);
+    doc.fillColor(GRAY).font("Helvetica").fontSize(7.5)
+       .text("Monthly academic fee for current session", colDesc + 6, y + 24);
 
-    doc.fontSize(9).font("Helvetica-Bold").text("TOTAL", 400, tableBottom + 15, { width: 60, align: 'right' });
-    doc.text(`${CURRENCY}${parseFloat(invoice.amount).toFixed(2)}`, 490, tableBottom + 15, { width: 60, align: 'right' });
+    doc.fillColor(DARK).font("Helvetica").fontSize(9)
+       .text(invoice.month, colMonth + 6, y + 17)
+       .text("1",           colQty   + 6, y + 17, { width: 40, align: "center" })
+       .text(`${CURRENCY}${parseFloat(invoice.amount).toFixed(2)}`, colAmt, y + 17, { width: 65, align: "right" });
 
-    // ==========================================
-    // 6. FOOTER SECTION
-    // ==========================================
+    y += 44;
 
-    const footerY = 620;
+    // Subtotal / Total rows
+    const totalRows = [
+      ["Sub-Total", parseFloat(invoice.amount).toFixed(2)],
+      ["Tax / VAT (0%)", "0.00"],
+      ["Discount",       "0.00"],
+    ];
 
-    // Payment Methods
-    doc.fontSize(9).font("Helvetica-Bold").text("PAYMENT DETAIL", 40, footerY);
-    doc.font("Helvetica").fillColor(GRAY_COLOR).text("Bank Transfer | Credit Card | UPI", 40, footerY + 15);
+    totalRows.forEach(([label, val]) => {
+      doc.rect(colMonth, y, tableW - (colMonth - M), 20).fill(WHITE);
+      doc.rect(colMonth, y, tableW - (colMonth - M), 20).lineWidth(0.5).stroke(BORDER);
 
-    // Terms & Conditions
-    doc.fillColor(DARK_COLOR).font("Helvetica-Bold").text("TERMS & CONDITION", 40, footerY + 50);
-    doc.fillColor(GRAY_COLOR).font("Helvetica").fontSize(8)
-      .text("Payment is due in 30 days from date of\nissue. Late fees will apply. Check our\nwebsite or contact administration for details.", 40, footerY + 65, { width: 250, lineGap: 3 });
+      doc.fillColor(GRAY).font("Helvetica").fontSize(8).text(label, colMonth + 8, y + 6);
+      doc.fillColor(DARK).font("Helvetica").fontSize(8)
+         .text(`${CURRENCY}${val}`, colAmt, y + 6, { width: 65, align: "right" });
+      y += 20;
+    });
 
-    // Thank You Note (Right aligned, Serif Font)
-    doc.fillColor(DARK_COLOR).fontSize(22).font("Times-Bold").text("THANK YOU!", 300, footerY + 70, { width: 250, align: 'right' });
+    // Grand total highlighted row
+    doc.rect(colMonth, y, tableW - (colMonth - M), 28).fill(TEAL);
+    doc.fillColor(WHITE)
+       .font("Helvetica-Bold")
+       .fontSize(10)
+       .text("TOTAL", colMonth + 8, y + 9)
+       .text(`${CURRENCY}${parseFloat(invoice.amount).toFixed(2)}`, colAmt, y + 9, { width: 65, align: "right" });
 
-    // Absolute Bottom Thick Bar
-    doc.rect(0, 810, 595, 32).fill(DARK_COLOR);
+    y += 42;
 
-    // Finalize PDF
+    // ═══════════════════════════════════════════════
+    // 5.  NOTES  &  PAYMENT INFO
+    // ═══════════════════════════════════════════════
+    doc.fillColor(TEAL).font("Helvetica-Bold").fontSize(9).text("PAYMENT DETAILS", M, y);
+    y += 14;
+    doc.fillColor(GRAY).font("Helvetica").fontSize(8)
+       .text("Accepted Methods: Cash · Bank Transfer · UPI · NEFT", M, y, { width: 300 });
+
+    y += 26;
+    doc.fillColor(TEAL).font("Helvetica-Bold").fontSize(9).text("TERMS & CONDITIONS", M, y);
+    y += 14;
+    doc.fillColor(GRAY).font("Helvetica").fontSize(8)
+       .text(
+         "1. Fee once paid is non-refundable.\n" +
+         "2. Late fee of ₹50/day will be charged after the due date.\n" +
+         "3. This is a system-generated invoice and is valid without a physical signature.",
+         M, y, { width: 340, lineGap: 3 }
+       );
+
+    // ═══════════════════════════════════════════════
+    // 6.  SIGNATURE AREA
+    // ═══════════════════════════════════════════════
+    const sigX = PW - M - 160;
+    const sigY = y + 10;
+
+    doc.moveTo(sigX, sigY + 45).lineTo(sigX + 160, sigY + 45).lineWidth(1).stroke(BORDER);
+    doc.fillColor(DARK).font("Helvetica-Bold").fontSize(9)
+       .text("Authorized Signatory", sigX, sigY + 50, { width: 160, align: "center" });
+    doc.fillColor(GRAY).font("Helvetica").fontSize(8)
+       .text("Finance Department — Vigyan Academy", sigX, sigY + 63, { width: 160, align: "center" });
+
+    // ═══════════════════════════════════════════════
+    // 7.  FOOTER  BAR
+    // ═══════════════════════════════════════════════
+    doc.rect(0, PH - 36, PW, 36).fill(DARK);
+    doc.rect(0, PH - 39, PW, 3).fill(TEAL);
+
+    doc.fillColor("#94A3B8")
+       .font("Helvetica")
+       .fontSize(8)
+       .text(
+         "Vigyan Academy  ·  Patna, Bihar 800001  ·  info@vigyanacademy.com  ·  www.vigyanacademy.com",
+         0, PH - 22, { width: PW, align: "center" }
+       );
+
     doc.end();
 
   } catch (error) {
     console.error("Download Invoice Error:", error);
-
-    // Ensure we don't try to send JSON if headers were already sent
     if (!res.headersSent) {
-      res.status(500).json({
-        success: false,
-        message: "An error occurred while generating the invoice document.",
-        error: error.message
-      });
+      res.status(500).json({ success: false, message: "Invoice generation failed.", error: error.message });
     }
   }
 };
+
+
