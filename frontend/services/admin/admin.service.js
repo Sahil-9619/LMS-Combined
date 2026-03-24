@@ -39,7 +39,11 @@ export const adminServices = {
     return response.data;
   },
   updateStudent: async (id, data) => {
-    const response = await axiosInstance.put(`/students/update/${id}`, data);
+    const response = await axiosInstance.put(`/students/update/${id}`, data, {
+  headers: {
+    "Content-Type": "multipart/form-data",
+  },
+});
     return response.data;
   },
   deleteStudent: async (id) => {

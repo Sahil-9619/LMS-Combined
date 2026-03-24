@@ -71,6 +71,7 @@ const Page = () => {
   const [activeTab, setActiveTab] = useState("personal");
   const [collapsed, setCollapsed] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [studentId, setStudentId] = useState(null);
   const tabs = [
     { id: "personal", label: "Basic Info", icon: User },
     { id: "contact", label: "Contact Details", icon: Phone },
@@ -142,32 +143,51 @@ setProfile((prev) => ({
     setProfile({ ...profile, skills: newSkills.length ? newSkills : [{ name: "", expertise: 0 }] });
   };
 
-  const handleToggleEdit = async () => {
-    if (isEditing) {
-      try {
-        const payload = {
-          firstName: profile.firstName,
-          lastName: profile.lastName,
-          fatherName: profile.fatherName,
-          motherName: profile.motherName,
-          dob: profile.dob,
-          gender: profile.gender,
-        };
+ const handleToggleEdit = async () => {
+  if (isEditing) {
+    try {
+      const payload = new FormData();
 
-        console.log("UPDATING 👉", payload);
+      // ✅ normal fields
+      payload.append("firstName", profile.firstName);
+      payload.append("lastName", profile.lastName);
+      payload.append("fatherName", profile.fatherName);
+      payload.append("motherName", profile.motherName);
+      payload.append("gender", profile.gender);
+      payload.append("dateOfBirth", profile.dob);
 
-        await adminServices.updateStudent(user._id, payload);
+      payload.append("phone", profile.phone);
+      payload.append("parentPhone", profile.parentPhone);
+      payload.append("altEmail", profile.altEmail);
 
-        console.log("UPDATED ✅");
+      payload.append("address", profile.address);
+      payload.append("category", profile.category);
+      payload.append("city", profile.city);
 
-      } catch (err) {
-        console.error("UPDATE ERROR ❌", err);
+      payload.append("shortBio", profile.shortBio);
+
+      // ✅ objects → stringify
+      payload.append("skills", JSON.stringify(profile.skills));
+      payload.append("social", JSON.stringify(profile.social));
+
+      // ✅ image
+      if (profile.photo) {
+        payload.append("photo", profile.photo);
       }
+
+      console.log("UPDATING 👉", payload);
+
+      await adminServices.updateStudent(user._id, payload);
+
+      console.log("UPDATED ✅");
+
+    } catch (err) {
+      console.error("UPDATE ERROR ❌", err);
     }
+  }
 
-    setIsEditing(!isEditing);
-  };
-
+  setIsEditing(!isEditing);
+};
 
 
   const activeTabLabel = tabs.find(tab => tab.id === activeTab)?.label;

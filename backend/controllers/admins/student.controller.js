@@ -353,9 +353,31 @@ exports.updateStudent = async (req, res) => {
   try {
     const { id } = req.params;
 
+    let updateData = { ...req.body };
+
+    // ✅ FIX DOB
+    if (updateData.dateOfBirth) {
+      updateData.dateOfBirth = new Date(updateData.dateOfBirth);
+    }
+
+    // ✅ FIX skills (string → array)
+    if (updateData.skills && typeof updateData.skills === "string") {
+      updateData.skills = JSON.parse(updateData.skills);
+    }
+
+    // ✅ FIX social (string → object)
+    if (updateData.social && typeof updateData.social === "string") {
+      updateData.social = JSON.parse(updateData.social);
+    }
+
+    // ✅ FIX image update
+    if (req.file) {
+      updateData.profileImage = `uploads/${req.file.filename}`;
+    }
+
     const updatedStudent = await Student.findByIdAndUpdate(
       id,
-      req.body,
+      updateData,
       { new: true, runValidators: true }
     );
 

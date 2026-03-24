@@ -77,9 +77,27 @@ const studentSchema = new mongoose.Schema(
 
 
 
+
     academicYear: {
       type: String,
     },
+    city: String,
+
+shortBio: String,
+
+skills: [
+  {
+    name: String,
+    expertise: Number,
+  },
+],
+
+social: {
+  facebook: String,
+  linkedin: String,
+  twitter: String,
+  instagram: String,
+},
 
     status: {
       type: String,
