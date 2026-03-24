@@ -29,18 +29,16 @@ import { useSelector, useDispatch } from "react-redux";
 import { adminServices } from "@/services/admin/admin.service";
 
 
-/**
- * MOCK COMPONENTS & UTILS 
- */
 const getMediaUrl = (path) => {
   if (!path) return "";
 
   if (path.startsWith("http")) return path;
 
-  // 🔥 remove starting slash if exists
-  const cleanPath = path.startsWith("/") ? path.slice(1) : path;
+  if (!path.startsWith("uploads")) {
+    path = `uploads/${path}`;
+  }
 
-  return `http://localhost:5000/${cleanPath}`;
+  return `http://localhost:5000/api/${path}`;
 };
 
 const Page = () => {
@@ -93,24 +91,30 @@ const Page = () => {
 
         if (!student) return;
 
-        setProfile((prev) => ({
-          ...prev,
-          firstName: student.firstName || "",
-          lastName: student.lastName || "",
-          fatherName: student.fatherName || "",
-          motherName: student.motherName || "",
-          dob: student.dob || "",
-          gender: student.gender || "",
-          email: student.email || "",
-          phone: student.phone || "",
-          parentPhone: student.parentPhone || "",
-          address: student.address || "",
-          city: student.city || "",
-          category: student.category || "",
-          course: student.classId || "",
-section: student.section || "",
-          profileImage:student.profileImage,
-        }));
+setProfile((prev) => ({
+  ...prev,
+  firstName: student.firstName || "",
+  lastName: student.lastName || "",
+  fatherName: student.fatherName || "",
+  motherName: student.motherName || "",
+
+  dob: student.dateOfBirth
+    ? new Date(student.dateOfBirth).toISOString().split("T")[0]
+    : "",
+
+  gender: student.gender || "",
+  email: student.email || "",
+  altEmail: student.altEmail || "",
+  phone: student.phone || "",
+  parentPhone: student.parentPhone || "",
+  address: student.address || "",
+  category: student.category || "",
+
+  course: student.classId || "",
+  section: student.section || "",
+
+  profileImage: student.profileImage,
+}));
 
       } catch (err) {
         console.error("ERROR ❌", err);
@@ -289,23 +293,19 @@ const className = classes.find(
               <div className="flex flex-col md:flex-row gap-8 items-center border-b border-slate-200/60 pb-8">
                 <div className="relative">
                   <div className="w-28 h-28 rounded-3xl bg-white border border-slate-200 overflow-hidden shadow-sm flex items-center justify-center">
-                    {(profile.profileImage) ? (
-                      <img
-  src={
-    profile.photo
-      ? URL.createObjectURL(profile.photo)
-      : getMediaUrl(profile.profileImage)
-  }
-  onError={(e) => {
-    console.log("❌ IMAGE LOAD FAILED:", e.target.src);
-    e.target.style.display = "none";
-  }}
-  className="w-full h-full object-cover"
-  alt="Profile image"
-/>
-                    ) : (
-                      <User size={32} className="text-slate-200" />
-                    )}
+                    {profile.photo || profile.profileImage ? (
+  <img
+    src={
+      profile.photo
+        ? URL.createObjectURL(profile.photo)
+        : getMediaUrl(profile.profileImage)
+    }
+    alt="Profile"
+    className="w-full h-full object-cover"
+  />
+) : (
+  <User size={32} className="text-slate-200" />
+)}
                   </div>
                   {isEditing && (
                     <label className="absolute -bottom-1 -right-1 p-2 bg-[#0E94A5] rounded-xl shadow-lg cursor-pointer hover:bg-[#087a87] transition-all text-white">

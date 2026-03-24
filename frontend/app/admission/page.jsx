@@ -57,12 +57,16 @@ const handleSubmit = async (e) => {
   try {
 
     const payload = new FormData();
+Object.keys(formData).forEach((key) => {
+if (key !== "preview" && formData[key]){
+    if (key === "dob") {
+      payload.append("dateOfBirth", formData[key]);
+    } else {
+      payload.append(key, formData[key]);
+    }
 
-    Object.keys(formData).forEach((key) => {
-      if (key !== "preview") {
-        payload.append(key, formData[key]);
-      }
-    });
+  }
+});
 
     const res = await registrationService.registerStudent(payload);
 
@@ -116,9 +120,7 @@ const handleSubmit = async (e) => {
     formData.address &&
     formData.category;
 
-  const isStep3Valid =
-    formData.course &&
-    formData.photo;
+ const isStep3Valid = formData.course;
 
   const nextStep = () => {
     if (
@@ -236,10 +238,10 @@ const handleSubmit = async (e) => {
                     className="input"
                   >
                     <option value="">Select Category</option>
-                    <option>General</option>
-                    <option>OBC</option>
-                    <option>SC</option>
-                    <option>ST</option>
+                   <option value="general">General</option>
+<option value="obc">OBC</option>
+<option value="sc">SC</option>
+<option value="st">ST</option>
                   </select>
                 </div>
 
