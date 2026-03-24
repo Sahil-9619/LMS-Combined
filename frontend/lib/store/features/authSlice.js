@@ -91,7 +91,7 @@ export const logout = createAsyncThunk(
     try {
       const response = await authService.logout();
       if (typeof window !== "undefined") {
-        window.location.href = "/user/register";
+        window.location.href = "/";
       }
 
       return response;

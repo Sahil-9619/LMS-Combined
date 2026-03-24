@@ -19,6 +19,7 @@ export default function AdmissionPage() {
     motherName: "",
     parentPhone: "",
     email: "",
+    altEmail:"",
     phone: "",
     dob: "",
     gender: "",
@@ -108,6 +109,7 @@ const handleSubmit = async (e) => {
     formData.phone &&
     formData.parentPhone &&
     formData.email &&
+    formData.altEmail&&
     formData.dob;
 
   const isStep2Valid =
@@ -132,12 +134,11 @@ const handleSubmit = async (e) => {
 
   return (
     <main className="bg-[#F4FDFE] text-slate-700 min-h-screen">
-      <Nav />
 
       {/* HERO */}
       <section className="pt-36 pb-16 bg-[#0F6F7C] text-white text-center">
         <h1 className="text-5xl font-bold text-primary-foreground">
-          Admission Registration 2026
+          Admission Registration {new Date().getFullYear()}
         </h1>
         <p className="mt-4 text-white">
           Registration Fee: ₹2000

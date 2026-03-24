@@ -22,7 +22,8 @@ import {
   Calendar,
   Users,
   BookOpen,
-  Heart
+  Heart,
+  ChevronLeft
 } from "lucide-react";
 import { useSelector, useDispatch } from "react-redux";
 import { adminServices } from "@/services/admin/admin.service";
@@ -46,6 +47,7 @@ const Page = () => {
   // Mocking Redux behavior - Initial data including Admission fields
   const user = useSelector((state) => state?.auth?.user);
   const dispatch = useDispatch();
+  const [classes, setClasses] = useState([]);
 
   const [profile, setProfile] = useState({
     firstName: "",
@@ -69,6 +71,7 @@ const Page = () => {
   });
 
   const [activeTab, setActiveTab] = useState("personal");
+  const [collapsed, setCollapsed] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const tabs = [
     { id: "personal", label: "Basic Info", icon: User },
@@ -104,7 +107,8 @@ const Page = () => {
           address: student.address || "",
           city: student.city || "",
           category: student.category || "",
-          course: student.course || student.class || "",
+          course: student.classId || "",
+section: student.section || "",
           profileImage:student.profileImage,
         }));
 
@@ -164,15 +168,49 @@ const Page = () => {
 
   const activeTabLabel = tabs.find(tab => tab.id === activeTab)?.label;
   console.log("COMPONENT RENDERED ✅");
+useEffect(() => {
+  const fetchClasses = async () => {
+    try {
+      const res = await adminServices.getAllClasses();
+      const data = res?.data || res;
+      setClasses(data);
+    } catch (err) {
+      console.error("CLASS FETCH ERROR ❌", err);
+    }
+  };
+
+  fetchClasses();
+}, []);
+const className = classes.find(
+  (c) => String(c._id) === String(profile.course)
+)?.name || classes.find(
+  (c) => String(c._id) === String(profile.course)
+)?.className;
+
   return (
     <div className="min-h-screen mt-10 bg-[#FDFDFD] font-sans text-slate-900">
-      <div className="max-w-7xl mx-auto flex flex-col lg:flex-row">
+      <div className="w-full flex flex-col lg:flex-row">
 
         {/* Navigation Sidebar */}
-        <aside className="w-full lg:w-72 lg:h-screen lg:sticky lg:top-0 border-r border-slate-100 p-6 lg:p-10 bg-white">
+        <aside className={`w-full ${collapsed ? "lg:w-20" : "lg:w-50"} lg:h-screen lg:sticky lg:top-0 border-r border-slate-100 p-3 lg:p-4 bg-white transition-all duration-300`}>
+   
           <div className="mb-8 mt-2">
-            <h2 className="text-xl font-black tracking-tight text-[#0E94A5]">My Profile</h2>
-            <p className="text-[10px] text-slate-400 font-bold  tracking-[0.2em] mt-1">manage your details here</p>
+            <h2 className="text-lg text-center font-extrabold tracking-tight text-[#0E94A5]">
+  {collapsed ? "MP" : "My Profile"}
+</h2>
+            <p className="text-[10px] text-center text-slate-400 font-bold  tracking-[0.2em] mt-1">manage your details here</p>
+                         <div className="flex justify-end mb-2">
+  <button
+    onClick={() => setCollapsed(!collapsed)}
+    className="p-1 bg-gray-100 rounded-md hover:bg-slate-100"
+  >
+    <ChevronLeft
+      size={16}
+      className={`transition-transform ${collapsed ? "rotate-180" : ""}`}
+    />
+  </button>
+</div>
+            <div className="border-t border-20-black"></div>
           </div>
 
           <nav className="space-y-1.5">
@@ -183,34 +221,29 @@ const Page = () => {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl transition-all ${activeTab === tab.id
-                    ? "bg-[#0E94A5]/10 text-[#0E94A5]"
-                    : "text-slate-400 hover:text-slate-900 hover:bg-slate-50"
-                    }`}
+                  className={`w-full flex items-center ${collapsed ? "justify-center" : "justify-between"} px-4 py-2.5 rounded-xl transition-all ${
+  activeTab === tab.id
+    ? "bg-[#0E94A5]/10 text-[#0E94A5]"
+    : "text-slate-400 hover:text-slate-900 hover:bg-slate-50"
+}`}
                 >
-                  <div className="flex items-center gap-3">
+                  <div className={`flex items-center ${collapsed ? "justify-center w-full" : "gap-2"}`}>
                     <Icon size={16} />
-                    <span className="text-xs font-bold">{tab.label}</span>
+                    {!collapsed && (
+  <span className="text-[11px] font-semibold">{tab.label}</span>
+)}
                   </div>
-                  {activeTab === tab.id && <ChevronRight size={12} />}
+                  {activeTab === tab.id && <ChevronLeft size={12} />}
                 </button>
               );
             })}
           </nav>
 
-          <div className="mt-8">
-            <div className="p-4 bg-teal-50/50 rounded-2xl border border-teal-100/50">
-              <p className="text-[9px] font-black text-[#0E94A5] uppercase tracking-widest mb-1.5">Registration Status</p>
-              <div className="flex items-center gap-2 text-slate-700">
-                <CheckCircle2 size={14} className="text-[#0E94A5]" />
-                <span className="text-[11px] font-bold uppercase tracking-tight">Registered 2026</span>
-              </div>
-            </div>
-          </div>
+          
         </aside>
 
         {/* Form Content Area */}
-        <main className="flex-1 bg-[#F9FBFC] p-6 lg:p-12">
+        <main className="flex-1 bg-cyan-100/20 p-6 lg:p-12">
 
           {/* Header Row */}
           <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-10 max-w-4xl">
@@ -218,8 +251,10 @@ const Page = () => {
               <h1 className="text-2xl font-black text-slate-900 tracking-tight">
                 {activeTabLabel}
               </h1>
-              <p className="text-sm text-slate-400 font-medium">Manage your admission records and presence</p>
+              <p className="text-sm  text-slate-400 font-medium">You can update your details.</p>
+              <div className="border-t border-20-black"></div>
             </div>
+            
 
             <div className="flex items-center gap-2">
               {isEditing && (
@@ -434,17 +469,38 @@ const Page = () => {
               {activeTab === "academic" && (
                 <div className="space-y-8 animate-in fade-in duration-300">
                   <div className="space-y-6">
-                    <div className="space-y-2 max-w-sm">
-                      <label className="text-[9px] font-black uppercase tracking-[0.3em] text-[#0E94A5]">Enrolled Class</label>
-                      <select
-                        disabled={!isEditing}
-                        className={`w-full py-2 bg-transparent border-b transition-all text-lg font-black text-slate-800 focus:outline-none appearance-none ${isEditing ? "border-[#0E94A5]" : "border-transparent"}`}
-                        value={profile.course}
-                        onChange={(e) => handleChange("course", e.target.value)}
-                      >
-                        {[6, 7, 8, 9, 10, 11, 12].map(c => <option key={c} value={c}>Class {c}</option>)}
-                      </select>
-                    </div>
+                   <div className="space-y-2 max-w-sm">
+  <label className="text-[9px] font-black uppercase tracking-[0.3em] text-[#0E94A5]">
+    Enrolled Class
+  </label>
+
+  <div className="text-lg font-black text-slate-800 flex items-center gap-1">
+    
+    {/* Class Number */}
+    <span>
+      {className || "-"}
+      <sup className="text-[10px] ml-0.5 align-super">
+        {className % 100 >= 11 && className % 100 <= 13
+          ? "th"
+          : className % 10 === 1
+          ? "st"
+          : className % 10 === 2
+          ? "nd"
+          : className % 10 === 3
+          ? "rd"
+          : "th"}
+      </sup>
+    </span>
+
+    {/* Section */}
+    {profile.section && (
+      <span className="text- font-bold text-slate-800 ml-1">
+        -{" "}{profile.section}
+      </span>
+    )}
+
+  </div>
+</div>
 
                     <div className="space-y-2">
                       <label className="text-[9px] font-black uppercase tracking-[0.3em] text-[#0E94A5]">Profile Bio</label>

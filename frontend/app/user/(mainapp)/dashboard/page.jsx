@@ -21,6 +21,7 @@ import { admissionService } from "@/services/admission.service";
 import { useSelector } from "react-redux";
 import { adminServices } from "@/services/admin/admin.service";
 
+
 const App = () => {
   const router = useRouter();
   const [hasAdmission, setHasAdmission] = useState(false);
@@ -28,6 +29,7 @@ const App = () => {
   const { user } = useSelector((state) => state.auth);
   const [studentData, setStudentData] = useState(null);
   const [className, setClassName] = useState("");
+  
 
   // Primary Theme Color constant
   const primaryColor = "#0E94A5";
@@ -196,11 +198,11 @@ const App = () => {
                   <AlertCircle size={32} />
                 </div>
                 <div className="text-center md:text-left">
-                  <h3 className="text-xl font-bold text-slate-900">Admission Process Pending</h3>
+                  <h3 className="text-xl font-bold text-red-600">Admission Process Pending!</h3>
                   <p className="text-slate-600 mt-2 max-w-xl leading-relaxed">
                     Finalize your enrollment to access
-                    <span className="font-bold text-[#0E94A5]"> digital study materials, attendance reports, </span> and
-                    <span className="font-bold text-[#0E94A5]"> detailed test analytics.</span>
+                    <span className="font-bold text-[#0E94A5]"> get access to the courses, </span> 
+                    <span className="font-bold text-[#0E94A5]"> your perosnal details and fee details </span>
                   </p>
                 </div>
               </div>
