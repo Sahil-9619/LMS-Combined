@@ -71,18 +71,13 @@ export default function AdmissionSuccess() {
             transition={{ duration: 0.8, delay: 1.1 }}
             className="flex flex-col sm:flex-row gap-6 justify-center"
           >
-            <Link
-              href="/"
-              className="px-10 py-4 border-2 border-[#46B7C3] text-white font-semibold rounded-full hover:bg-[#46B7C3]  transition-all duration-300"
-            >
-              Back to Home
-            </Link>
+
 
             <Link
-              href="/user/dashboard"
+              href="/user/myprofile"
               className="px-10 py-4 border-2 border-[#46B7C3] text-white font-semibold rounded-full hover:bg-[#46B7C3]  transition-all duration-300"
             >
-              Go to Dashboard
+              Go to My Profile
             </Link>
           </motion.div>
 

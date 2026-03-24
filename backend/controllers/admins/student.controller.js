@@ -28,6 +28,9 @@ const generateAdmissionNumber = async () => {
 // =====================================
 exports.createStudent = async (req, res) => {
   try {
+    console.log("BODY 👉", req.body);
+    console.log("FILE 👉", req.file);
+
     const {
       firstName,
       lastName,
@@ -39,12 +42,27 @@ exports.createStudent = async (req, res) => {
       parentPhone,
       phone,
       email,
+      altEmail,
+      address,
+      category,
       dateOfBirth,
     } = req.body;
 
     // ========================
-    // dateOfBirth STRONG VALIDATION
+    // BASIC VALIDATION
     // ========================
+    if (!firstName || !course) {
+      return res.status(400).json({
+        success: false,
+        message: "First Name and Class are required",
+      });
+    }
+
+    // ========================
+    // DOB VALIDATION
+    // ========================
+    let dob = null;
+
     if (dateOfBirth) {
       const birthDate = new Date(dateOfBirth);
       const today = new Date();
@@ -59,33 +77,11 @@ exports.createStudent = async (req, res) => {
       if (birthDate > today) {
         return res.status(400).json({
           success: false,
-          message: "dateOfBirth cannot be in the future",
+          message: "DOB cannot be in future",
         });
       }
 
-      if (birthDate.getFullYear() < 1900) {
-        return res.status(400).json({
-          success: false,
-          message: "dateOfBirth year must be greater than 1900",
-        });
-      }
-
-      let age = today.getFullYear() - birthDate.getFullYear();
-      const monthDiff = today.getMonth() - birthDate.getMonth();
-
-      if (
-        monthDiff < 0 ||
-        (monthDiff === 0 && today.getDate() < birthDate.getDate())
-      ) {
-        age--;
-      }
-
-      if (age < 1 || age > 20) {
-        return res.status(400).json({
-          success: false,
-          message: "Student age must be between 1 and 20 years",
-        });
-      }
+      dob = birthDate;
     }
 
     // ========================
@@ -96,14 +92,14 @@ exports.createStudent = async (req, res) => {
     if (phone && !phoneRegex.test(phone)) {
       return res.status(400).json({
         success: false,
-        message: "Phone number must be exactly 10 digits",
+        message: "Invalid phone number",
       });
     }
 
     if (parentPhone && !phoneRegex.test(parentPhone)) {
       return res.status(400).json({
         success: false,
-        message: "Parent phone number must be exactly 10 digits",
+        message: "Invalid parent phone number",
       });
     }
 
@@ -119,14 +115,9 @@ exports.createStudent = async (req, res) => {
       });
     }
 
-    if (!firstName || !course) {
-      return res.status(400).json({
-        success: false,
-        message: "First Name and Class are required",
-      });
-    }
-
-    // default section A if not provided
+    // ========================
+    // CLASS FETCH
+    // ========================
     const selectedSection = section || "A";
 
     const classData = await Class.findOne({
@@ -142,22 +133,37 @@ exports.createStudent = async (req, res) => {
       });
     }
 
+    // ========================
+    // ADMISSION NUMBER
+    // ========================
     const admissionNumber = await generateAdmissionNumber();
 
+    // ========================
+    // CREATE STUDENT
+    // ========================
     const student = await Student.create({
       admissionNumber,
-      firstName: firstName.trim(),
+
+      firstName: firstName?.trim(),
       lastName: lastName?.trim(),
       gender,
+
       classId: classData._id,
       section: selectedSection,
+
       fatherName,
       motherName,
       parentPhone,
       phone,
+
       email,
-      profileImage: req.file?.filename,
-    });
+      altEmail,
+      address,
+      category,
+
+      dateOfBirth: dob,
+
+profileImage: req.file ? `uploads/${req.file.filename}` : "",    });
 
     // ========================
     // AUTO ASSIGN FEE
@@ -191,6 +197,9 @@ exports.createStudent = async (req, res) => {
       }
     }
 
+    // ========================
+    // RESPONSE
+    // ========================
     res.status(201).json({
       success: true,
       message: "Student created successfully",
@@ -198,9 +207,8 @@ exports.createStudent = async (req, res) => {
     });
 
   } catch (error) {
-    console.error("Create Student Error:", error);
+    console.error("CREATE STUDENT ERROR ❌", error);
 
-    //Duplicate email error handle
     if (error.code === 11000) {
       return res.status(400).json({
         success: false,
