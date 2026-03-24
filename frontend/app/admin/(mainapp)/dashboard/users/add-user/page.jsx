@@ -67,7 +67,7 @@ const AddUsers = () => {
     const fetchClasses = async () => {
       try {
         const res = await adminServices.getAllClasses();
-        const data = res?.data || [];
+        const data = Array.isArray(res) ? res : (res?.data || []);
         setAllClasses(data);
       } catch (err) {
         console.log(err);
@@ -328,7 +328,7 @@ const AddUsers = () => {
                       value={form.course}
                       onValueChange={(value) => {
                         setForm((prev) => ({ ...prev, course: value }));
-                        const filtered = allClasses.filter((c) => c.className === value);
+                        const filtered = allClasses.filter((c) => String(c.className) === value);
                         const uniqueSections = [...new Map(filtered.map((sec) => [sec.section, sec])).values()].sort((a, b) => a.section.localeCompare(b.section));
                         setSections(uniqueSections);
                       }}
@@ -336,11 +336,11 @@ const AddUsers = () => {
                       <SelectTrigger className={`h-10 ${inputStyles}`}>
                         <SelectValue placeholder="Select Class" />
                       </SelectTrigger>
-                      <SelectContent className="rounded-xl border-slate-200 shadow-lg">
+                      <SelectContent className="rounded-xl border-slate-200 shadow-lg" position="popper">
                         {[...new Map(allClasses.map((c) => [c.className, c])).values()]
                           .sort((a, b) => Number(a.className) - Number(b.className))
                           .map((cls) => (
-                            <SelectItem key={cls.className} value={cls.className}>
+                            <SelectItem key={cls.className} value={String(cls.className)}>
                               Class {cls.className}
                             </SelectItem>
                           ))}

@@ -139,15 +139,13 @@ exports.getFeesByStudent = async (req, res) => {
 
     if (fee.payments && fee.payments.length > 0) {
       fee.payments.forEach(p => {
-        const month = new Date(p.date).toLocaleString("default", {
-          month: "long"
-        });
+        // Only count payments tagged as monthly (skip one-time: admission, exam, etc.)
+        if (!p.month) return;
 
-        if (!monthlyFees[month]) {
-          monthlyFees[month] = 0;
-        }
-
-        monthlyFees[month] += p.amount;
+        const monthKey = p.month;
+        if (!monthKey) return;
+        if (!monthlyFees[monthKey]) monthlyFees[monthKey] = 0;
+        monthlyFees[monthKey] += p.amount;
       });
     }
 
@@ -193,9 +191,9 @@ exports.updateStudentSpecificFee = async (req, res) => {
       });
     }
 
-    // 🔥 calculate total
+    // 🔥 calculate total — monthly components × 12, one-time as-is (case-insensitive)
     const total = feeComponents.reduce(
-      (sum, f) => sum + Number(f.amount || 0),
+      (sum, f) => sum + (String(f.type).toLowerCase().trim() === "monthly" ? Number(f.amount || 0) * 12 : Number(f.amount || 0)),
       0
     );
 
@@ -261,41 +259,210 @@ exports.getFeeByAdmissionNumber = async (req, res) => {
       });
 
       fee = await StudentFee.findById(fee._id).lean();
+
+
+    } else if (!fee.feeComponents || fee.feeComponents.length === 0) {
+      // Self-heal: existing record has no feeComponents → pull from feeStructure
+      // NOTE: fee.feeStructureId is already populated (full object) due to .populate() above
+      const populatedFeeStructure = fee.feeStructureId;
+      const feeStructureComponents =
+        populatedFeeStructure?.feeComponents?.length > 0
+          ? populatedFeeStructure.feeComponents
+          : null;
+
+      if (feeStructureComponents) {
+        await StudentFee.findByIdAndUpdate(fee._id, {
+          feeComponents: feeStructureComponents
+        });
+        fee = { ...fee, feeComponents: feeStructureComponents };
+      }
     }
 
-    res.json({ success: true, student, fee });
+
+    // monthlyExpected = per-month amount (the amount stored in feeComponents for type=monthly, or annual tuition/hostel/transport divided by 12)
+    let monthlyExpectedSum = 0;
+    (fee.feeComponents || []).forEach(f => {
+
+      const type = String(f.type || "").toLowerCase().trim();
+
+      const isRecurring = type === "monthly";
+
+      if (isRecurring) {
+        const amt = Number(f.amount || 0);
+        // Smart annual detection: if amount is large, assume yearly. Else, treat as monthly.
+        if (type === "monthly") {
+          // amount is yearly → convert to monthly
+          monthlyExpectedSum += Number(f.amount || 0) / 12;
+        }
+      }
+    });
+
+    const monthlyExpected = Math.round(monthlyExpectedSum);
+
+    // Build monthlyFees map from payments
+    const monthlyFees = {};
+
+    if (fee.payments && fee.payments.length > 0) {
+
+      const normalizeMonth = (m) => {
+        if (!m) return null;
+
+        const months = [
+          "January", "February", "March", "April", "May", "June",
+          "July", "August", "September", "October", "November", "December"
+        ];
+
+        return months.find(mon => mon.toLowerCase() === m.toLowerCase()) || null;
+      };
+
+      fee.payments.forEach(p => {
+
+        // ❗ ONLY use p.month (IMPORTANT)
+        if (!p.month) return;
+
+        const monthKey = normalizeMonth(p.month);
+        if (!monthKey) return;
+
+        if (!monthlyFees[monthKey]) {
+          monthlyFees[monthKey] = 0;
+        }
+
+        monthlyFees[monthKey] += Number(p.amount || 0);
+
+      });
+    }
+
+    res.json({ success: true, student, fee, monthlyExpected: monthlyExpected > 0 ? monthlyExpected : 0, monthlyFees });
 
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
 };
 
-// ================================
-// UPDATE PAYMENT (MONTH SYSTEM)
-// ================================
 exports.updateStudentFee = async (req, res) => {
   try {
-    const { admissionNumber, payAmount, month } = req.body;
+    const { admissionNumber, payAmount, month, paymentType, componentName } = req.body;
 
-    const student = await Student.findOne({ admissionNumber });
+    if (!admissionNumber || !payAmount) {
+      return res.status(400).json({
+        success: false,
+        message: "admissionNumber and payAmount are required"
+      });
+    }
+
+    // Monthly payment requires a month
+    if (paymentType !== "onetime" && !month) {
+      return res.status(400).json({
+        success: false,
+        message: "month is required for monthly payments"
+      });
+    }
+
+    const student = await Student.findOne({ admissionNumber }).populate("classId");
+    if (!student) {
+      return res.status(404).json({ success: false, message: "Student not found" });
+    }
+
     const fee = await StudentFee.findOne({ studentId: student._id });
+    if (!fee) {
+      return res.status(404).json({ success: false, message: "Fee record not found" });
+    }
+
+    // Block payment if already fully paid
+    if (fee.remainingAmount <= 0) {
+      return res.status(400).json({ success: false, message: "All fees are already fully paid" });
+    }
 
     const payment = Number(payAmount);
 
-    // monthly fee calculate
-    const monthlyFees = fee.feeComponents.filter(f => f.type === "monthly");
-    const monthlyTotal = monthlyFees.reduce((s, f) => s + f.amount, 0);
+    if (!payment || payment <= 0) {
+      return res.status(400).json({ success: false, message: "Enter a valid payment amount" });
+    }
 
-    if (payment !== monthlyTotal) {
+    // ─── ONE-TIME PAYMENT (admission, exam, etc.) ───────────────
+    if (paymentType === "onetime") {
+      const date = new Date();
+      const label = componentName || "one-time";
+
+      // Block duplicate payment for the same component
+      const alreadyPaid = fee.payments.some(
+        p => p.componentName && p.componentName.toLowerCase() === label.toLowerCase()
+      );
+      if (alreadyPaid) {
+        return res.status(400).json({
+          success: false,
+          message: `${label} fee has already been paid`
+        });
+      }
+
+      // Block if payment exceeds remaining amount
+      if (payment > fee.remainingAmount) {
+        return res.status(400).json({
+          success: false,
+          message: `Payment ₹${payment} exceeds remaining amount ₹${fee.remainingAmount}`
+        });
+      }
+
+      fee.payments.push({ amount: payment, date, componentName: label });
+      fee.totalPaid += payment;
+      fee.remainingAmount = fee.totalAssignedFee - fee.totalPaid;
+      fee.status = fee.remainingAmount <= 0 ? "paid" : "partial";
+
+      await fee.save();
+
+      const invoice = await Invoice.create({
+        invoiceNumber: `INV-${Date.now()}`,
+        studentId: student._id,
+        amount: payment,
+        month: label,
+        studentName: `${student.firstName || ""} ${student.lastName || ""}`.trim(),
+        className: student.classId?.className || "N/A",
+        section: student.classId?.section || "N/A",
+      });
+
+      return res.json({ success: true, data: fee, invoiceId: invoice._id });
+    }
+
+    // ─── MONTHLY PAYMENT ─────────────────────────────────────────
+    // Self-heal: if feeComponents is missing on this record, load from feeStructure
+    if (!fee.feeComponents || fee.feeComponents.length === 0) {
+      const feeStruct = await FeeStructure.findById(fee.feeStructureId);
+      if (feeStruct && feeStruct.feeComponents && feeStruct.feeComponents.length > 0) {
+        fee.feeComponents = feeStruct.feeComponents;
+        await StudentFee.findByIdAndUpdate(fee._id, { feeComponents: feeStruct.feeComponents });
+      }
+    }
+
+    let monthlyExpectedSum = 0;
+
+    (fee.feeComponents || []).forEach(f => {
+      const name = String(f.name || "").toLowerCase().trim();
+      const type = String(f.type || "").toLowerCase().trim(); // 🔥 FIX
+
+      if (type === "monthly") {
+        monthlyExpectedSum += Number(f.amount || 0) / 12;
+      }
+    });
+    let monthlyTotal = Math.round(monthlyExpectedSum);
+    if (monthlyTotal === 0) {
       return res.status(400).json({
         success: false,
-        message: `Pay exact monthly fee: ${monthlyTotal}`
+        message: "Monthly fee structure not configured properly"
+      });
+    }
+
+    // Only enforce exact monthly amount if a monthly fee structure exists
+    // We also allow payment === fee.remainingAmount to cover rounding differences in the final month
+    if (monthlyTotal > 0 && payment !== monthlyTotal && payment !== fee.remainingAmount) {
+      return res.status(400).json({
+        success: false,
+        message: `Pay exact monthly fee: ₹${monthlyTotal} or remaining balance: ₹${fee.remainingAmount}`
       });
     }
 
     const date = new Date(`${month} 1, ${new Date().getFullYear()}`);
 
-    fee.payments.push({ amount: payment, date });
+    fee.payments.push({ amount: payment, date, month });
 
     fee.totalPaid += payment;
     fee.remainingAmount = fee.totalAssignedFee - fee.totalPaid;
@@ -307,7 +474,10 @@ exports.updateStudentFee = async (req, res) => {
       invoiceNumber: `INV-${Date.now()}`,
       studentId: student._id,
       amount: payment,
-      month
+      month,
+      studentName: `${student.firstName || ""} ${student.lastName || ""}`.trim(),
+      className: student.classId?.className || "N/A",
+      section: student.classId?.section || "N/A",
     });
 
     res.json({
@@ -320,6 +490,9 @@ exports.updateStudentFee = async (req, res) => {
     res.status(500).json({ success: false, message: err.message });
   }
 };
+
+
+
 
 // ================================
 // ASSIGN FEE TO CLASS
