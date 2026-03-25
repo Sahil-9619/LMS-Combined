@@ -88,34 +88,41 @@ const Page = () => {
         const res = await adminServices.getStudentByEmail(user.email);
 
         const student = res?.data;
+        setStudentId(student._id);
         console.log("FETCHED STUDENT 👉", student);
 
         if (!student) return;
 
-setProfile((prev) => ({
-  ...prev,
-  firstName: student.firstName || "",
-  lastName: student.lastName || "",
-  fatherName: student.fatherName || "",
-  motherName: student.motherName || "",
+        setProfile((prev) => ({
+          ...prev,
+          firstName: student.firstName || "",
+          lastName: student.lastName || "",
+          fatherName: student.fatherName || "",
+          motherName: student.motherName || "",
 
-  dob: student.dateOfBirth
-    ? new Date(student.dateOfBirth).toISOString().split("T")[0]
-    : "",
+          dob: student.dateOfBirth
+            ? new Date(student.dateOfBirth).toISOString().split("T")[0]
+            : "",
 
-  gender: student.gender || "",
-  email: student.email || "",
-  altEmail: student.altEmail || "",
-  phone: student.phone || "",
-  parentPhone: student.parentPhone || "",
-  address: student.address || "",
-  category: student.category || "",
+          gender: student.gender || "",
+          email: student.email || "",
+          altEmail: student.altEmail || "",
+          phone: student.phone || "",
+          parentPhone: student.parentPhone || "",
+          address: student.address || "",
+          category: student.category?.toLowerCase() || "",
+          city: student.city || "",
 
-  course: student.classId || "",
-  section: student.section || "",
+          shortBio: student.shortBio || "",
+          skills: student.skills?.length ? student.skills : [{ name: "", expertise: 0 }],
+          social: student.social || { facebook: "", linkedin: "", twitter: "", instagram: "" },
 
-  profileImage: student.profileImage,
-}));
+
+          course: student.classId || "",
+          section: student.section || "",
+
+          profileImage: student.profileImage,
+        }));
 
       } catch (err) {
         console.error("ERROR ❌", err);
@@ -143,73 +150,116 @@ setProfile((prev) => ({
     setProfile({ ...profile, skills: newSkills.length ? newSkills : [{ name: "", expertise: 0 }] });
   };
 
- const handleToggleEdit = async () => {
-  if (isEditing) {
-    try {
-      const payload = new FormData();
+  const handleToggleEdit = async () => {
+    if (isEditing) {
+      try {
+        const payload = new FormData();
 
-      // ✅ normal fields
-      payload.append("firstName", profile.firstName);
-      payload.append("lastName", profile.lastName);
-      payload.append("fatherName", profile.fatherName);
-      payload.append("motherName", profile.motherName);
-      payload.append("gender", profile.gender);
-      payload.append("dateOfBirth", profile.dob);
+        // ✅ normal fields
+        payload.append("firstName", profile.firstName);
+        payload.append("lastName", profile.lastName);
+        payload.append("fatherName", profile.fatherName);
+        payload.append("motherName", profile.motherName);
+        payload.append("gender", profile.gender);
+        payload.append("dateOfBirth", profile.dob);
 
-      payload.append("phone", profile.phone);
-      payload.append("parentPhone", profile.parentPhone);
-      payload.append("altEmail", profile.altEmail);
+        payload.append("phone", profile.phone);
+        payload.append("parentPhone", profile.parentPhone);
+        payload.append("altEmail", profile.altEmail);
 
-      payload.append("address", profile.address);
-      payload.append("category", profile.category);
-      payload.append("city", profile.city);
+        payload.append("address", profile.address);
+        payload.append("category", profile.category);
+        payload.append("city", profile.city);
 
-      payload.append("shortBio", profile.shortBio);
+        payload.append("shortBio", profile.shortBio);
 
-      // ✅ objects → stringify
-      payload.append("skills", JSON.stringify(profile.skills));
-      payload.append("social", JSON.stringify(profile.social));
+        // ✅ objects → stringify
+        payload.append("skills", JSON.stringify(profile.skills));
+        payload.append("social", JSON.stringify(profile.social));
 
-      // ✅ image
-      if (profile.photo) {
-        payload.append("photo", profile.photo);
+        // ✅ image
+        if (profile.photo) {
+          payload.append("photo", profile.photo);
+        }
+
+        console.log("UPDATING 👉", payload);
+
+        await adminServices.updateStudent(studentId, payload);
+
+
+        // 🔥 REFRESH DATA
+        const res = await adminServices.getStudentByEmail(user.email);
+        const student = res?.data;
+
+        setProfile((prev) => ({
+          ...prev,
+          firstName: student.firstName || "",
+          lastName: student.lastName || "",
+          fatherName: student.fatherName || "",
+          motherName: student.motherName || "",
+
+          dob: student.dateOfBirth
+            ? new Date(student.dateOfBirth).toISOString().split("T")[0]
+            : "",
+
+          gender: student.gender || "",
+          email: student.email || "",
+          altEmail: student.altEmail || "",
+          phone: student.phone || "",
+          parentPhone: student.parentPhone || "",
+
+          address: student.address || "",
+          category: student.category?.toLowerCase() || "",
+          city: student.city || "",
+
+          shortBio: student.shortBio || "",
+          skills: student.skills?.length
+            ? student.skills
+            : [{ name: "", expertise: 0 }],
+
+          social: student.social || {
+            facebook: "",
+            linkedin: "",
+            twitter: "",
+            instagram: "",
+          },
+
+          course: student.classId || "",
+          section: student.section || "",
+
+          profileImage: student.profileImage,
+        }));
+
+        console.log("UPDATED ✅");
+
+      } catch (err) {
+        console.error("UPDATE ERROR ❌", err);
       }
-
-      console.log("UPDATING 👉", payload);
-
-      await adminServices.updateStudent(user._id, payload);
-
-      console.log("UPDATED ✅");
-
-    } catch (err) {
-      console.error("UPDATE ERROR ❌", err);
     }
-  }
 
-  setIsEditing(!isEditing);
-};
-
+    setIsEditing(!isEditing);
+  };
 
   const activeTabLabel = tabs.find(tab => tab.id === activeTab)?.label;
   console.log("COMPONENT RENDERED ✅");
-useEffect(() => {
-  const fetchClasses = async () => {
-    try {
-      const res = await adminServices.getAllClasses();
-      const data = res?.data || res;
-      setClasses(data);
-    } catch (err) {
-      console.error("CLASS FETCH ERROR ❌", err);
-    }
-  };
+  useEffect(() => {
+    const fetchClasses = async () => {
+      try {
+        const res = await adminServices.getAllClasses();
+        const data = res?.data || res;
+        setClasses(data);
+      } catch (err) {
+        console.error("CLASS FETCH ERROR ❌", err);
+      }
+    };
 
-  fetchClasses();
-}, []);
-const className = classes.find(
-  (c) => String(c._id) === String(profile.course)
-)?.name || classes.find(
-  (c) => String(c._id) === String(profile.course)
-)?.className;
+    fetchClasses();
+  }, []);
+  const className = classes.find(
+    (c) => String(c._id) === String(profile.course)
+  )?.name || classes.find(
+    (c) => String(c._id) === String(profile.course)
+  )?.className;
 
   return (
     <div className="min-h-screen mt-10 bg-[#FDFDFD] font-sans text-slate-900">
@@ -217,23 +267,23 @@ const className = classes.find(
 
         {/* Navigation Sidebar */}
         <aside className={`w-full ${collapsed ? "lg:w-20" : "lg:w-50"} lg:h-screen lg:sticky lg:top-0 border-r border-slate-100 p-3 lg:p-4 bg-white transition-all duration-300`}>
-   
+
           <div className="mb-8 mt-2">
             <h2 className="text-lg text-center font-extrabold tracking-tight text-[#0E94A5]">
-  {collapsed ? "MP" : "My Profile"}
-</h2>
+              {collapsed ? "MP" : "My Profile"}
+            </h2>
             <p className="text-[10px] text-center text-slate-400 font-bold  tracking-[0.2em] mt-1">manage your details here</p>
-                         <div className="flex justify-end mb-2">
-  <button
-    onClick={() => setCollapsed(!collapsed)}
-    className="p-1 bg-gray-100 rounded-md hover:bg-slate-100"
-  >
-    <ChevronLeft
-      size={16}
-      className={`transition-transform ${collapsed ? "rotate-180" : ""}`}
-    />
-  </button>
-</div>
+            <div className="flex justify-end mb-2">
+              <button
+                onClick={() => setCollapsed(!collapsed)}
+                className="p-1 bg-gray-100 rounded-md hover:bg-slate-100"
+              >
+                <ChevronLeft
+                  size={16}
+                  className={`transition-transform ${collapsed ? "rotate-180" : ""}`}
+                />
+              </button>
+            </div>
             <div className="border-t border-20-black"></div>
           </div>
 
@@ -245,17 +295,16 @@ const className = classes.find(
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`w-full flex items-center ${collapsed ? "justify-center" : "justify-between"} px-4 py-2.5 rounded-xl transition-all ${
-  activeTab === tab.id
-    ? "bg-[#0E94A5]/10 text-[#0E94A5]"
-    : "text-slate-400 hover:text-slate-900 hover:bg-slate-50"
-}`}
+                  className={`w-full flex items-center ${collapsed ? "justify-center" : "justify-between"} px-4 py-2.5 rounded-xl transition-all ${activeTab === tab.id
+                    ? "bg-[#0E94A5]/10 text-[#0E94A5]"
+                    : "text-slate-400 hover:text-slate-900 hover:bg-slate-50"
+                    }`}
                 >
                   <div className={`flex items-center ${collapsed ? "justify-center w-full" : "gap-2"}`}>
                     <Icon size={16} />
                     {!collapsed && (
-  <span className="text-[11px] font-semibold">{tab.label}</span>
-)}
+                      <span className="text-[11px] font-semibold">{tab.label}</span>
+                    )}
                   </div>
                   {activeTab === tab.id && <ChevronLeft size={12} />}
                 </button>
@@ -263,7 +312,7 @@ const className = classes.find(
             })}
           </nav>
 
-          
+
         </aside>
 
         {/* Form Content Area */}
@@ -278,7 +327,7 @@ const className = classes.find(
               <p className="text-sm  text-slate-400 font-medium">You can update your details.</p>
               <div className="border-t border-20-black"></div>
             </div>
-            
+
 
             <div className="flex items-center gap-2">
               {isEditing && (
@@ -314,32 +363,19 @@ const className = classes.find(
                 <div className="relative">
                   <div className="w-28 h-28 rounded-3xl bg-white border border-slate-200 overflow-hidden shadow-sm flex items-center justify-center">
                     {profile.photo || profile.profileImage ? (
-  <img
-    src={
-      profile.photo
-        ? URL.createObjectURL(profile.photo)
-        : getMediaUrl(profile.profileImage)
-    }
-    alt="Profile"
-    className="w-full h-full object-cover"
-  />
-) : (
-  <User size={32} className="text-slate-200" />
-)}
-                  </div>
-                  {isEditing && (
-                    <label className="absolute -bottom-1 -right-1 p-2 bg-[#0E94A5] rounded-xl shadow-lg cursor-pointer hover:bg-[#087a87] transition-all text-white">
-                      <Camera size={14} />
-                      <input
-                        type="file"
-                        className="hidden"
-                        accept="image/*"
-                        onChange={(e) =>
-                          handleChange("photo", e.target.files[0])
+                      <img
+                        src={
+                          profile.photo
+                            ? URL.createObjectURL(profile.photo)
+                            : getMediaUrl(profile.profileImage)
                         }
+                        alt="Profile"
+                        className="w-full h-full object-cover"
                       />
-                    </label>
-                  )}
+                    ) : (
+                      <User size={32} className="text-slate-200" />
+                    )}
+                  </div>
                 </div>
 
                 <div className="text-center md:text-left">
@@ -347,12 +383,24 @@ const className = classes.find(
                   <p className="text-[11px] text-slate-400 mb-4 max-w-xs leading-relaxed">This photo will be used for your student ID card and official records.</p>
                   {isEditing && (
                     <div className="flex justify-center md:justify-start gap-4">
-                      <button className="text-[10px] font-black text-[#0E94A5] uppercase tracking-[0.2em]">Upload New</button>
+                      <label className="flex items-center gap-2 px-4 py-2 bg-[#0E94A5] text-white text-[11px] font-bold rounded-lg cursor-pointer hover:bg-[#087a87] transition-all shadow-md">
+                        <Camera size={14} />
+                        Upload New
+                        <input
+                          type="file"
+                          className="hidden"
+                          accept="image/*"
+                          onChange={(e) =>
+                            handleChange("photo", e.target.files[0])
+                          }
+                        />
+                      </label>
                       <button
+                        type="button"
                         onClick={() => handleChange("profileImage", null)}
-                        className="text-[10px] font-black text-red-400 uppercase tracking-[0.2em]"
+                        className="p-2 bg-red-50 text-red-500 rounded-lg hover:bg-red-100 transition-all"
                       >
-                        Delete
+                        <Trash2 size={14} />
                       </button>
                     </div>
                   )}
@@ -489,38 +537,38 @@ const className = classes.find(
               {activeTab === "academic" && (
                 <div className="space-y-8 animate-in fade-in duration-300">
                   <div className="space-y-6">
-                   <div className="space-y-2 max-w-sm">
-  <label className="text-[9px] font-black uppercase tracking-[0.3em] text-[#0E94A5]">
-    Enrolled Class
-  </label>
+                    <div className="space-y-2 max-w-sm">
+                      <label className="text-[9px] font-black uppercase tracking-[0.3em] text-[#0E94A5]">
+                        Enrolled Class
+                      </label>
 
-  <div className="text-lg font-black text-slate-800 flex items-center gap-1">
-    
-    {/* Class Number */}
-    <span>
-      {className || "-"}
-      <sup className="text-[10px] ml-0.5 align-super">
-        {className % 100 >= 11 && className % 100 <= 13
-          ? "th"
-          : className % 10 === 1
-          ? "st"
-          : className % 10 === 2
-          ? "nd"
-          : className % 10 === 3
-          ? "rd"
-          : "th"}
-      </sup>
-    </span>
+                      <div className="text-lg font-black text-slate-800 flex items-center gap-1">
 
-    {/* Section */}
-    {profile.section && (
-      <span className="text- font-bold text-slate-800 ml-1">
-        -{" "}{profile.section}
-      </span>
-    )}
+                        {/* Class Number */}
+                        <span>
+                          {className || "-"}
+                          <sup className="text-[10px] ml-0.5 align-super">
+                            {className % 100 >= 11 && className % 100 <= 13
+                              ? "th"
+                              : className % 10 === 1
+                                ? "st"
+                                : className % 10 === 2
+                                  ? "nd"
+                                  : className % 10 === 3
+                                    ? "rd"
+                                    : "th"}
+                          </sup>
+                        </span>
 
-  </div>
-</div>
+                        {/* Section */}
+                        {profile.section && (
+                          <span className="text- font-bold text-slate-800 ml-1">
+                            -{" "}{profile.section}
+                          </span>
+                        )}
+
+                      </div>
+                    </div>
 
                     <div className="space-y-2">
                       <label className="text-[9px] font-black uppercase tracking-[0.3em] text-[#0E94A5]">Profile Bio</label>
@@ -561,7 +609,19 @@ const className = classes.find(
                               onChange={(e) => handleSkillChange(index, "expertise", e.target.value)}
                             />
                             {isEditing && (
-                              <button onClick={() => removeSkill(index)} className="p-1 text-slate-300 hover:text-red-400"><Trash2 size={12} /></button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  handleChange("profileImage", null);
+                                  handleChange("photo", null);
+
+                                  // 🔥 ADD THIS
+                                  handleChange("removeImage", true);
+                                }}
+                                className="p-2 bg-red-50 text-red-500 rounded-lg hover:bg-red-100 transition-all"
+                              >
+                                <Trash2 size={14} />
+                              </button>
                             )}
                           </div>
                         ))}
@@ -592,7 +652,10 @@ const className = classes.find(
                         value={profile.category}
                         onChange={(e) => handleChange("category", e.target.value)}
                       >
-                        {["General", "OBC", "SC", "ST"].map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                        <option value="general">General</option>
+                        <option value="obc">OBC</option>
+                        <option value="sc">SC</option>
+                        <option value="st">ST</option>
                       </select>
                     </div>
                     <div className="space-y-2">

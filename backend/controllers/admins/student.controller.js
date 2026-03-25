@@ -161,9 +161,15 @@ exports.createStudent = async (req, res) => {
       address,
       category,
 
+
+      city: req.body.city || "",
+      shortBio: req.body.shortBio || "",
+      skills: req.body.skills ? JSON.parse(req.body.skills) : [],
+      social: req.body.social ? JSON.parse(req.body.social) : {},
       dateOfBirth: dob,
 
-profileImage: req.file ? `uploads/${req.file.filename}` : "",    });
+      profileImage: req.file ? `uploads/${req.file.filename}` : "",
+    });
 
     // ========================
     // AUTO ASSIGN FEE
@@ -350,7 +356,14 @@ exports.updateStudent = async (req, res) => {
   try {
     const { id } = req.params;
 
-    let updateData = { ...req.body };
+    let updateData = {};
+
+    // ✅ only include fields if they exist
+    Object.keys(req.body).forEach((key) => {
+      if (req.body[key] !== undefined && req.body[key] !== "") {
+        updateData[key] = req.body[key];
+      }
+    });
 
     // ✅ FIX DOB
     if (updateData.dateOfBirth) {
