@@ -66,6 +66,7 @@ const Page = () => {
     skills: [{ name: "", expertise: 0 }],
     social: { facebook: "", linkedin: "", twitter: "", instagram: "" },
     profileImage: null,
+    removeImage: false
   });
 
   const [activeTab, setActiveTab] = useState("personal");
@@ -132,7 +133,12 @@ const Page = () => {
     fetchStudent();
   }, [user]);
 
-  const handleChange = (field, value) => setProfile({ ...profile, [field]: value });
+  const handleChange = (field, value) => {
+    setProfile((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
 
   const handleSocialChange = (field, value) =>
     setProfile({ ...profile, social: { ...profile.social, [field]: value } });
@@ -176,7 +182,7 @@ const Page = () => {
         // ✅ objects → stringify
         payload.append("skills", JSON.stringify(profile.skills));
         payload.append("social", JSON.stringify(profile.social));
-
+        payload.append("removeImage", profile.removeImage ? "true" : "false");
         // ✅ image
         if (profile.photo) {
           payload.append("photo", profile.photo);
@@ -397,7 +403,11 @@ const Page = () => {
                       </label>
                       <button
                         type="button"
-                        onClick={() => handleChange("profileImage", null)}
+                        onClick={() => {
+                          handleChange("profileImage", null);
+                          handleChange("photo", null);
+                          handleChange("removeImage", true); // ✅ MAIN FIX
+                        }}
                         className="p-2 bg-red-50 text-red-500 rounded-lg hover:bg-red-100 transition-all"
                       >
                         <Trash2 size={14} />

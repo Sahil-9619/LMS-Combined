@@ -3,7 +3,8 @@ const Student = require("../../models/student.model");
 const Class = require("../../models/class.model");
 const StudentFee = require("../../models/studentFee.model");
 const FeeStructure = require("../../models/feeStructure.model");
-
+const fs = require("fs");
+const path = require("path");
 // =====================================
 // AUTO GENERATE ADMISSION NUMBER
 // =====================================
@@ -349,54 +350,85 @@ exports.deleteStudent = async (req, res) => {
   }
 };
 
-// =====================================
 // UPDATE STUDENT
-// =====================================
+
+
+
 exports.updateStudent = async (req, res) => {
   try {
     const { id } = req.params;
 
+    const student = await Student.findById(id);
+    if (!student) {
+      return res.status(404).json({
+        success: false,
+        message: "Student not found",
+      });
+    }
+
     let updateData = {};
 
-    // ✅ only include fields if they exist
+    // ✅ only include valid fields
     Object.keys(req.body).forEach((key) => {
       if (req.body[key] !== undefined && req.body[key] !== "") {
         updateData[key] = req.body[key];
       }
     });
 
-    // ✅ FIX DOB
+    // =========================
+    // ✅ DATE FIX
+    // =========================
     if (updateData.dateOfBirth) {
       updateData.dateOfBirth = new Date(updateData.dateOfBirth);
     }
 
-    // ✅ FIX skills (string → array)
+    // =========================
+    // ✅ JSON PARSE
+    // =========================
     if (updateData.skills && typeof updateData.skills === "string") {
       updateData.skills = JSON.parse(updateData.skills);
     }
 
-    // ✅ FIX social (string → object)
     if (updateData.social && typeof updateData.social === "string") {
       updateData.social = JSON.parse(updateData.social);
     }
 
-    // ✅ FIX image update
-    if (req.file) {
-      updateData.profileImage = `uploads/${req.file.filename}`;
+    // =========================
+    // 🔥 REMOVE IMAGE (MAIN FIX)
+    // =========================
+    if (req.body.removeImage === "true") {
+      if (student.profileImage) {
+        const filePath = path.join(__dirname, "..", student.profileImage);
+
+        if (fs.existsSync(filePath)) {
+          fs.unlinkSync(filePath);
+        }
+      }
+
+      updateData.profileImage = null;
     }
 
+    // =========================
+    // 🔥 NEW IMAGE UPLOAD
+    // =========================
+    if (req.file) {
+      // delete old image
+      if (student.profileImage) {
+        const filePath = path.join(__dirname, "..", student.profileImage);
+
+        if (fs.existsSync(filePath)) {
+          fs.unlinkSync(filePath);
+        }
+      }
+
+      updateData.profileImage = `uploads/${req.file.filename}`;
+    }
+    // ✅ UPDATE
     const updatedStudent = await Student.findByIdAndUpdate(
       id,
       updateData,
       { new: true, runValidators: true }
     );
-
-    if (!updatedStudent) {
-      return res.status(404).json({
-        success: false,
-        message: "Student not found",
-      });
-    }
 
     res.status(200).json({
       success: true,
