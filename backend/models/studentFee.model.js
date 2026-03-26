@@ -21,7 +21,7 @@ const studentFeeSchema = new mongoose.Schema(
         amount: Number,
         type: {
           type: String,
-          enum: ["monthly", "one-time"],
+          enum: ["monthly", "yearly", "one-time"],
           default: "one-time"
         }
       }

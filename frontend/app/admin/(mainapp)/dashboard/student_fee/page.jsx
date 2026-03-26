@@ -251,7 +251,7 @@ export default function AdminFeeManagement() {
 
           if (isRecurring) {
             const amt = Number(f.amount || 0);
-            fallbackSum += Number(f.amount || 0) / 12;
+            fallbackSum += Number(f.amount || 0);
           }
         });
         setMonthlyExpected(apiMonthlyExpected || Math.round(fallbackSum));
@@ -1250,7 +1250,7 @@ ${summary.status === "paid"
 
                       <div className="inline-flex items-center gap-2 bg-[#E8F9FB] border border-[#178F9E] text-[#0F6F7C] text-sm font-medium px-4 py-2 rounded-lg w-fit">
                         <span>📅 Monthly Fee Required:</span>
-                        <span className="font-bold text-base">₹{monthlyExpected / 12}</span>
+                        <span className="font-bold text-base">₹{monthlyExpected}</span>
                       </div>
                     )}
 
@@ -1302,7 +1302,7 @@ ${summary.status === "paid"
                       <div className="flex flex-col gap-1">
                         <input
                           type="number"
-                          placeholder={monthlyExpected > 0 ? `Enter ₹${monthlyExpected / 12}` : "Enter Payment Amount"}
+                          placeholder={monthlyExpected > 0 ? `Enter ₹${monthlyExpected}` : "Enter Payment Amount"}
                           value={payAmount}
                           min={1}
                           max={
@@ -1314,7 +1314,7 @@ ${summary.status === "paid"
                             const val = Number(e.target.value);
 
                             let maxAllowed = monthlyExpected > 0
-                              ? (monthlyExpected / 12)
+                              ? (monthlyExpected)
                               : (summary.remainingAmount || Infinity);
 
                             if (
@@ -1331,7 +1331,7 @@ ${summary.status === "paid"
                         />
                         {monthlyExpected > 0 && (
                           <span className="text-xs text-gray-500">
-                            Enter exact amount: <strong>₹{monthlyExpected / 12}</strong>
+                            Enter exact amount: <strong>₹{monthlyExpected}</strong>
                           </span>
                         )}
                       </div>
@@ -1402,7 +1402,7 @@ ${summary.status === "paid"
               {months.map((month, index) => {
 
                 const paid = Math.min(monthlyFees[month] || 0, monthlyExpected);
-                const pending = Math.max((monthlyExpected / 12) - paid, 0);
+                const pending = Math.max((monthlyExpected) - paid, 0);
 
 
                 const status = getMonthStatus(month);
