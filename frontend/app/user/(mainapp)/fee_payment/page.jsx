@@ -118,10 +118,21 @@ const App = () => {
         : "text-red-500";
 
   const breakdown = Object.entries(feeData?.feeStructureId || {})
-    .filter(([key, value]) => typeof value === "number" && value > 0)
+    .filter(([key, value]) => {
+      return (
+        key &&                                  // key exist
+        typeof key === "string" &&
+        typeof value === "number" &&
+        value > 0 &&
+        !key.toLowerCase().includes("total") &&
+        !key.toLowerCase().includes("id") &&
+        !key.toLowerCase().includes("_id") &&
+        !key.toLowerCase().includes("__v")
+      );
+    })
     .map(([key, value]) => ({
       category: key,
-      amount: value
+      amount: value,
     }));
 
   const generateInstallments = () => {
@@ -168,11 +179,13 @@ const App = () => {
 
   const installments = generateInstallments();
 
-  const formatLabel = (key) =>
-    key
+  const formatLabel = (key) => {
+    if (!key || typeof key !== "string") return "Unknown";
+
+    return key
       .replace(/([A-Z])/g, " $1")
       .replace(/^./, (str) => str.toUpperCase());
-
+  };
   return (
     <div className="min-h-screen mt-10 md:mt-14 border-gray-200  shadow-inner bg-white border-12 font-sans text-slate-900 pb-16">
       <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 space-y-12f">
@@ -314,7 +327,55 @@ const App = () => {
                 </span>
               </div>
             </div>
+            {/* 🔥 CATEGORY WISE PAYMENT */}
+            <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+              <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+                <Layers size={18} className="text-slate-400" />
+                Category Payment
+              </h3>
 
+              <div className="space-y-3">
+                {breakdown.map((item, i) => (
+                  <div
+                    key={i}
+                    className="flex items-center justify-between p-3 rounded-xl bg-slate-50"
+                  >
+                    <div>
+                      <p className="text-sm font-semibold text-slate-700">
+                        {formatLabel(item.category)}
+                      </p>
+                      <p className="text-xs text-slate-400">
+                        {formatCurrency(item.amount)}
+                      </p>
+                    </div>
+
+                    <button className="px-3 py-1.5 text-xs font-bold bg-[#0E94A5] text-white rounded-full hover:bg-[#0a7280]">
+                      Pay
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* 🔥 FULL PAYMENT (ONE TIME) */}
+            <div className="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-2xl p-6 shadow-lg">
+              <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+                <Wallet size={18} />
+                Full Payment
+              </h3>
+
+              <p className="text-sm text-slate-300 mb-2">
+                Pay complete fee in one go
+              </p>
+
+              <p className="text-3xl font-black mb-4">
+                {formatCurrency(remainingFee)}
+              </p>
+
+              <button className="w-full bg-white text-slate-900 py-3 rounded-xl font-bold hover:bg-slate-200 transition">
+                Pay Full Amount
+              </button>
+            </div>
             {/* Monthly EMI Status (Open Layout) */}
             <div>
               <h3 className="text-lg font-bold text-slate-900 mb-5 flex items-center gap-2">
