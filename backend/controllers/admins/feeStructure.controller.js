@@ -60,11 +60,14 @@ exports.createFeeStructure = async (req, res) => {
     });
 
     // ================================
-    // AUTO ASSIGN FEE TO STUDENTS
+    // AUTO ASSIGN FEE TO STUDENTS (ALL SECTIONS)
     // ================================
-    const students = await Student.find({ classId });
+    const sections = await Class.find({ className: classData.className });
+    const classIds = sections.map(s => s._id);
+    const students = await Student.find({ classId: { $in: classIds } });
 
     for (const student of students) {
+      // Check if already assigned
       const exists = await StudentFee.findOne({
         studentId: student._id
       });
@@ -73,10 +76,7 @@ exports.createFeeStructure = async (req, res) => {
         await StudentFee.create({
           studentId: student._id,
           feeStructureId: fee._id,
-
-          // 🔥 store dynamic fees
           feeComponents: fee.feeComponents,
-
           totalAssignedFee: fee.totalFee,
           remainingAmount: fee.totalFee,
           totalPaid: 0,
@@ -133,9 +133,16 @@ exports.getFeeByClassId = async (req, res) => {
   try {
     const { classId } = req.params;
 
-    // 🔥 convert string → ObjectId
+    const classData = await Class.findById(classId);
+    if (!classData) {
+      return res.status(404).json({
+        success: false,
+        message: "Class not found",
+      });
+    }
+
     const fee = await FeeStructure.findOne({
-      classId: new mongoose.Types.ObjectId(classId),
+      className: classData.className,
       status: "active"
     });
 
@@ -165,7 +172,16 @@ exports.getFeeByClassId = async (req, res) => {
 // ================================
 exports.updateFeeStructure = async (req, res) => {
   try {
-    const { classId, feeComponents = [], installments = [], lateFeePerDay = 0 } = req.body;
+    const classId = req.params.id;
+    const { feeComponents = [], installments = [], lateFeePerDay = 0 } = req.body;
+
+    const classData = await Class.findById(classId);
+    if (!classData) {
+      return res.status(404).json({
+        success: false,
+        message: "Class not found",
+      });
+    }
 
     const totalFee = feeComponents.reduce(
       (sum, fee) => sum + Number(fee.amount || 0),
@@ -173,14 +189,18 @@ exports.updateFeeStructure = async (req, res) => {
     );
 
     const updated = await FeeStructure.findOneAndUpdate(
-      { classId, status: "active" },
+      {
+        className: classData.className,
+        status: "active"
+      },
       {
         feeComponents,
         installments,
         lateFeePerDay,
-        totalFee
+        totalFee,
+        classId: classId // keep it updated to the latest section touched, or just leave it
       },
-      { new: true, runValidators: true }
+      { new: true }
     );
 
     if (!updated) {
@@ -190,12 +210,14 @@ exports.updateFeeStructure = async (req, res) => {
       });
     }
 
+    // 🔥 student sync (All students pointing to this fee structure)
+    // Use the plain array from req.body to ensure correct serialization in aggregation
     await StudentFee.updateMany(
       { feeStructureId: updated._id },
       [
         {
           $set: {
-            feeComponents: updated.feeComponents,
+            feeComponents: feeComponents, // Use the raw array from request
             totalAssignedFee: totalFee,
             remainingAmount: {
               $subtract: [totalFee, "$totalPaid"]
@@ -204,6 +226,26 @@ exports.updateFeeStructure = async (req, res) => {
         }
       ]
     );
+
+    // Also handle students who don't have a record yet but are in this class
+    const sections = await Class.find({ className: classData.className });
+    const classIds = sections.map(s => s._id);
+    const studentsInClass = await Student.find({ classId: { $in: classIds } });
+
+    for (const student of studentsInClass) {
+      const existing = await StudentFee.findOne({ studentId: student._id });
+      if (!existing) {
+        await StudentFee.create({
+          studentId: student._id,
+          feeStructureId: updated._id,
+          feeComponents: feeComponents,
+          totalAssignedFee: totalFee,
+          remainingAmount: totalFee,
+          totalPaid: 0,
+          status: "due"
+        });
+      }
+    }
 
     res.status(200).json({
       success: true,

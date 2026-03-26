@@ -48,7 +48,7 @@ export default function ClassFeeManagement() {
   useEffect(() => {
     if (!classId) return;
 
-    const fetchCurrentFee = async () => { 
+    const fetchCurrentFee = async () => {
       setError("");
       setLoading(true);
       setDataFetched(false);
@@ -57,27 +57,27 @@ export default function ClassFeeManagement() {
         const res = await adminServices.getClassFeeByClass(classId);
         const data = res?.data || res;
 
-       const components = data.feeComponents || [];
-       const getAmount = (name) =>
-  components.find((f) => f.name === name)?.amount || "";
+        const components = data.feeComponents || [];
+        const getAmount = (name) =>
+          components.find((f) => f.name === name)?.amount || "";
 
-setTuitionFee(getAmount("tuition"));
-setAdmissionFee(getAmount("admission"));
-setExamFee(getAmount("exam"));
-setHostelFee(getAmount("hostel"));
-setTransportFee(getAmount("transport"));
-setLateFeePerDay(data.lateFeePerDay || "");
+        setTuitionFee(getAmount("tuition"));
+        setAdmissionFee(getAmount("admission"));
+        setExamFee(getAmount("exam"));
+        setHostelFee(getAmount("hostel"));
+        setTransportFee(getAmount("transport"));
+        setLateFeePerDay(data.lateFeePerDay || "");
 
-// 🔥 store existing
-setExistingComponents(components);
+        // 🔥 store existing
+        setExistingComponents(components);
 
-// 🔥 extras
-const extras = components.filter(
-  (c) =>
-    !["tuition", "admission", "exam", "hostel", "transport"].includes(c.name)
-);
+        // 🔥 extras
+        const extras = components.filter(
+          (c) =>
+            !["tuition", "admission", "exam", "hostel", "transport"].includes(c.name)
+        );
 
-setExtraComponents(extras);
+        setExtraComponents(extras);
 
         setEditing(false);
         setDataFetched(true);
@@ -100,48 +100,48 @@ setExtraComponents(extras);
   }, [classId]);
 
   const mergeComponent = (name, newValue, type) => {
-  const existing = existingComponents.find(c => c.name === name);
+    const existing = existingComponents.find(c => c.name === name);
 
-  return {
-    name,
-    amount:
-      newValue !== "" && newValue !== null && newValue !== undefined
-        ? Number(newValue)
-        : existing?.amount || 0,
-    type
+    return {
+      name,
+      amount:
+        newValue !== "" && newValue !== null && newValue !== undefined
+          ? Number(newValue)
+          : existing?.amount || 0,
+      type
+    };
   };
-};
 
   /* UPDATE FEE */
   const updateFee = async () => {
     if (!classId) return;
     try {
-    let feeComponents = [
-  mergeComponent("tuition", tuitionFee, "monthly"),
-  mergeComponent("admission", admissionFee, "one-time"),
-  mergeComponent("exam", examFee, "one-time"),
-  mergeComponent("hostel", hostelFee, "monthly"),
-  mergeComponent("transport", transportFee, "monthly"),
+      let feeComponents = [
+        mergeComponent("tuition", tuitionFee, "monthly"),
+        mergeComponent("admission", admissionFee, "one-time"),
+        mergeComponent("exam", examFee, "one-time"),
+        mergeComponent("hostel", hostelFee, "monthly"),
+        mergeComponent("transport", transportFee, "monthly"),
 
-  ...extraComponents
-    .filter(c => c.name)
-    .map(c => ({
-      name: c.name.trim().toLowerCase(),
-      amount: Number(c.amount) || 0,
-      type: c.type || "one-time"
-    }))
-];
+        ...extraComponents
+          .filter(c => c.name)
+          .map(c => ({
+            name: c.name.trim().toLowerCase(),
+            amount: Number(c.amount) || 0,
+            type: c.type || "one-time"
+          }))
+      ];
 
-// remove duplicates
-const map = new Map();
-feeComponents.forEach(f => map.set(f.name, f));
+      // remove duplicates
+      const map = new Map();
+      feeComponents.forEach(f => map.set(f.name, f));
 
-const payload = {
-  classId,
-  feeComponents: Array.from(map.values()),
-  lateFeePerDay: Number(lateFeePerDay) || 0
-};
-      try {   
+      const payload = {
+        classId,
+        feeComponents: Array.from(map.values()),
+        lateFeePerDay: Number(lateFeePerDay) || 0
+      };
+      try {
         await adminServices.updateClassFee(classId, payload);
       } catch (err) {
         if (err?.response?.data?.message === "Fee structure not found") {
@@ -160,17 +160,17 @@ const payload = {
 
   // Calculations
   const extraTotal = extraComponents.reduce(
-  (sum, c) => sum + Number(c.amount || 0),
-  0
-);
+    (sum, c) => sum + Number(c.amount || 0),
+    0
+  );
 
-const totalFee =
-  ((Number(tuitionFee) || 0) ) +
-  ((Number(hostelFee) || 0) ) +
-  ((Number(transportFee) || 0) ) +
-  (Number(admissionFee) || 0) +
-  (Number(examFee) || 0) +
-  extraTotal;
+  const totalFee =
+    ((Number(tuitionFee) || 0)) +
+    ((Number(hostelFee) || 0)) +
+    ((Number(transportFee) || 0)) +
+    (Number(admissionFee) || 0) +
+    (Number(examFee) || 0) +
+    extraTotal;
 
   const sortedClasses = [...classes]
     .filter((c) =>
@@ -178,24 +178,67 @@ const totalFee =
     )
     .sort((a, b) => Number(a.className) - Number(b.className));
 
-    const addComponent = () => {
-  setExtraComponents([
-    ...extraComponents,
-    { name: "", amount: 0, type: "one-time" }
-  ]);
-};
+  const addComponent = () => {
+    setExtraComponents([
+      ...extraComponents,
+      { name: "", amount: 0, type: "one-time" }
+    ]);
+  };
 
-const removeComponent = (index) => {
-  const updated = [...extraComponents];
-  updated.splice(index, 1);
-  setExtraComponents(updated);
-};
+  const removeComponent = (index) => {
+    const updated = [...extraComponents];
+    updated.splice(index, 1);
+    setExtraComponents(updated);
+  };
 
-const updateComponent = (index, field, value) => {
-  const updated = [...extraComponents];
-  updated[index][field] = value;
-  setExtraComponents(updated);
-};
+  const updateComponent = (index, field, value) => {
+    const updated = [...extraComponents];
+    updated[index][field] = value;
+    setExtraComponents(updated);
+  };
+
+  const allComponents = [
+    {
+      label: "Annual Tuition Fee",
+      value: tuitionFee,
+      setValue: setTuitionFee,
+      icon: GraduationCap,
+    },
+    {
+      label: "Admission / Registration Fee",
+      value: admissionFee,
+      setValue: setAdmissionFee,
+      icon: CheckCircle2,
+    },
+    {
+      label: "Examination & Lab Fees",
+      value: examFee,
+      setValue: setExamFee,
+      icon: FileText,
+    },
+    {
+      label: "Hostel & Boarding Fee",
+      value: hostelFee,
+      setValue: setHostelFee,
+      icon: Building,
+    },
+    {
+      label: "Transport & Bus Fee",
+      value: transportFee,
+      setValue: setTransportFee,
+      icon: Bus,
+    },
+
+    // EXTRA COMPONENTS ADD HERE
+    ...extraComponents.map((comp, index) => ({
+      label: comp.name || "Custom Fee",
+      value: comp.amount,
+      setValue: (val) => updateComponent(index, "amount", val),
+      icon: FileText,
+      isExtra: true,
+      index,
+    })),
+  ];
   return (
     <div className="min-h-[calc(100vh-4rem)] bg-white flex flex-col md:flex-row font-sans border-t border-slate-100 overflow-hidden">
 
@@ -305,105 +348,48 @@ const updateComponent = (index, field, value) => {
                   )}
                 </div>
 
-                {/* Ledger Rows (Scrollable) */}
-                <div className="flex-1 overflow-y-auto px-8 md:px-16 py-8">
-                  <div className="max-w-2xl mx-auto space-y-2">
+                {allComponents.map((comp, i) => (
+                  <div key={i} className="relative">
 
                     <LedgerRow
-                      icon={GraduationCap}
-                      label="Annual Tuition Fee"
-                      value={tuitionFee}
-                      setValue={setTuitionFee}
-                      disabled={!editing}
-                    />
-                    <LedgerRow
-                      icon={CheckCircle2}
-                      label="Admission / Registration Fee"
-                      value={admissionFee}
-                      setValue={setAdmissionFee}
-                      disabled={!editing}
-                    />
-                    <LedgerRow
-                      icon={FileText}
-                      label="Examination & Lab Fees"
-                      value={examFee}
-                      setValue={setExamFee}
-                      disabled={!editing}
-                    />
-                    <LedgerRow
-                      icon={Building}
-                      label="Hostel & Boarding Fee"
-                      value={hostelFee}
-                      setValue={setHostelFee}
-                      disabled={!editing}
-                    />
-                    <LedgerRow
-                      icon={Bus}
-                      label="Transport & Bus Fee"
-                      value={transportFee}
-                      setValue={setTransportFee}
+                      icon={comp.icon}
+                      label={comp.label}
+                      value={comp.value}
+                      setValue={comp.setValue}
                       disabled={!editing}
                     />
 
-                    {/* Separator */}
-                    <div className="py-6">
-                      <div className="w-full h-px bg-slate-200 border-b border-dashed border-slate-300"></div>
-                    </div>
+                    {/* Extra name edit */}
+                    {editing && comp.isExtra && (
+                      <input
+                        value={extraComponents[comp.index].name}
+                        onChange={(e) =>
+                          updateComponent(comp.index, "name", e.target.value)
+                        }
+                        placeholder="Component Name"
+                        className="ml-14 mt-1 border px-2 py-1 rounded text-sm"
+                      />
+                    )}
 
-                    <LedgerRow
-                      icon={Clock}
-                      label="Late Payment Penalty (Per Day)"
-                      value={lateFeePerDay}
-                      setValue={setLateFeePerDay}
-                      disabled={!editing}
-                      isPenalty
-                    />
-
+                    {/* Remove button */}
+                    {editing && comp.isExtra && (
+                      <button
+                        onClick={() => removeComponent(comp.index)}
+                        className="absolute right-0 top-2 text-red-500"
+                      >
+                        ✕
+                      </button>
+                    )}
                   </div>
-                </div>
-                {/* 🔥 EXTRA COMPONENTS */}
-{extraComponents.map((comp, index) => (
-  <div key={index} className="flex gap-2 items-center mt-2">
-    
-    <input
-      placeholder="Name"
-      value={comp.name}
-      disabled={!editing}
-      onChange={(e) =>
-        updateComponent(index, "name", e.target.value)
-      }
-      className="border p-2 rounded w-32"
-    />
-
-    <input
-      type="number"
-      value={comp.amount}
-      disabled={!editing}
-      onChange={(e) =>
-        updateComponent(index, "amount", e.target.value)
-      }
-      className="border p-2 rounded w-32"
-    />
-
-    {editing && (
-      <button
-        onClick={() => removeComponent(index)}
-        className="text-red-500 font-bold"
-      >
-        ✕
-      </button>
-    )}
-  </div>
-))}
-
-{editing && (
-  <button
-    onClick={addComponent}
-    className="mt-3 text-sm text-blue-600 font-bold"
-  >
-    + Add Fee Component
-  </button>
-)}
+                ))}
+                {editing && (
+                  <button
+                    onClick={addComponent}
+                    className="mt-3 text-sm text-blue-600 font-bold"
+                  >
+                    + Add Fee Component
+                  </button>
+                )}
 
                 {/* Sticky Summary & Save Footer */}
                 <div className="bg-slate-900 border-t border-slate-200 px-8 md:px-16 py-6 flex flex-col sm:flex-row items-center justify-between gap-6 flex-shrink-0 min-w-0">
