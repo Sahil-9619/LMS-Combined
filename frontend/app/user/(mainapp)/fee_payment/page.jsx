@@ -122,7 +122,7 @@ const App = () => {
       category: item.name,
       amount:
         item.type === "monthly"
-          ? item.amount * 12   // yearly show
+          ? item.amount   // yearly show
           : item.amount,
     }));
 
