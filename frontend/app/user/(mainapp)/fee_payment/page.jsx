@@ -116,23 +116,14 @@ const App = () => {
       : paidPercentage > 30
         ? "text-yellow-500"
         : "text-red-500";
-
-  const breakdown = Object.entries(feeData?.feeStructureId || {})
-    .filter(([key, value]) => {
-      return (
-        key &&                                  // key exist
-        typeof key === "string" &&
-        typeof value === "number" &&
-        value > 0 &&
-        !key.toLowerCase().includes("total") &&
-        !key.toLowerCase().includes("id") &&
-        !key.toLowerCase().includes("_id") &&
-        !key.toLowerCase().includes("__v")
-      );
-    })
-    .map(([key, value]) => ({
-      category: key,
-      amount: value,
+  const breakdown = (feeData?.feeComponents || [])
+    .filter((item) => item?.amount > 0)
+    .map((item) => ({
+      category: item.name,
+      amount:
+        item.type === "monthly"
+          ? item.amount * 12   // yearly show
+          : item.amount,
     }));
 
   const generateInstallments = () => {
