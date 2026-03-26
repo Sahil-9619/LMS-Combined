@@ -98,13 +98,15 @@ const App = () => {
 
         let foundStudent = null;
         // 🔥 GET CLASS NAME USING CLASS ID
-        if (foundStudent?.classId?._id) {
-          const classRes = await adminServices.getClassById(foundStudent.classId._id);
-          const cls = classRes?.data || classRes;
+        if (foundStudent) {
+          setStudentData(foundStudent);
 
-          console.log("CLASS DETAILS 👉", cls);
+          if (foundStudent?.classId?._id) {
+            const classRes = await adminServices.getClassById(foundStudent.classId._id);
+            const cls = classRes?.data || classRes;
 
-          setClassName(cls?.name || cls?.className || "");
+            setClassName(cls?.name || cls?.className || "");
+          }
         }
 
         // 🔥 STEP 2: loop each class and find student
@@ -176,7 +178,11 @@ const App = () => {
       </div>
     );
   }
-
+  const displayName =
+    studentData?.firstName ||
+    user?.name ||
+    user?.email?.split("@")[0] ||
+    "User";
   return (
     <div className="min-h-screen bg-[#F8FAFB] bg-cyan-100/20 text-slate-900 font-sans pb-12">
       <div className="mt-10  md:mt-14">
@@ -184,7 +190,7 @@ const App = () => {
         <header className=" flex flex-col md:flex-row md:items-end justify-between gap-4 px-6 py-6 bg-gradient-to-r from-[#0A6B78] via-[#0E94A5] to-[#0A6B78] text-white shadow-sm">
           <div>
             <h1 className="text-3xl px-5 font-extrabold tracking-tight text-white sm:text-4xl">
-              {getGreeting()}, {studentData?.firstName || user?.firstName || "User"}
+              {getGreeting()}, {displayName}
             </h1>
             <p className="text-white/80 mt-2 font-medium px-8">- Empowering your journey with "विज्ञानं सर्वस्य मूलम्"</p>
           </div>
