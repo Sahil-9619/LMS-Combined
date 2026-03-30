@@ -8,6 +8,6 @@ const {
 
 // GET ALL
 router.get("/", getAllInvoices);
-router.get("/:id/pdf", downloadInvoice);
+router.get("/download",  downloadInvoice);
 
 module.exports = router;

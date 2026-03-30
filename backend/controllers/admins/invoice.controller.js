@@ -1,5 +1,6 @@
 const Invoice = require("../../models/invoice.model");
 const PDFDocument = require("pdfkit");
+const Student = require("../../models/student.model");
 
 // ─────────────────────────────────────────────
 //  GET ALL INVOICES
@@ -67,15 +68,26 @@ function rule(doc, x1, x2, y, color = "#E5E7EB", lineWidth = 0.5) {
 // ─────────────────────────────────────────────
 exports.downloadInvoice = async (req, res) => {
   try {
-    const { id } = req.params;
-    const invoice = await Invoice.findById(id).populate("studentId");
+   const userId = req.userId;
 
-    if (!invoice) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Invoice not found" });
-    }
+// 🔥 user se student find karo
+const student = await Student.findOne({ userId });
 
+if (!student) {
+  return res.status(404).json({ message: "Student not found" });
+}
+
+// 🔥 ab correct ID use karo
+const invoice = await Invoice.findOne({
+  studentId: student._id,
+}).sort({ createdAt: -1 });
+
+if (!invoice) {
+  return res.status(404).json({
+    success: false,
+    message: "Invoice not found",
+  });
+}
     // ── Design Tokens ─────────────────────────────────────────────────────
     const BRAND = "#05717C";   // primary teal
     const BRAND_DARK = "#044E56";   // deep teal (header, grand-total)

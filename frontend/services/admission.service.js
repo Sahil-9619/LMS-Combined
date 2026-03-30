@@ -11,4 +11,17 @@ export const admissionService = {
       throw error;
     }
   },
+  downloadInvoice: async (id) => {
+  try {
+    const response = await axiosInstance.get(`/invoice/download`, {
+      responseType: "blob",
+    });
+
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+},
+
+  
 };

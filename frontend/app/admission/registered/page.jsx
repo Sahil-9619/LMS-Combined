@@ -5,8 +5,31 @@ import { CheckCircle } from "lucide-react";
 import Nav from "../../sections/Nav";
 import Footer from "../../sections/Footer";
 import Link from "next/link";
+import { admissionService } from "@/services/admission.service";
+import { useSelector } from "react-redux";
+
+
 
 export default function AdmissionSuccess() {
+const { user } = useSelector((state) => state.auth);
+  const handleDownloadInvoice = async () => {
+    try {
+      const blob = await admissionService.downloadInvoice();
+
+      const url = window.URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "invoice.pdf";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+
+    } catch (err) {
+      console.error("Error:",err); 
+      alert("Download failed");
+    }
+  };
   return (
     <main className="bg-[#0F6F7C] text-white min-h-screen overflow-hidden">
 
@@ -72,7 +95,14 @@ export default function AdmissionSuccess() {
             className="flex flex-col sm:flex-row gap-6 justify-center"
           >
 
-
+<motion.button
+  whileHover={{ scale: 1.05 }}
+  whileTap={{ scale: 0.95 }}
+  onClick={handleDownloadInvoice}
+  className="px-10 py-4 bg-[#178F9E] text-white font-semibold rounded-full shadow-lg hover:bg-[#0F6F7C] transition-all duration-300"
+>
+  Download Invoice
+</motion.button>
             <Link
               href="/user/myprofile"
               className="px-10 py-4 border-2 border-[#46B7C3] text-white font-semibold rounded-full hover:bg-[#46B7C3]  transition-all duration-300"
@@ -83,6 +113,7 @@ export default function AdmissionSuccess() {
 
         </div>
       </section>
+      
 
       {/* ================= SECOND SECTION (Floating Text Reveal) ================= */}
       <section className="py-28 px-6 text-center bg-[#F4FDFE] text-slate-700">
