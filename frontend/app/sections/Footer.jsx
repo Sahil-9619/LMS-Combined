@@ -5,7 +5,7 @@ import { brandName } from "../contants"
 const Footer = () => {
   return (
     <div className="bg-cyan-900 pt-1">
-      
+
       <div className="border-t border-[#46B7C3]/40 mt-12 pt-8 text-center"></div>
 
       <footer className="text-[#E6F7F9]  py-16">
@@ -16,7 +16,7 @@ const Footer = () => {
             <div>
               <div className="flex items-center mb-6">
                 <img src="/images/logo.png" alt="Logo"
-              className="w-12 h-8 scale-[1.5] " />
+                  className="w-12 h-8 scale-[1.5] " />
                 <span className="ml-2 text-2xl font-bold text-white">
                   {brandName}
                 </span>
@@ -79,7 +79,7 @@ const Footer = () => {
           <div className="mt-12 pt-8 border-t border-[#46B7C3]/30 text-center text-[#CFF3F6]">
             <p>
               &copy; {new Date().getFullYear()} {brandName}. All rights reserved.
-            </p>
+            </p> <span className="font-bold"> Design by Startup Web Support</span>
           </div>
 
         </div>
