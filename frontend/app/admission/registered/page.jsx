@@ -14,21 +14,18 @@ export default function AdmissionSuccess() {
 const { user } = useSelector((state) => state.auth);
   const handleDownloadInvoice = async () => {
     try {
-      const blob = await admissionService.downloadInvoice();
-
-      const url = window.URL.createObjectURL(blob);
-
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "invoice.pdf";
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-
-    } catch (err) {
-      console.error("Error:",err); 
-      alert("Download failed");
-    }
+        const blob = await admissionService.downloadInvoice(user._id);
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "invoice.pdf";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  } catch (err) {
+    console.error("Error:", err);
+    alert("Download failed");
+  }
   };
   return (
     <main className="bg-[#0F6F7C] text-white min-h-screen overflow-hidden">

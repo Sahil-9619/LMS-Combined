@@ -41,7 +41,14 @@ const App = () => {
   const nextDueDate = feeData?.nextDueDate || "-";
   const totalEmis = 12;
 
-  const monthlyEmi = totalFee ? totalFee / totalEmis : 0;
+  const monthlyComponentsTotal = (feeData?.feeComponents || [])
+  .filter(item =>
+    item.type === "monthly" ||
+    ["tuition", "hostel", "transport"].includes(item.name?.toLowerCase())
+  )
+  .reduce((sum, item) => sum + Number(item.amount || 0), 0);
+
+const monthlyEmi = monthlyComponentsTotal / totalEmis;  
   const emisPaid = monthlyEmi ? Math.floor(paidFee / monthlyEmi) : 0;
   const emisRemaining = totalEmis - emisPaid;
 
@@ -62,21 +69,17 @@ const App = () => {
 
         const admissionNo = studentData?.admissionNumber || user?.admissionNumber;
 
-        console.log("ADMISSION NO 👉", admissionNo);
 
         const feeRes = await adminServices.getStudentFeeByAdmission(admissionNo);
-        console.log("FULL RESPONSE 👉", feeRes);
 
         const data = feeRes?.data?.data || feeRes?.data || feeRes;
-
-        console.log("PARSED DATA 👉", data);
 
         setStudent(data.student);
         setFeeData(data.fee);
         setMonthlyFees(data.monthlyFees || {});
         setPayAmount(data.fee?.nextInstallment?.toString() || "");
       } catch (err) {
-        console.error("ERROR ❌", err);
+        
       } finally {
         setLoading(false);
       }
@@ -118,56 +121,94 @@ const App = () => {
         : "text-red-500";
   const breakdown = (feeData?.feeComponents || [])
     .filter((item) => item?.amount > 0)
-    .map((item) => ({
-      category: item.name,
-      amount:
-        item.type === "monthly"
-          ? item.amount   // yearly show
-          : item.amount,
-    }));
+    .map((item) => {
+      const name = item.name?.toLowerCase();
+      const isMonthly =
+        item.type === "monthly" ||
+        ["tuition", "hostel", "transport"].includes(name);
 
+      // Monthly components ka paid amount = sirf monthly payments se
+      const monthlyPaid = isMonthly
+        ? (feeData?.payments || [])
+          .filter((p) => p.month && !p.componentName)
+          .reduce((sum, p) => sum + Number(p.amount || 0), 0)
+        : 0;
+
+      // One-time components ka paid amount = componentName se match
+      const oneTimePaid = !isMonthly
+        ? (feeData?.payments || [])
+          .filter(
+            (p) =>
+              p.componentName &&
+              p.componentName.toLowerCase() === name
+          )
+          .reduce((sum, p) => sum + Number(p.amount || 0), 0)
+        : 0;
+
+      const paid = isMonthly ? monthlyPaid : oneTimePaid;
+      const remaining = Math.max(item.amount - paid, 0);
+
+      return {
+        category: item.name,
+        amount: item.amount,       // total (original)
+        paid,
+        remaining,
+        isMonthly,
+      };
+    });
+  const paidComponents = new Set(
+    (feeData?.payments || [])
+      .filter(p => p.componentName)
+      .map(p => p.componentName.toLowerCase())
+  );
   const generateInstallments = () => {
     if (!feeData?.createdAt) return [];
 
     const today = new Date();
-
-
     const startYear = today.getMonth() < 3 ? today.getFullYear() - 1 : today.getFullYear();
+    const start = new Date(startYear, 3, 1); // April
 
-    const start = new Date(startYear, 3, 1);
-    const totalMonths = totalEmis;
-    const paidCount = feeData?.payments?.length || 0;
-
-    const months = [];
-
-    for (let i = 0; i < totalMonths; i++) {
+    const monthNames = [
+      "April", "May", "June", "July", "August", "September",
+      "October", "November", "December", "January", "February", "March"
+    ];
+   
+    return monthNames.map((monthName, i) => {
       const date = new Date(start);
       date.setMonth(start.getMonth() + i);
 
-      let status = "Upcoming";
+      const matchedPayment = (feeData?.payments || []).find(
+    (p) => p.month && p.month.toLowerCase() === monthName.toLowerCase()
+  );
+   const isPaid = !!matchedPayment; 
 
-      if (i < paidCount) {
+    
+
+      // First unpaid month index
+      const firstUnpaidIdx = monthNames.findIndex(
+        (m) => !(feeData?.payments || []).some(
+          (p) => p.month && p.month.toLowerCase() === m.toLowerCase()
+        )
+      );
+
+      let status = "Upcoming";
+      if (isPaid) {
         status = "Paid";
-      } else if (i === paidCount) {
+      } else if (i === firstUnpaidIdx) {
         status = "Current";
-      } else if (i === paidCount + 1) {
+      } else if (i === firstUnpaidIdx + 1) {
         status = "Due";
       }
 
-      months.push({
-        month: date.toLocaleString("default", {
-          month: "long",
-          year: "numeric",
-        }),
+      return {
+        month: date.toLocaleString("default", { month: "long", year: "numeric" }),
         amount: monthlyEmi,
         dueDate: new Date(date.setDate(5)).toLocaleDateString("en-GB"),
         status,
-      });
-    }
-
-    return months;
+        invoiceId: matchedPayment?.invoiceId || null,
+      };
+    });
   };
-
   const installments = generateInstallments();
 
   const formatLabel = (key) => {
@@ -177,6 +218,8 @@ const App = () => {
       .replace(/([A-Z])/g, " $1")
       .replace(/^./, (str) => str.toUpperCase());
   };
+
+ 
   return (
     <div className="min-h-screen mt-10 md:mt-14 border-gray-200  shadow-inner bg-white border-12 font-sans text-slate-900 pb-16">
       <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 space-y-12f">
@@ -326,28 +369,50 @@ const App = () => {
               </h3>
 
               <div className="space-y-3">
-                {breakdown.map((item, i) => (
-                  <div
-                    key={i}
-                    className="flex items-center justify-between p-3 rounded-xl bg-slate-50"
-                  >
-                    <div>
-                      <p className="text-sm font-semibold text-slate-700">
-                        {formatLabel(item.category)}
-                      </p>
-                      <p className="text-xs text-slate-400">
-                        {formatCurrency(item.amount)}
-                      </p>
-                    </div>
+                {breakdown.map((item, i) => {
+                  const isPaid =
+                    item.isMonthly
+                      ? item.remaining === 0
+                      : paidComponents.has(item.category.toLowerCase());
 
-                    <button className="px-3 py-1.5 text-xs font-bold bg-[#0E94A5] text-white rounded-full hover:bg-[#0a7280]">
-                      Pay
-                    </button>
-                  </div>
-                ))}
+                  return (
+                    <div
+                      key={i}
+                      className="flex items-center justify-between p-3 rounded-xl bg-slate-50"
+                    >
+                      <div>
+                        <p className="text-sm font-semibold text-slate-700">
+                          {formatLabel(item.category)}
+                        </p>
+                        <p className="text-xs text-slate-400">
+                          Total: {formatCurrency(item.amount)}
+                        </p>
+                        {item.paid > 0 && (
+                          <p className="text-xs text-emerald-600">
+                            Paid: {formatCurrency(item.paid)}
+                          </p>
+                        )}
+                        {item.remaining > 0 && (
+                          <p className="text-xs text-rose-500">
+                            Remaining: {formatCurrency(item.remaining)}
+                          </p>
+                        )}
+                      </div>
+
+                      {isPaid ? (
+                        <span className="px-3 py-1.5 text-xs font-bold bg-emerald-100 text-emerald-700 rounded-full flex items-center gap-1">
+                          <CheckCircle2 size={12} /> Paid
+                        </span>
+                      ) : (
+                        <button className="px-3 py-1.5 text-xs font-bold bg-[#0E94A5] text-white rounded-full hover:bg-[#0a7280]">
+                          Pay
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
-
             {/* 🔥 FULL PAYMENT (ONE TIME) */}
             <div className="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-2xl p-6 shadow-lg">
               <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
@@ -504,7 +569,26 @@ const App = () => {
                         <td className="py-5 text-right">
                           {
                             item.status === "Paid" ? (
-                              <button className="text-[#0E94A5] flex items-center gap-1.5 text-xs font-bold ml-auto">
+                              <button
+
+                                onClick={async () => {
+                                  if (!item.invoiceId) {
+                                    alert("Invoice not available");
+                                    return;
+                                  }
+                                  try {
+                                    const blob = await adminServices.generateInvoicePDF(item.invoiceId);
+                                    const url = window.URL.createObjectURL(blob);
+                                    const a = document.createElement("a");
+                                    a.href = url;
+                                    a.download = `receipt_${item.month.replace(" ", "_")}.pdf`;
+                                    a.click();
+                                    window.URL.revokeObjectURL(url);
+                                  } catch (err) {
+                                    alert("Failed to download receipt");
+                                  }
+                                }}
+                                className="text-[#0E94A5] flex items-center gap-1.5 text-xs font-bold ml-auto">
                                 <Receipt size={14} /> Receipt
                               </button>
                             ) : item.status === "Due" || item.status === "Current" ? (

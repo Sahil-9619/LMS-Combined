@@ -1,6 +1,5 @@
 const Invoice = require("../../models/invoice.model");
 const PDFDocument = require("pdfkit");
-const Student = require("../../models/student.model");
 
 // ─────────────────────────────────────────────
 //  GET ALL INVOICES
@@ -21,7 +20,22 @@ exports.getAllInvoices = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+// ─── By Student ID ────────────────────────────────────────────
+exports.downloadInvoiceByStudent = async (req, res) => {
+  try {
+    const invoice = await Invoice.findOne({ studentId: req.params.studentId })
+      .populate("studentId");
 
+    if (!invoice)
+      return res.status(404).json({ success: false, message: "Invoice not found" });
+
+    await buildInvoicePDF(invoice, res);
+  } catch (error) {
+    console.error("Download Invoice By Student Error:", error);
+    if (!res.headersSent)
+      res.status(500).json({ success: false, message: "Invoice generation failed." });
+  }
+};
 // ─────────────────────────────────────────────
 //  HELPERS
 // ─────────────────────────────────────────────
@@ -68,26 +82,15 @@ function rule(doc, x1, x2, y, color = "#E5E7EB", lineWidth = 0.5) {
 // ─────────────────────────────────────────────
 exports.downloadInvoice = async (req, res) => {
   try {
-   const userId = req.userId;
+    const { id } = req.params;
+    const invoice = await Invoice.findById(id).populate("studentId");
 
-// 🔥 user se student find karo
-const student = await Student.findOne({ userId });
+    if (!invoice) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Invoice not found" });
+    }
 
-if (!student) {
-  return res.status(404).json({ message: "Student not found" });
-}
-
-// 🔥 ab correct ID use karo
-const invoice = await Invoice.findOne({
-  studentId: student._id,
-}).sort({ createdAt: -1 });
-
-if (!invoice) {
-  return res.status(404).json({
-    success: false,
-    message: "Invoice not found",
-  });
-}
     // ── Design Tokens ─────────────────────────────────────────────────────
     const BRAND = "#05717C";   // primary teal
     const BRAND_DARK = "#044E56";   // deep teal (header, grand-total)

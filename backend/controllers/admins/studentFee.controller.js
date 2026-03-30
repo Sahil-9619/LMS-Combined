@@ -344,71 +344,43 @@ exports.updateStudentFee = async (req, res) => {
     const { admissionNumber, payAmount, month, paymentType, componentName } = req.body;
 
     if (!admissionNumber || !payAmount) {
-      return res.status(400).json({
-        success: false,
-        message: "admissionNumber and payAmount are required"
-      });
+      return res.status(400).json({ success: false, message: "admissionNumber and payAmount are required" });
     }
 
-    // Monthly payment requires a month
     if (paymentType !== "onetime" && !month) {
-      return res.status(400).json({
-        success: false,
-        message: "month is required for monthly payments"
-      });
+      return res.status(400).json({ success: false, message: "month is required for monthly payments" });
     }
 
     const student = await Student.findOne({ admissionNumber }).populate("classId");
-    if (!student) {
-      return res.status(404).json({ success: false, message: "Student not found" });
-    }
+    if (!student) return res.status(404).json({ success: false, message: "Student not found" });
 
     const fee = await StudentFee.findOne({ studentId: student._id });
-    if (!fee) {
-      return res.status(404).json({ success: false, message: "Fee record not found" });
-    }
+    if (!fee) return res.status(404).json({ success: false, message: "Fee record not found" });
 
-    // Block payment if already fully paid
     if (fee.remainingAmount <= 0) {
       return res.status(400).json({ success: false, message: "All fees are already fully paid" });
     }
 
     const payment = Number(payAmount);
-
     if (!payment || payment <= 0) {
       return res.status(400).json({ success: false, message: "Enter a valid payment amount" });
     }
 
-    // ─── ONE-TIME PAYMENT (admission, exam, etc.) ───────────────
+    // ─── ONE-TIME PAYMENT ───────────────────────────────────────
     if (paymentType === "onetime") {
       const date = new Date();
       const label = componentName || "one-time";
 
-      // Block duplicate payment for the same component
       const alreadyPaid = fee.payments.some(
         p => p.componentName && p.componentName.toLowerCase() === label.toLowerCase()
       );
       if (alreadyPaid) {
-        return res.status(400).json({
-          success: false,
-          message: `${label} fee has already been paid`
-        });
+        return res.status(400).json({ success: false, message: `${label} fee has already been paid` });
       }
 
-      // Block if payment exceeds remaining amount
       if (payment > fee.remainingAmount) {
-        return res.status(400).json({
-          success: false,
-          message: `Payment ₹${payment} exceeds remaining amount ₹${fee.remainingAmount}`
-        });
+        return res.status(400).json({ success: false, message: `Payment ₹${payment} exceeds remaining ₹${fee.remainingAmount}` });
       }
-
-      fee.payments.push({ amount: payment, date, componentName: label });
-      fee.totalPaid += payment;
-      fee.remainingAmount = fee.totalAssignedFee - fee.totalPaid;
-      fee.status = fee.remainingAmount <= 0 ? "paid" : "partial";
-
-      await fee.save();
 
       const invoice = await Invoice.create({
         invoiceNumber: `INV-${Date.now()}`,
@@ -420,55 +392,44 @@ exports.updateStudentFee = async (req, res) => {
         section: student.classId?.section || "N/A",
       });
 
+      fee.payments.push({ amount: payment, date, componentName: label, invoiceId: invoice._id });
+      fee.totalPaid += payment;
+      fee.remainingAmount = fee.totalAssignedFee - fee.totalPaid;
+      fee.status = fee.remainingAmount <= 0 ? "paid" : "partial";
+      await fee.save();
+
       return res.json({ success: true, data: fee, invoiceId: invoice._id });
     }
 
-    // ─── MONTHLY PAYMENT ─────────────────────────────────────────
-    // Self-heal: if feeComponents is missing on this record, load from feeStructure
+    // ─── MONTHLY PAYMENT ────────────────────────────────────────
+    // Self-heal: feeComponents missing ho toh feeStructure se lo
     if (!fee.feeComponents || fee.feeComponents.length === 0) {
       const feeStruct = await FeeStructure.findById(fee.feeStructureId);
-      if (feeStruct && feeStruct.feeComponents && feeStruct.feeComponents.length > 0) {
+      if (feeStruct?.feeComponents?.length > 0) {
         fee.feeComponents = feeStruct.feeComponents;
         await StudentFee.findByIdAndUpdate(fee._id, { feeComponents: feeStruct.feeComponents });
       }
     }
 
     let monthlyExpectedSum = 0;
-
     (fee.feeComponents || []).forEach(f => {
-      const name = String(f.name || "").toLowerCase().trim();
-      const type = String(f.type || "").toLowerCase().trim(); // 🔥 FIX
-
-      if (type === "monthly") {
+      if (String(f.type || "").toLowerCase().trim() === "monthly") {
         monthlyExpectedSum += Number(f.amount || 0) / 12;
       }
     });
-    let monthlyTotal = Math.round(monthlyExpectedSum);
+
+    const monthlyTotal = Math.round(monthlyExpectedSum);
+
     if (monthlyTotal === 0) {
-      return res.status(400).json({
-        success: false,
-        message: "Monthly fee structure not configured properly"
-      });
+      return res.status(400).json({ success: false, message: "Monthly fee structure not configured properly" });
     }
 
-    // Only enforce exact monthly amount if a monthly fee structure exists
-    // We also allow payment === fee.remainingAmount to cover rounding differences in the final month
-    if (monthlyTotal > 0 && payment !== monthlyTotal && payment !== fee.remainingAmount) {
+    if (payment !== monthlyTotal && payment !== fee.remainingAmount) {
       return res.status(400).json({
         success: false,
         message: `Pay exact monthly fee: ₹${monthlyTotal} or remaining balance: ₹${fee.remainingAmount}`
       });
     }
-
-    const date = new Date(`${month} 1, ${new Date().getFullYear()}`);
-
-    fee.payments.push({ amount: payment, date, month });
-
-    fee.totalPaid += payment;
-    fee.remainingAmount = fee.totalAssignedFee - fee.totalPaid;
-    fee.status = fee.remainingAmount <= 0 ? "paid" : "partial";
-
-    await fee.save();
 
     const invoice = await Invoice.create({
       invoiceNumber: `INV-${Date.now()}`,
@@ -480,17 +441,24 @@ exports.updateStudentFee = async (req, res) => {
       section: student.classId?.section || "N/A",
     });
 
-    res.json({
-      success: true,
-      data: fee,
-      invoiceId: invoice._id
+    fee.payments.push({
+      amount: payment,
+      date: new Date(`${month} 1, ${new Date().getFullYear()}`),
+      month,
+      invoiceId: invoice._id,  // ✅
     });
+
+    fee.totalPaid += payment;
+    fee.remainingAmount = fee.totalAssignedFee - fee.totalPaid;
+    fee.status = fee.remainingAmount <= 0 ? "paid" : "partial";
+    await fee.save();
+
+    return res.json({ success: true, data: fee, invoiceId: invoice._id });
 
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
 };
-
 
 
 

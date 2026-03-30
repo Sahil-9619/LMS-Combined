@@ -33,7 +33,11 @@ const studentFeeSchema = new mongoose.Schema(
         amount: Number,
         date: { type: Date, default: Date.now },
         componentName: { type: String, default: null }, // e.g. "admission", "exam", null = monthly
-        month: { type: String, default: null }           // e.g. "January", null = one-time
+        month: { type: String, default: null },
+        invoiceId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Invoice"
+        },
       }
     ],
 

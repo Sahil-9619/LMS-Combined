@@ -11,17 +11,17 @@ export const admissionService = {
       throw error;
     }
   },
-  downloadInvoice: async (id) => {
-  try {
-    const response = await axiosInstance.get(`/invoice/download`, {
-      responseType: "blob",
-    });
 
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
+  downloadInvoice: async (studentId) => {
+  const token = localStorage.getItem("token");
+  const response = await fetch(`/invoice/download/student/${studentId}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  if (!response.ok) throw new Error("Download failed");
+  return response.blob();
 },
 
-  
+
 };
