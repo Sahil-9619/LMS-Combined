@@ -42,15 +42,21 @@ const App = () => {
   const totalEmis = 12;
 
   const monthlyComponentsTotal = (feeData?.feeComponents || [])
-  .filter(item =>
-    item.type === "monthly" ||
-    ["tuition", "hostel", "transport"].includes(item.name?.toLowerCase())
-  )
-  .reduce((sum, item) => sum + Number(item.amount || 0), 0);
+    .filter(item =>
+      item.type === "monthly" ||
+      ["tuition", "hostel", "transport"].includes(item.name?.toLowerCase())
+    )
+    .reduce((sum, item) => sum + Number(item.amount || 0), 0);
 
-const monthlyEmi = monthlyComponentsTotal / totalEmis;  
-  const emisPaid = monthlyEmi ? Math.floor(paidFee / monthlyEmi) : 0;
-  const emisRemaining = totalEmis - emisPaid;
+  const monthlyEmi = monthlyComponentsTotal / totalEmis;
+  const monthlyPaidTotal = (feeData?.payments || [])
+    .filter(p => p.month) // sirf monthly payments
+    .reduce((sum, p) => sum + Number(p.amount || 0), 0);
+
+  const emisPaid = monthlyEmi
+    ? Math.floor(monthlyPaidTotal / monthlyEmi)
+    : 0;
+  const emisRemaining = Math.max(totalEmis - emisPaid, 0);
 
 
   const paidPercentage = totalFee ? Math.round((paidFee / totalFee) * 100) : 0;
@@ -79,7 +85,7 @@ const monthlyEmi = monthlyComponentsTotal / totalEmis;
         setMonthlyFees(data.monthlyFees || {});
         setPayAmount(data.fee?.nextInstallment?.toString() || "");
       } catch (err) {
-        
+
       } finally {
         setLoading(false);
       }
@@ -128,11 +134,21 @@ const monthlyEmi = monthlyComponentsTotal / totalEmis;
         ["tuition", "hostel", "transport"].includes(name);
 
       // Monthly components ka paid amount = sirf monthly payments se
-      const monthlyPaid = isMonthly
-        ? (feeData?.payments || [])
-          .filter((p) => p.month && !p.componentName)
-          .reduce((sum, p) => sum + Number(p.amount || 0), 0)
-        : 0;
+      const totalMonthlyAmount = (feeData?.feeComponents || [])
+  .filter(c =>
+    c.type === "monthly" ||
+    ["tuition", "hostel", "transport"].includes(c.name?.toLowerCase())
+  )
+  .reduce((sum, c) => sum + Number(c.amount || 0), 0);
+
+const totalMonthlyPaid = (feeData?.payments || [])
+  .filter(p => p.month)
+  .reduce((sum, p) => sum + Number(p.amount || 0), 0);
+
+// 🔥 proportional distribution
+const monthlyPaid = isMonthly
+  ? (item.amount / totalMonthlyAmount) * totalMonthlyPaid
+  : 0;
 
       // One-time components ka paid amount = componentName se match
       const oneTimePaid = !isMonthly
@@ -172,17 +188,17 @@ const monthlyEmi = monthlyComponentsTotal / totalEmis;
       "April", "May", "June", "July", "August", "September",
       "October", "November", "December", "January", "February", "March"
     ];
-   
+
     return monthNames.map((monthName, i) => {
       const date = new Date(start);
       date.setMonth(start.getMonth() + i);
 
       const matchedPayment = (feeData?.payments || []).find(
-    (p) => p.month && p.month.toLowerCase() === monthName.toLowerCase()
-  );
-   const isPaid = !!matchedPayment; 
+        (p) => p.month && p.month.toLowerCase() === monthName.toLowerCase()
+      );
+      const isPaid = !!matchedPayment;
 
-    
+
 
       // First unpaid month index
       const firstUnpaidIdx = monthNames.findIndex(
@@ -219,7 +235,7 @@ const monthlyEmi = monthlyComponentsTotal / totalEmis;
       .replace(/^./, (str) => str.toUpperCase());
   };
 
- 
+
   return (
     <div className="min-h-screen mt-10 md:mt-14 border-gray-200  shadow-inner bg-white border-12 font-sans text-slate-900 pb-16">
       <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 space-y-12f">

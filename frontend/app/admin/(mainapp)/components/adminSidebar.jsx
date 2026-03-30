@@ -76,7 +76,6 @@ export default function AdminSidebar() {
       await dispatch(logout());
       // router.push("/authentication/login")
     } catch (error) {
-      console.error("Logout failed", error);
     }
   };
 
