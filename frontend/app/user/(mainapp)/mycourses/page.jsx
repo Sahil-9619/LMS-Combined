@@ -233,11 +233,10 @@ const MyCourses = () => {
                   <div className="absolute top-4 right-4">
                     <Badge
                       variant="secondary"
-                      className={`text-white border-0 shadow-md ${
-                        course.isFree
+                      className={`text-white border-0 shadow-md ${course.isFree
                           ? "bg-emerald-500"
                           : "bg-gradient-to-r from-purple-500 to-pink-500"
-                      }`}
+                        }`}
                     >
                       {course.isFree
                         ? "FREE"

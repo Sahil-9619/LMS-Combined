@@ -1253,6 +1253,20 @@ ${summary.status === "paid"
                         <span className="font-bold text-base">₹{monthlyExpected}</span>
                       </div>
                     )}
+                    {/* Full Year Payment Option */}
+                    {summary.remainingAmount > 0 && (
+                      <div className="inline-flex items-center gap-2 bg-green-50 border border-green-500 text-green-700 text-sm font-medium px-4 py-2 rounded-lg w-fit mt-2">
+                        <span>💰 Full Year Payment:</span>
+                        <span className="font-bold text-base">₹{summary.remainingAmount}</span>
+
+                        <button
+                          onClick={() => handlePayment(summary.remainingAmount, "onetime")}
+                          className="ml-3 bg-green-600 text-white px-3 py-1 rounded-md text-xs hover:bg-green-700"
+                        >
+                          Pay Full
+                        </button>
+                      </div>
+                    )}
 
                     {/* Month selector with sequential enforcement */}
                     <div className="flex flex-col gap-1">
