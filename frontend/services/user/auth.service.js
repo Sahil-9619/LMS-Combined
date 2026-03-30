@@ -96,6 +96,21 @@ export const authService = {
       email,
     });
     return response.data;
-  },  
-  
+  },
+
+  // Forgot password - sends reset link to email
+  forgotPassword: async (email) => {
+    const response = await axiosInstance.post("/user/forgot-password", { email });
+    return response.data;
+  },
+
+  // Reset password with token from email link
+  resetPassword: async (token, newPassword) => {
+    const response = await axiosInstance.post("/user/reset-password", {
+      token,
+      newPassword,
+    });
+    return response.data;
+  },
 };
+

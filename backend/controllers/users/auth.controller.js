@@ -447,26 +447,32 @@ const forgotPassword = async (req, res) => {
     const resetToken = jwt.sign(
       { id: user._id },
       process.env.AUTH_MAIL_SECRET,
-      { expiresIn: "1h" }
+      { expiresIn: "5m" } // valid for 5 minutes only
     );
 
-    const resetLink = `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
+    const resetLink = `${process.env.CLIENT_URL}/user/reset-password/${resetToken}`;
+    console.log(`Password Reset Link for ${email}: ${resetLink}`);
 
     try {
       await sendMail(email, "Password Reset Request", "resetPassword", {
         username: user.name,
         resetLink: resetLink,
+        year: new Date().getFullYear(),
       });
       res.json({ message: "Reset link sent to email" });
     } catch (mailError) {
-      console.error("Email sending failed:", mailError);
-      res.status(500).json({ message: "Failed to send reset email" });
+      console.error("Email sending failed — SMTP error details:", mailError.message);
+      res.status(500).json({
+        message: "Failed to send reset email",
+        detail: process.env.NODE_ENV === "development" ? mailError.message : undefined,
+      });
     }
   } catch (error) {
     console.error("Forgot password error:", error);
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
+
 
 // Update Password
 const updatepassword = async (req, res) => {

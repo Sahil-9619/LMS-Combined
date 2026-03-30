@@ -29,7 +29,7 @@ const templateMap = {
   verifyEmail: "verifyMail.hbs",
   feedback: "feedback.hbs",
   welcome: "welcome.hbs",
-  // add more mappings as needed
+  resetPassword: "resetPassword.hbs",
 };
 
 /**

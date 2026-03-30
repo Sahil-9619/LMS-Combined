@@ -21,4 +21,6 @@ router.put(
   authenticateToken,
   auth.updateProfile
 );
+router.post("/forgot-password", auth.forgotPassword);
+router.post("/reset-password", auth.updatepassword);
 module.exports = router;

@@ -13,9 +13,9 @@ export default function AuthProvider({ children }) {
   // Check authentication on app load
   useEffect(() => {
     // Skip auth check for public pages
-    const publicPages = ["/user/login", "/user/register", "/","/courses","/gallery","/blog","/about","/contact"];
+    const publicPages = ["/user/login", "/user/register", "/user/forgot-password", "/","/courses","/gallery","/blog","/about","/contact"];
 
-    if (publicPages.includes(pathname)) {
+    if (publicPages.includes(pathname) || pathname.startsWith("/user/reset-password")) {
       return;
     }
 
@@ -34,9 +34,9 @@ export default function AuthProvider({ children }) {
   // Handle redirects based on authentication state
   useEffect(() => {
     // Skip redirect logic for public pages
-    const publicPages = ["/user/login", "/user/register", "/"];
+    const publicPages = ["/user/login", "/user/register", "/user/forgot-password", "/"];
 
-    if (publicPages.includes(pathname)) {
+    if (publicPages.includes(pathname) || pathname.startsWith("/user/reset-password")) {
       return;
     }
 
