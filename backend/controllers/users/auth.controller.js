@@ -108,7 +108,7 @@ const verifyPhoneOtp = async (req, res) => {
         sessions: [],
         maxDevices: 5,
       });
-    } else { 
+    } else {
       user.isVerified = true;
     }
 
@@ -120,20 +120,20 @@ const verifyPhoneOtp = async (req, res) => {
     const refreshToken = generateRefreshToken(user);
     const accessToken = generateAccessToken(user);
 
-   const newSession = {
-  refreshToken,
-  userAgent: req.headers["user-agent"] || "Unknown",
-  ip: req.ip || req.connection.remoteAddress || "Unknown",
-  createdAt: new Date(),
-};
+    const newSession = {
+      refreshToken,
+      userAgent: req.headers["user-agent"] || "Unknown",
+      ip: req.ip || req.connection.remoteAddress || "Unknown",
+      createdAt: new Date(),
+    };
 
-await User.updateOne(
-  { _id: user._id },
-  {
-    $set: { isVerified: true },
-    $push: { sessions: newSession }
-  }
-);
+    await User.updateOne(
+      { _id: user._id },
+      {
+        $set: { isVerified: true },
+        $push: { sessions: newSession }
+      }
+    );
 
     // Set HTTP-only cookies
     const cookieOptions = {
@@ -203,17 +203,17 @@ const emailloginController = async (req, res) => {
     const refreshToken = generateRefreshToken(user);
     const accessToken = generateAccessToken(user);
 
-   const newSession = {
-  refreshToken,
-  userAgent: req.headers["user-agent"] || "Unknown",
-  ip: req.ip || req.connection.remoteAddress || "Unknown",
-  createdAt: new Date(),
-};
+    const newSession = {
+      refreshToken,
+      userAgent: req.headers["user-agent"] || "Unknown",
+      ip: req.ip || req.connection.remoteAddress || "Unknown",
+      createdAt: new Date(),
+    };
 
-await User.updateOne(
-  { _id: user._id },
-  { $push: { sessions: newSession } }
-);
+    await User.updateOne(
+      { _id: user._id },
+      { $push: { sessions: newSession } }
+    );
 
     res.cookie("accessToken", accessToken, {
       httpOnly: true,
@@ -246,8 +246,8 @@ const emailsignup = async (req, res) => {
       return res.status(400).json({ message: "All fields are required" });
     }
     if (phone && !/^[0-9]{10}$/.test(phone)) {
-  return res.status(400).json({ message: "Invalid phone number" });
-}
+      return res.status(400).json({ message: "Invalid phone number" });
+    }
 
     // Check for existing email
     const existingUser = await User.findOne({ email });
@@ -255,9 +255,9 @@ const emailsignup = async (req, res) => {
       return res.status(400).json({ message: "Email already registered" });
     }
     const existingPhone = await User.findOne({ phone });
-if (existingPhone) {
-  return res.status(400).json({ message: "Phone already registered" });
-}
+    if (existingPhone) {
+      return res.status(400).json({ message: "Phone already registered" });
+    }
 
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -451,7 +451,8 @@ const forgotPassword = async (req, res) => {
     );
 
     const resetLink = `${process.env.CLIENT_URL}/user/reset-password/${resetToken}`;
-    console.log(`Password Reset Link for ${email}: ${resetLink}`);
+
+    console.log(`🔥 Reset Link for ${email}: ${resetLink}`);
 
     try {
       await sendMail(email, "Password Reset Request", "resetPassword", {
@@ -459,14 +460,16 @@ const forgotPassword = async (req, res) => {
         resetLink: resetLink,
         year: new Date().getFullYear(),
       });
-      res.json({ message: "Reset link sent to email" });
+      console.log("✅ Email sent");
     } catch (mailError) {
-      console.error("Email sending failed — SMTP error details:", mailError.message);
-      res.status(500).json({
-        message: "Failed to send reset email",
-        detail: process.env.NODE_ENV === "development" ? mailError.message : undefined,
-      });
+      console.log("❌ Mail failed but continuing...");
+      console.log("👉 Use this link:", resetLink);
     }
+
+    // ✅ ALWAYS SUCCESS RESPONSE
+    res.json({
+      message: "Reset link generated (check console)",
+    });
   } catch (error) {
     console.error("Forgot password error:", error);
     res.status(500).json({ message: "Server error", error: error.message });
